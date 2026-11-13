@@ -137,7 +137,6 @@
     <script>
         let globalData = null;
 
-        // الاتصال بدالة getDepartmentsData المعرفة في الـ Google Apps Script وجلب البيانات
         window.onload = function() {
             google.script.run
                 .withSuccessHandler(onDataLoaded)
@@ -192,13 +191,13 @@
                 else if (shift.includes('مسائي')) badgeClass = 'badge-evening';
                 else badgeClass = 'badge-night';
 
-                html += `<tr>
-                    <td>${row.date || ''}</td>
-                    <td>${row.day || ''}</td>
-                    <td><strong>${row.name || ''}</strong></td>
-                    <td><span class="badge ${badgeClass}">${shift}</span></td>
-                    <td>${row.time || ''}</td>
-                </tr>`;
+            html += `<tr>
+                <td>${row.date || ''}</td>
+                <td>${row.day || ''}</td>
+                <td><strong>${row.name || ''}</strong></td>
+                <td><span class="badge ${badgeClass}">${shift}</span></td>
+                <td>${row.time || ''}</td>
+            </tr>`;
             });
             tbody.innerHTML = html;
         }
