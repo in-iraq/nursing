@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة خفارات ملاكات التمريض</title>
+    <title>جدول خفارات الملاكات التمريضية</title>
     <style>
         :root {
-            --primary: #1e3a8a;
-            --secondary: #3b82f6;
+            --primary-color: #0284c7;
             --bg-color: #f8fafc;
-            --text-color: #1e293b;
             --card-bg: #ffffff;
+            --text-color: #1e293b;
             --border-color: #e2e8f0;
         }
         body {
@@ -21,22 +20,23 @@
             padding: 20px;
         }
         .container {
-            max-width: 900px;
+            max-width: 950px;
             margin: 0 auto;
         }
         header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
         header h1 {
-            color: var(--primary);
-            margin-bottom: 10px;
+            color: var(--primary-color);
+            font-size: 22px;
+            margin-bottom: 8px;
         }
-        .select-box {
+        .filter-box {
             background: var(--card-bg);
             padding: 20px;
             border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
             margin-bottom: 25px;
             display: flex;
             flex-direction: column;
@@ -44,32 +44,25 @@
         }
         label {
             font-weight: bold;
-            color: var(--primary);
+            font-size: 14px;
         }
         select {
             padding: 12px;
-            border: 2px solid var(--border-color);
             border-radius: 8px;
+            border: 1px solid var(--border-color);
             font-size: 16px;
             outline: none;
-            transition: border-color 0.3s;
+            background: #fff;
+            cursor: pointer;
         }
         select:focus {
-            border-color: var(--secondary);
+            border-color: var(--primary-color);
         }
-        .schedule-card {
+        .table-responsive {
             background: var(--card-bg);
             border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            overflow: hidden;
-            animation: fadeIn 0.4s ease-in-out;
-        }
-        .card-header {
-            background: var(--primary);
-            color: white;
-            padding: 15px 20px;
-            font-size: 18px;
-            font-weight: bold;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            overflow-x: auto;
         }
         table {
             width: 100%;
@@ -77,121 +70,138 @@
             text-align: right;
         }
         th, td {
-            padding: 14px 20px;
+            padding: 12px 16px;
             border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
         }
         th {
-            background-color: #f1f5f9;
-            color: var(--primary);
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
         }
         tr:hover {
-            background-color: #f8fafc;
+            background-color: #f1f5f9;
         }
         .loading {
             text-align: center;
             padding: 40px;
-            font-size: 18px;
+            font-size: 15px;
             color: #64748b;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
         }
+        .badge-morning { background: #e0f2fe; color: #0369a1; }
+        .badge-evening { background: #fef3c7; color: #d97706; }
+        .badge-night { background: #f3e8ff; color: #7e22ce; }
     </style>
 </head>
 <body>
+    <div class="container">
+        <header>
+            <h1>جدول خفارات ملاكات التمريض - شهر تشرين الثاني</h1>
+            <p>اختر القسم أو الجناح الطبي لعرض جدول الخفارات الخاص به</p>
+        </header>
 
-<div class="container">
-    <header>
-        <h1>نظام خفارات ملاكات التمريض</h1>
-        <p>اختر القسم لعرض جدول الخفارات الخاص لشهر تشرين الثاني</p>
-    </header>
+        <div class="filter-box">
+            <label for="deptSelect">اختر القسم / الجناح الطبي:</label>
+            <select id="deptSelect" onchange="filterSchedule()">
+                <option value="">-- جاري الاتصال بالسكريبت وجلب الأقسام --</option>
+            </select>
+        </div>
 
-    <div class="select-box">
-        <label for="departmentSelect">اختر القسم / الطابق:</label>
-        <select id="departmentSelect" onchange="filterSchedule()">
-            <option value="">-- اضغط للاختيار --</option>
-        </select>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>اليوم</th>
+                        <th>اسم الممرض / الممرضة</th>
+                        <th>نوع الخفر</th>
+                        <th>التوقيت</th>
+                    </tr>
+                </thead>
+                <tbody id="scheduleBody">
+                    <tr>
+                        <td colspan="5" class="loading">يرجى اختيار القسم من القائمة أعلاه لعرض التفاصيل...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <div id="resultArea">
-        <div class="loading">الرجاء اختيار القسم لعرض التفاصيل...</div>
-    </div>
-</div>
+    <script>
+        let globalData = null;
 
-<script>
-    let allData = [];
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzkGxAfWiSzWLJNWF06ddpXssOExhgqnVSluoVW3g6YdcwWJ9z1BbaHkp6Bv2A__0Cmzg/exec"; // ضع رابط السكربت هنا
+        // الاتصال بدالة getDepartmentsData المعرفة في الـ Google Apps Script وجلب البيانات
+        window.onload = function() {
+            google.script.run
+                .withSuccessHandler(onDataLoaded)
+                .withFailureHandler(onDataError)
+                .getDepartmentsData();
+        };
 
-    async function fetchData() {
-        try {
-            let response = await fetch(SCRIPT_URL);
-            allData = await response.json();
-            populateDropdown();
-        } catch (error) {
-            document.getElementById('resultArea').innerHTML = '<div class="loading" style="color: red;">تعذر الاتصال بقاعدة البيانات. تأكد من صحة الرابط.</div>';
-        }
-    }
-
-    function populateDropdown() {
-        const departments = [...new Set(allData.map(item => item.department))].filter(Boolean);
-        const select = document.getElementById('departmentSelect');
-        
-        departments.forEach(dept => {
-            let option = document.createElement('option');
-            option.value = dept;
-            option.textContent = `جدول خفارات - ${dept}`;
-            select.appendChild(option);
-        });
-    }
-
-    function filterSchedule() {
-        const selectedDept = document.getElementById('departmentSelect').value;
-        const resultArea = document.getElementById('resultArea');
-
-        if (!selectedDept) {
-            resultArea.innerHTML = '<div class="loading">الرجاء اختيار القسم لعرض التفاصيل...</div>';
-            return;
+        function onDataLoaded(data) {
+            globalData = data;
+            const select = document.getElementById('deptSelect');
+            select.innerHTML = '<option value="">-- اضغط للاختيار --</option>';
+            
+            if (data && data.departments && data.departments.length > 0) {
+                data.departments.forEach(dept => {
+                    let opt = document.createElement('option');
+                    opt.value = dept;
+                    opt.textContent = dept;
+                    select.appendChild(opt);
+                });
+            } else {
+                select.innerHTML = '<option value="">لا توجد أقسام متاحة</option>';
+            }
         }
 
-        const filtered = allData.filter(item => item.department === selectedDept);
+        function onDataError(error) {
+            const select = document.getElementById('deptSelect');
+            select.innerHTML = '<option value="">خطأ في الاتصال بقاعدة البيانات</option>';
+            console.error(error);
+        }
 
-        let html = `
-            <div class="schedule-card">
-                <div class="card-header">جدول خفارات - ${selectedDept}</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>الفترة التاريخية</th>
-                            <th>الأسماء</th>
-                            <th>نوع الخفر</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-        `;
+        function filterSchedule() {
+            const selectedDept = document.getElementById('deptSelect').value;
+            const tbody = document.getElementById('scheduleBody');
+            
+            if (!selectedDept) {
+                tbody.innerHTML = '<tr><td colspan="5" class="loading">يرجى اختيار القسم لعرض التفاصيل...</td></tr>';
+                return;
+            }
 
-        filtered.forEach(row => {
-            html += `
-                <tr>
-                    <td><strong>${row.period}</strong></td>
-                    <td style="white-space: pre-line;">${row.names}</td>
-                    <td><span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; background: ${row.type.includes('صباحي') ? '#dbeafe' : '#fef3c7'}; color: ${row.type.includes('صباحي') ? '#1e40af' : '#92400e'};">${row.type}</span></td>
-                </tr>
-            `;
-        });
+            const filtered = globalData.schedule.filter(item => item.department === selectedDept);
+            
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="loading">لا توجد بيانات مسجلة لهذا القسم.</td></tr>';
+                return;
+            }
 
-        html += `
-                    </tbody>
-                </table>
-            </div>
-        `;
+            let html = '';
+            filtered.forEach(row => {
+                let badgeClass = '';
+                const shift = row.shiftType || '';
+                if (shift.includes('صباحي')) badgeClass = 'badge-morning';
+                else if (shift.includes('مسائي')) badgeClass = 'badge-evening';
+                else badgeClass = 'badge-night';
 
-        resultArea.innerHTML = html;
-    }
-
-    // جلب البيانات عند تحميل الصفحة
-    fetchData();
-</script>
-
+                html += `<tr>
+                    <td>${row.date || ''}</td>
+                    <td>${row.day || ''}</td>
+                    <td><strong>${row.name || ''}</strong></td>
+                    <td><span class="badge ${badgeClass}">${shift}</span></td>
+                    <td>${row.time || ''}</td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+    </script>
 </body>
 </html>
