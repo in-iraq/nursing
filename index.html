@@ -136,12 +136,18 @@
 
     <script>
         let cachedData = null;
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzaSdoSOvS3TldKbiEkD9HzIG4Ws9_PVsak8TSkhCSGUQhDi4abx5_P7NoqU7plAQ3m6Q/exec";
 
         window.onload = function() {
-            google.script.run
-                .withSuccessHandler(onDataLoaded)
-                .withFailureHandler(onDataError)
-                .getDepartmentsData();
+            // جلب البيانات عبر الرابط المباشر
+            fetch(WEB_APP_URL)
+                .then(response => response.json())
+                .then(data => {
+                    onDataLoaded(data);
+                })
+                .catch(error => {
+                    onDataError(error);
+                });
         };
 
         function onDataLoaded(data) {
@@ -181,7 +187,6 @@
                 return;
             }
 
-            // فلترة السجلات المطابقة للقسم المحدد بالضبط
             const filtered = cachedData.schedule.filter(item => {
                 return item.department && item.department.trim() === selectedDept.trim();
             });
