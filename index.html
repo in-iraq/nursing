@@ -3,228 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CYBER-TERMINAL // GLOBAL EXPLOIT FRAMEWORK V9.4</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>نظام إدارة خفارات ملاكات التمريض</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-        
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #3b82f6;
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+        }
         body {
-            font-family: 'Share TechMono', monospace;
-            background-color: #030a03;
-            color: #00ff66;
-            overflow-x: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
         }
-
-        .glow-text {
-            text-shadow: 0 0 8px rgba(0, 255, 102, 0.6);
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
         }
-
-        .glow-box {
-            box-shadow: 0 0 15px rgba(0, 255, 102, 0.15);
-            border: 1px solid rgba(0, 255, 102, 0.3);
+        header {
+            text-align: center;
+            margin-bottom: 30px;
         }
-
-        .radar-grid {
-            background-image: linear-gradient(rgba(0, 255, 102, 0.05) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(0, 255, 102, 0.05) 1px, transparent 1px);
-            background-size: 20px 20px;
+        header h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
         }
-
-        /* تأثير وميض المؤشر */
-        .blink::after {
-            content: '_';
-            animation: blink 1s infinite;
+        .select-box {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
+        label {
+            font-weight: bold;
+            color: var(--primary);
         }
-
-        /* سكرول بار مخصص */
-        ::-webkit-scrollbar {
-            width: 6px;
+        select {
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
         }
-        ::-webkit-scrollbar-track {
-            background: #020502;
+        select:focus {
+            border-color: var(--secondary);
         }
-        ::-webkit-scrollbar-thumb {
-            background: #00ff6655;
-            border-radius: 3px;
+        .schedule-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            overflow: hidden;
+            animation: fadeIn 0.4s ease-in-out;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #00ff6699;
+        .card-header {
+            background: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+        }
+        th, td {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        th {
+            background-color: #f1f5f9;
+            color: var(--primary);
+        }
+        tr:hover {
+            background-color: #f8fafc;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #64748b;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-<body class="radar-grid min-h-screen p-4 md:p-6">
+<body>
 
-    <!-- رأس الصفحة / الهيدر -->
-    <header class="glow-box bg-black/80 rounded-lg p-4 mb-6 flex flex-col md:flex-row justify-between items-center backdrop-blur-md">
-        <div class="flex items-center space-x-3 space-x-reverse mb-3 md:mb-0">
-            <div class="w-3 h-3 bg-green-500 rounded-full animate-ping"></div>
-            <h1 class="text-xl md:text-2xl font-bold tracking-wider glow-text">NET-SPECTRE // COMMAND & CONTROL</h1>
-        </div>
-        <div class="flex items-center space-x-6 space-x-reverse text-xs text-green-400/80">
-            <div>حالة الاتصال: <span class="text-green-400 font-bold">متصل [SECURE TUNNEL]</span></div>
-            <div>العقدة: <span class="text-green-400 font-bold">NODE-X9 // KSA-IQ</span></div>
-            <div id="live-clock" class="font-mono text-green-300">00:00:00</div>
-        </div>
+<div class="container">
+    <header>
+        <h1>نظام خفارات ملاكات التمريض</h1>
+        <p>اختر القسم لعرض جدول الخفارات الخاص لشهر تشرين الثاني</p>
     </header>
 
-    <!-- المحتوى الرئيسي (شبكة اللوحات) -->
-    <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="select-box">
+        <label for="departmentSelect">اختر القسم / الطابق:</label>
+        <select id="departmentSelect" onchange="filterSchedule()">
+            <option value="">-- اضغط للاختيار --</option>
+        </select>
+    </div>
 
-        <!-- العمود الأول: استطلاع الأهداف والشبكات -->
-        <section class="space-y-6">
-            <!-- وحدة تحديد المواقع والرادار -->
-            <div class="glow-box bg-black/90 rounded-lg p-5">
-                <h2 class="text-sm font-bold tracking-widest text-green-300 mb-4 border-b border-green-500/30 pb-2">
-                    [+] رادار الأهداف الجغرافي (GPS TRACKER)
-                </h2>
-                <div class="relative h-48 bg-green-950/20 rounded border border-green-500/20 flex items-center justify-center overflow-hidden mb-4">
-                    <!-- خطوط الرادار التبادلية -->
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <div class="w-32 h-32 rounded-full border border-green-500/20"></div>
-                        <div class="absolute w-20 h-20 rounded-full border border-green-500/30"></div>
-                        <div class="absolute w-8 h-8 rounded-full border border-green-500/50"></div>
-                        <div class="absolute w-full h-[1px] bg-green-500/20"></div>
-                        <div class="absolute h-full w-[1px] bg-green-500/20"></div>
-                    </div>
-                    <div class="absolute w-3 h-3 bg-green-400 rounded-full glow-text animate-pulse"></div>
-                    <span class="absolute bottom-2 left-2 text-[10px] text-green-400/70 font-mono">LAT: 33.3152° N | LNG: 44.3661° E</span>
-                </div>
-                <button onclick="triggerScan()" class="w-full bg-green-950/40 hover:bg-green-900/60 border border-green-500/50 text-green-300 py-2 rounded text-sm transition duration-200 glow-text">
-                    تشغيل ماسح الرادار الشامل
-                </button>
-            </div>
+    <div id="resultArea">
+        <div class="loading">الرجاء اختيار القسم لعرض التفاصيل...</div>
+    </div>
+</div>
 
-            <!-- وحدة اختراق الأجهزة وسحب الملفات -->
-            <div class="glow-box bg-black/90 rounded-lg p-5">
-                <h2 class="text-sm font-bold tracking-widest text-green-300 mb-4 border-b border-green-500/30 pb-2">
-                    [+] وحدة سحب الوسائط والكاميرا (EXPLOIT MODULE)
-                </h2>
-                <div class="space-y-3 text-xs">
-                    <div class="flex justify-between items-center bg-green-950/20 p-2 rounded border border-green-500/10">
-                        <span>سحب صور المعرض (Gallery Dump)</span>
-                        <span class="text-green-500 font-bold">[ جاهز ]</span>
-                    </div>
-                    <div class="flex justify-between items-center bg-green-950/20 p-2 rounded border border-green-500/10">
-                        <span>التقاط بث الكاميرا الأمامية</span>
-                        <span class="text-green-500 font-bold">[ خامل ]</span>
-                    </div>
-                    <div class="flex justify-between items-center bg-green-950/20 p-2 rounded border border-green-500/10">
-                        <span>قراءة جهات الاتصال والرسائل</span>
-                        <span class="text-green-500 font-bold">[ جاهز ]</span>
-                    </div>
-                </div>
-                <button onclick="executePayload()" class="mt-4 w-full bg-green-600 hover:bg-green-500 text-black font-bold py-2 rounded text-sm transition duration-200 shadow-lg">
-                    حقن الروابط وسحب البيانات
-                </button>
-            </div>
-        </section>
+<script>
+    let allData = [];
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzkGxAfWiSzWLJNWF06ddpXssOExhgqnVSluoVW3g6YdcwWJ9z1BbaHkp6Bv2A__0Cmzg/exec"; // ضع رابط السكربت هنا
 
-        <!-- العمود الثاني والثالث: وحدة التحكم وسجلات النظام (Terminal Logs) -->
-        <section class="lg:col-span-2 space-y-6">
-            <div class="glow-box bg-black/95 rounded-lg p-5 flex flex-col h-[520px]">
-                <h2 class="text-sm font-bold tracking-widest text-green-300 mb-3 border-b border-green-500/30 pb-2 flex justify-between items-center">
-                    <span>[+] سجل العمليات الحية (LIVE EXPLOIT CONSOLE)</span>
-                    <span class="text-[10px] text-green-500/70">BUFFER: 1024KB</span>
-                </h2>
-                
-                <!-- شاشة السجلات السوداء -->
-                <div id="terminal-logs" class="flex-1 bg-black border border-green-500/30 rounded p-3 font-mono text-xs overflow-y-auto space-y-2 text-green-400">
-                    <div><span class="text-green-600">[00:00:01]</span> تهيئة بيئة التشغيل وتقنيات التشفير المتقدمة...</div>
-                    <div><span class="text-green-600">[00:00:03]</span> فحص المنافذ المفتوحة عبر بروتوكول TCP/UDP... تم بنجاح.</div>
-                    <div><span class="text-green-600">[00:00:05]</span> ربط الهيكلية مع وكلاء الشبكة العنقودية (Proxy Nodes)...</div>
-                    <div class="text-green-300"><span class="text-green-600">[00:00:08]</span> النظام جاهز لتلقي الأوامر واستهداف العقد المختارة.</div>
-                </div>
+    async function fetchData() {
+        try {
+            let response = await fetch(SCRIPT_URL);
+            allData = await response.json();
+            populateDropdown();
+        } catch (error) {
+            document.getElementById('resultArea').innerHTML = '<div class="loading" style="color: red;">تعذر الاتصال بقاعدة البيانات. تأكد من صحة الرابط.</div>';
+        }
+    }
 
-                <!-- شريط إدخال الأوامر اليدوية -->
-                <div class="mt-3 flex gap-2">
-                    <span class="bg-green-950/50 border border-green-500/30 px-3 py-2 rounded text-green-400 text-xs flex items-center">root@spectre:~#</span>
-                    <input type="text" id="command-input" placeholder="اكتب أمراً هنا (مثال: help, scan, dump)..." class="flex-1 bg-black border border-green-500/30 rounded px-3 py-2 text-xs text-green-300 focus:outline-none focus:border-green-400 font-mono">
-                    <button onclick="runCommand()" class="bg-green-900/60 hover:bg-green-800 border border-green-500/50 text-green-200 px-4 py-2 rounded text-xs font-bold transition">تنفيذ</button>
-                </div>
-            </div>
+    function populateDropdown() {
+        const departments = [...new Set(allData.map(item => item.department))].filter(Boolean);
+        const select = document.getElementById('departmentSelect');
+        
+        departments.forEach(dept => {
+            let option = document.createElement('option');
+            option.value = dept;
+            option.textContent = `جدول خفارات - ${dept}`;
+            select.appendChild(option);
+        });
+    }
 
-            <!-- إحصائيات سريعة للثغرات والأجهزة المرتبطة -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="glow-box bg-black/90 p-4 rounded text-center">
-                    <div class="text-xs text-green-500/70">الأهداف النشطة</div>
-                    <div class="text-xl font-bold glow-text mt-1">14</div>
-                </div>
-                <div class="glow-box bg-black/90 p-4 rounded text-center">
-                    <div class="text-xs text-green-500/70">البيانات المسحوبة</div>
-                    <div class="text-xl font-bold glow-text mt-1">2.4 GB</div>
-                </div>
-                <div class="glow-box bg-black/90 p-4 rounded text-center">
-                    <div class="text-xs text-green-500/70">مستوى التشفير</div>
-                    <div class="text-xl font-bold glow-text mt-1">AES-256</div>
-                </div>
-                <div class="glow-box bg-black/90 p-4 rounded text-center">
-                    <div class="text-xs text-green-500/70">حالة الجدار الناري</div>
-                    <div class="text-xl font-bold text-red-500 mt-1">تم تجاوزه</div>
-                </div>
-            </div>
-        </section>
+    function filterSchedule() {
+        const selectedDept = document.getElementById('departmentSelect').value;
+        const resultArea = document.getElementById('resultArea');
 
-    </main>
-
-    <script>
-        // تحديث الساعة الحية في الهيدر
-        setInterval(() => {
-            const now = new Date();
-            document.getElementById('live-clock').innerText = now.toTimeString().split(' ')[0];
-        }, 1000);
-
-        // وظائف تفاعلية لمحاكاة أجهزة الاختراق والبرامج العالمية
-        const logsContainer = document.getElementById('terminal-logs');
-
-        function appendLog(message, colorClass = "text-green-400") {
-            const time = new Date().toTimeString().split(' ')[0];
-            const div = document.createElement('div');
-            div.className = colorClass;
-            div.innerHTML = `<span class="text-green-600">[${time}]</span> ${message}`;
-            logsContainer.appendChild(div);
-            logsContainer.scrollTop = logsContainer.scrollHeight;
+        if (!selectedDept) {
+            resultArea.innerHTML = '<div class="loading">الرجاء اختيار القسم لعرض التفاصيل...</div>';
+            return;
         }
 
-        function triggerScan() {
-            appendLog("جاري تفعيل رادار الأقمار الصناعية لتحديد نطاق الإحداثيات...", "text-green-300");
-            setTimeout(() => {
-                appendLog("تم رصد 3 أجهزة متصلة ضمن نطاق 500 متر. جاري مطابقة البيانات الجغرافية...", "text-green-400");
-            }, 1200);
-        }
+        const filtered = allData.filter(item => item.department === selectedDept);
 
-        function executePayload() {
-            appendLog("تم إرسال حزمة الحقن البرمجية (Payload) بنجاح عبر بروتوكول HTTPS...", "text-yellow-400");
-            setTimeout(() => {
-                appendLog("جاري سحب تدفق الصور وملفات المعرض من الجهاز المستهدف...", "text-green-300");
-            }, 1500);
-            setTimeout(() => {
-                appendLog("تم استلام أرشيف الصور بنجاح (ZIP - 42.1 MB). حفظ في مجلد السجلات.", "text-green-400 font-bold");
-            }, 3000);
-        }
+        let html = `
+            <div class="schedule-card">
+                <div class="card-header">جدول خفارات - ${selectedDept}</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الفترة التاريخية</th>
+                            <th>الأسماء</th>
+                            <th>نوع الخفر</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
 
-        function runCommand() {
-            const input = document.getElementById('command-input');
-            const val = input.value.trim();
-            if(!val) return;
+        filtered.forEach(row => {
+            html += `
+                <tr>
+                    <td><strong>${row.period}</strong></td>
+                    <td style="white-space: pre-line;">${row.names}</td>
+                    <td><span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; background: ${row.type.includes('صباحي') ? '#dbeafe' : '#fef3c7'}; color: ${row.type.includes('صباحي') ? '#1e40af' : '#92400e'};">${row.type}</span></td>
+                </tr>
+            `;
+        });
 
-            appendLog(`user@root:~$ ${val}`, "text-green-200");
-            
-            if(val.toLowerCase() === 'help') {
-                appendLog("الأوامر المتاحة: scan (فحص), dump (سحب بيانات), clear (مسح الشاشة), status (الحالة)");
-            } else if(val.toLowerCase() === 'clear') {
-                logsContainer.innerHTML = '';
-            } else if(val.toLowerCase() === 'scan') {
-                triggerScan();
-            } else {
-                appendLog(`خطأ: الأمر '${val}' غير معروف أو يتطلب صلاحيات عليا (SuperUser).`, "text-red-400");
-            }
-            
-            input.value = '';
-        }
-    </script>
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        resultArea.innerHTML = html;
+    }
+
+    // جلب البيانات عند تحميل الصفحة
+    fetchData();
+</script>
+
 </body>
 </html>
