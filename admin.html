@@ -227,6 +227,7 @@
       background: #f8fafc;
       font-weight: bold;
       font-size: 14px;
+      min-height: 28px;
     }
 
     td {
@@ -385,7 +386,7 @@
         </div>
 
         <div id="syncBadge" class="sync-badge fetching">
-          <span id="syncText">⏳ جاري قراءة الأسماء من الشيت...</span>
+          <span id="syncText">⏳ جاري قراءة البيانات من الشيت...</span>
         </div>
       </div>
 
@@ -523,14 +524,8 @@
       "الطابق السادس"
     ];
 
-    const DEFAULT_PERIODS = [
-      "من ١١/١ الى ١١/٥",
-      "من ١١/٦ الى ١١/١٠",
-      "من ١١/١١ الى ١١/١٥",
-      "من ١١/١٦ الى ١١/٢٠",
-      "من ١١/٢١ الى ١١/٢٥",
-      "من ١١/٢٦ الى ١١/٣٠"
-    ];
+    // لا توجد أي تواريخ مضمنة في الكود؛ تُستورد التواريخ حصرياً كما هي محفوظة ومعدلة في الشيت
+    const DEFAULT_PERIODS = ["", "", "", "", "", ""];
 
     let currentDept = DEPARTMENTS[0];
     let store = {};
@@ -548,6 +543,7 @@
         eveningTitle: "الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا",
         nightTitle: "الخفر الليلي من الساعة الحادي عشر ليلا الى الساعة الثامنة والنصف صباحا",
         periods: [...DEFAULT_PERIODS],
+        nightPeriods: [...DEFAULT_PERIODS],
         eveningCols: [[], [], [], [], [], []],
         nightCols: [[], [], [], [], [], []],
         signature: "",
@@ -595,11 +591,14 @@
       }
       base.signature = rawSig;
 
-      if (Array.isArray(raw.periods) && raw.periods.length > 0) {
+      if (Array.isArray(raw.periods)) {
         for (let i = 0; i < 6; i++) {
-          base.periods[i] = String(raw.periods[i] || DEFAULT_PERIODS[i]).trim();
+          base.periods[i] = raw.periods[i] !== undefined && raw.periods[i] !== null ? String(raw.periods[i]).trim() : "";
         }
       }
+      base.nightPeriods = Array.isArray(raw.nightPeriods)
+        ? raw.nightPeriods.slice(0, 6).map(v => String(v || "").trim())
+        : [...base.periods];
 
       if (Array.isArray(raw.eveningCols)) {
         for (let i = 0; i < 6; i++) {
@@ -617,6 +616,13 @@
     }
 
     async function initApp() {
+      localStorage.removeItem('nursing_schedule_v2');
+      localStorage.removeItem('nursing_schedule_github_v1');
+      localStorage.removeItem('nursing_schedule_autosave_v1');
+      localStorage.removeItem('nursing_schedule_autosave_v2');
+      localStorage.removeItem('nursing_schedule_twoway_v1');
+      localStorage.removeItem('nursing_schedule_auto_v2');
+
       const select = document.getElementById('deptSelect');
       const pills = document.getElementById('deptPills');
       select.innerHTML = '';
@@ -693,12 +699,13 @@
       niHead.innerHTML = '';
       niBody.innerHTML = '';
 
-      const periods = (data.periods && data.periods.length === 6) ? data.periods : [...DEFAULT_PERIODS];
+      const evPeriods = (data.periods && data.periods.length === 6) ? data.periods : [...DEFAULT_PERIODS];
+      const niPeriods = (data.nightPeriods && data.nightPeriods.length === 6) ? data.nightPeriods : evPeriods;
 
       for (let i = 0; i < 6; i++) {
         const thE = document.createElement('th');
         thE.id = `ev-col-h-${i}`;
-        thE.innerHTML = `<div contenteditable="true" oninput="onUserEdit()">${periods[i] || ''}</div>
+        thE.innerHTML = `<div contenteditable="true" oninput="onUserEdit()">${evPeriods[i] || ''}</div>
                          <button class="col-hide-btn" onclick="toggleHideCol('ev', ${i})">✕ إخفاء</button>`;
         evHead.appendChild(thE);
 
@@ -711,7 +718,7 @@
 
         const thN = document.createElement('th');
         thN.id = `ni-col-h-${i}`;
-        thN.innerHTML = `<div contenteditable="true" oninput="onUserEdit()">${periods[i] || ''}</div>
+        thN.innerHTML = `<div contenteditable="true" oninput="onUserEdit()">${niPeriods[i] || ''}</div>
                          <button class="col-hide-btn" onclick="toggleHideCol('ni', ${i})">✕ إخفاء</button>`;
         niHead.appendChild(thN);
 
@@ -759,9 +766,12 @@
       data.nightTitle = document.getElementById('nightTitle').innerText.trim();
       data.signature = htmlToLines(document.getElementById('signatureText')).join('\n').split('<!--HIDDEN:')[0].trim();
 
+      if (!Array.isArray(data.nightPeriods)) data.nightPeriods = [...DEFAULT_PERIODS];
       for (let i = 0; i < 6; i++) {
         const thE = document.querySelector(`#ev-col-h-${i} div`);
         if (thE) data.periods[i] = thE.innerText.trim();
+        const thN = document.querySelector(`#ni-col-h-${i} div`);
+        if (thN) data.nightPeriods[i] = thN.innerText.trim();
         const tdE = document.getElementById(`ev-col-b-${i}`);
         if (tdE) data.eveningCols[i] = htmlToLines(tdE);
         const tdN = document.getElementById(`ni-col-b-${i}`);
@@ -813,7 +823,7 @@
         year: document.getElementById('yearSelect').value,
         month: document.getElementById('monthSelect').value,
         deptName: sheetTabNameMap[deptList[0]] || deptList[0],
-        deptData: departmentsPayload[sheetTabNameMap[deptList[0]] || deptList[0]],
+        deptData: store[deptList[0]],
         departments: departmentsPayload,
         spreadsheetId: localStorage.getItem('nursing_spreadsheet_id') || ''
       };
@@ -943,8 +953,12 @@
         const currentPeriods = (store[dept] && store[dept].periods && store[dept].periods.length === 6)
           ? [...store[dept].periods]
           : [...DEFAULT_PERIODS];
+        const currentNightPeriods = (store[dept] && store[dept].nightPeriods && store[dept].nightPeriods.length === 6)
+          ? [...store[dept].nightPeriods]
+          : [...currentPeriods];
         const emptyObj = getEmptyTemplate(dept);
         emptyObj.periods = currentPeriods;
+        emptyObj.nightPeriods = currentNightPeriods;
         store[dept] = emptyObj;
       });
 
@@ -1017,7 +1031,7 @@
           <div class="section-wrapper">
             <div class="section-heading">${d.nightTitle}</div>
             <table>
-              <thead><tr>${d.periods.map((p, i) => d.hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
+              <thead><tr>${((d.nightPeriods && d.nightPeriods.length === 6) ? d.nightPeriods : d.periods).map((p, i) => d.hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
               <tbody><tr>${d.nightCols.map((c, i) => d.hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
