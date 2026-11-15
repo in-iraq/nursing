@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>منظومة جداول خفارات الكادر التمريضي - مزامنة ثنائية الاتجاه</title>
+  <title>منظومة جداول خفارات الكادر التمريضي - مزامنة تلقائية كاملة</title>
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -39,7 +39,7 @@
       gap: 10px;
       align-items: center;
       justify-content: space-between;
-      max-width: 1320px;
+      max-width: 1280px;
       margin: 0 auto;
     }
 
@@ -70,7 +70,7 @@
       font-size: 13px;
     }
 
-    /* مؤشر الحفظ والمزامنة الثنائية */
+    /* مؤشر المزامنة التلقائية الثنائية */
     .sync-badge {
       display: inline-flex;
       align-items: center;
@@ -106,10 +106,6 @@
 
     .btn-primary { background: var(--primary); color: #fff; }
     .btn-primary:hover { background: var(--primary-hover); }
-    .btn-success { background: #16a34a; color: #fff; }
-    .btn-success:hover { background: #15803d; }
-    .btn-purple { background: #7c3aed; color: #fff; }
-    .btn-purple:hover { background: #6d28d9; }
     .btn-warning { background: #d97706; color: #fff; }
     .btn-danger { background: #dc2626; color: #fff; }
     .btn-secondary { background: #475569; color: #fff; }
@@ -119,7 +115,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      max-width: 1320px;
+      max-width: 1280px;
       margin: 10px auto 0;
       padding-top: 8px;
       border-top: 1px solid #334155;
@@ -346,7 +342,7 @@
 </head>
 <body>
 
-  <!-- شريط التحكم العلوي -->
+  <!-- شريط التحكم العلوي (بدون أزرار جلب أو حفظ يدوية - مزامنة تلقائية بالكامل) -->
   <header class="toolbar">
     <div class="toolbar-row">
       <div class="controls-group">
@@ -382,20 +378,12 @@
           <select id="deptSelect" onchange="switchDepartment(this.value)"></select>
         </div>
 
-        <label class="control-item" style="cursor:pointer;">
-          <input type="checkbox" id="autoSaveToggle" checked onchange="toggleAutoSaveMode(this.checked)">
-          <span>مزامنة ثنائية تلقائية</span>
-        </label>
-
         <div id="syncBadge" class="sync-badge">
-          <span id="syncText">🔄 جاري الاتصال بالشيت...</span>
+          <span id="syncText">🔄 مزامنة تلقائية نشطة...</span>
         </div>
       </div>
 
       <div class="controls-group">
-        <a id="openSheetDirectBtn" href="#" target="_blank" class="btn btn-success" style="display:none;">📂 فتح الشيت ↗</a>
-        <button class="btn btn-purple" onclick="pullFromGoogleSheets(true)">⬇️ جلب التحديثات من الشيت</button>
-        <button class="btn btn-success" onclick="syncCurrentDeptToSheet(true)">⬆️ حفظ الكل للشيت</button>
         <button class="btn btn-warning" onclick="showAllHiddenFields()">👁️ إظهار المخفي</button>
         <button class="btn btn-danger" onclick="clearCurrentDepartment()">تفريغ</button>
         <button class="btn btn-primary" onclick="openPrintModal()">🖨️ طباعة (A4)</button>
@@ -496,7 +484,7 @@
   </div>
 
   <script>
-    const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbxDuxBYA1q8FmQ7izX5f3oYm_SKOgT8JwRmkfNIYbCazORpKc_w4qQZnCapoDqgK08uNg/exec";
+    const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbyDzq_jbmhvAkeja-nW_pr3959_LCaRt6mUXFJV5iRXfHM6yV9_dq4SEHkHAf1-m3v6KA/exec";
 
     const DEPARTMENTS = [
       "قسم الطوارئ",
@@ -521,8 +509,7 @@
     ];
 
     let currentDept = DEPARTMENTS[0];
-    let store = JSON.parse(localStorage.getItem('nursing_schedule_twoway_v1') || '{}');
-    let autoSaveEnabled = true;
+    let store = JSON.parse(localStorage.getItem('nursing_schedule_auto_v2') || '{}');
     let autoSaveTimer = null;
     let isTyping = false;
     let isSavingToCloud = false;
@@ -601,26 +588,19 @@
         pills.appendChild(pill);
       });
 
-      const savedUrl = localStorage.getItem('nursing_sheet_url');
-      if (savedUrl) {
-        const btn = document.getElementById('openSheetDirectBtn');
-        btn.href = savedUrl;
-        btn.style.display = 'inline-flex';
-      }
-
       renderDepartment(currentDept);
 
-      // ١. جلب أحدث التعديلات من الشيت فور فتح صفحة الويب
-      await pullFromGoogleSheets(false);
+      // ١. مزامنة فورية عند فتح الصفحة
+      await pullFromGoogleSheets();
 
-      // ٢. فحص دوري كل 8 ثوانٍ لجلب أي تعديل جرى داخل الشيت وتحديث صفحة الويب تلقائياً
+      // ٢. مزامنة تلقائية بالخلفية كل 5 ثوانٍ بين الشيت وصفحة الويب
       setInterval(() => {
         const activeEl = document.activeElement;
         const userCurrentlyEditingCell = activeEl && activeEl.getAttribute('contenteditable') === 'true';
-        if (autoSaveEnabled && !isTyping && !isSavingToCloud && !userCurrentlyEditingCell && (Date.now() - lastEditTimestamp > 4000)) {
-          pullFromGoogleSheets(false);
+        if (!isTyping && !isSavingToCloud && !userCurrentlyEditingCell && (Date.now() - lastEditTimestamp > 3500)) {
+          pullFromGoogleSheets();
         }
-      }, 8000);
+      }, 5000);
     }
 
     function switchDepartment(dept) {
@@ -631,6 +611,7 @@
         btn.classList.toggle('active', btn.textContent === dept);
       });
       renderDepartment(dept);
+      pullFromGoogleSheets();
     }
 
     function renderDepartment(dept) {
@@ -705,17 +686,6 @@
       txt.textContent = text;
     }
 
-    function toggleAutoSaveMode(enabled) {
-      autoSaveEnabled = enabled;
-      if (enabled) {
-        setSyncStatus('', '☁️ المزامنة الثنائية مفعّلة');
-        pullFromGoogleSheets(false);
-      } else {
-        clearTimeout(autoSaveTimer);
-        setSyncStatus('', '⏸️ المزامنة التلقائية متوقفة');
-      }
-    }
-
     function onUserEdit() {
       isTyping = true;
       lastEditTimestamp = Date.now();
@@ -740,27 +710,27 @@
         if (tdN) data.nightCols[i] = htmlToLines(tdN);
       }
 
-      localStorage.setItem('nursing_schedule_twoway_v1', JSON.stringify(store));
+      localStorage.setItem('nursing_schedule_auto_v2', JSON.stringify(store));
 
-      if (triggerCloud && autoSaveEnabled) {
+      if (triggerCloud) {
         scheduleAutoSync();
       }
     }
 
     function scheduleAutoSync() {
-      setSyncStatus('saving', '✍️ جاري رصد التعديلات...');
+      setSyncStatus('saving', '✍️ جاري الحفظ التلقائي...');
       clearTimeout(autoSaveTimer);
       autoSaveTimer = setTimeout(() => {
         isTyping = false;
         syncCurrentDeptToSheet(false);
-      }, 1200);
+      }, 900);
     }
 
-    // إرسال التعديلات من صفحة الويب إلى الشيت
+    // إرسال التعديلات تلقائياً من صفحة الويب إلى الشيت
     async function syncCurrentDeptToSheet(syncAll = false) {
       saveCurrentState(false);
       isSavingToCloud = true;
-      setSyncStatus('saving', '⬆️ جاري الحفظ في الشيت...');
+      setSyncStatus('saving', '⏳ جاري المزامنة مع الشيت...');
 
       const payload = {
         action: syncAll ? 'syncAll' : 'autoSaveDept',
@@ -783,16 +753,10 @@
           if (result.spreadsheetId) {
             localStorage.setItem('nursing_spreadsheet_id', result.spreadsheetId);
           }
-          if (result.url) {
-            localStorage.setItem('nursing_sheet_url', result.url);
-            const btn = document.getElementById('openSheetDirectBtn');
-            btn.href = result.url;
-            btn.style.display = 'inline-flex';
-          }
           const timeStr = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-          setSyncStatus('saved', `✅ متزامن مع الشيت (${timeStr})`);
+          setSyncStatus('saved', `✅ متزامن تلقائياً (${timeStr})`);
         } else {
-          setSyncStatus('error', '⚠️ خطأ في السكربت');
+          setSyncStatus('error', '⚠️ خطأ في المزامنة');
         }
       } catch (err) {
         setSyncStatus('error', '❌ تعذر الاتصال بالشيت');
@@ -801,12 +765,9 @@
       }
     }
 
-    // جلب البيانات المحدثة من Google Sheets وعرضها في صفحة الويب
-    async function pullFromGoogleSheets(showManualNotice = false) {
+    // جلب أي تعديلات جديدة من Google Sheets إلى صفحة الويب تلقائياً بالخلفية
+    async function pullFromGoogleSheets() {
       if (isSavingToCloud || isTyping) return;
-      if (showManualNotice) {
-        setSyncStatus('fetching', '⬇️ جاري جلب أحدث البيانات من الشيت...');
-      }
 
       try {
         const ssId = localStorage.getItem('nursing_spreadsheet_id') || '';
@@ -817,12 +778,6 @@
         if (result.status === 'success' && result.departments) {
           if (result.spreadsheetId) {
             localStorage.setItem('nursing_spreadsheet_id', result.spreadsheetId);
-          }
-          if (result.url) {
-            localStorage.setItem('nursing_sheet_url', result.url);
-            const btn = document.getElementById('openSheetDirectBtn');
-            btn.href = result.url;
-            btn.style.display = 'inline-flex';
           }
           if (result.month) {
             document.getElementById('monthSelect').value = result.month;
@@ -840,21 +795,19 @@
             }
           });
 
-          localStorage.setItem('nursing_schedule_twoway_v1', JSON.stringify(store));
+          localStorage.setItem('nursing_schedule_auto_v2', JSON.stringify(store));
 
-          if (hasChanges || showManualNotice) {
+          if (hasChanges) {
             renderDepartment(currentDept);
           }
 
           const timeStr = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-          setSyncStatus('saved', `✅ متزامن مع الشيت (${timeStr})`);
+          setSyncStatus('saved', `✅ متزامن تلقائياً (${timeStr})`);
         } else if (result.status === 'empty') {
           await syncCurrentDeptToSheet(true);
         }
       } catch (err) {
-        if (showManualNotice) {
-          setSyncStatus('error', '⚠️ تأكد من تحديث كود السكربت (New Version)');
-        }
+        // تجاهل أخطاء الشبكة العابرة في الخلفية
       }
     }
 
