@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>منظومة جداول خفارات الكادر التمريضي - مزامنة تلقائية</title>
+  <title>منظومة جداول خفارات الكادر التمريضي - مزامنة ثنائية الاتجاه</title>
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -39,7 +39,7 @@
       gap: 10px;
       align-items: center;
       justify-content: space-between;
-      max-width: 1280px;
+      max-width: 1320px;
       margin: 0 auto;
     }
 
@@ -70,7 +70,7 @@
       font-size: 13px;
     }
 
-    /* مؤشر الحفظ التلقائي */
+    /* مؤشر الحفظ والمزامنة الثنائية */
     .sync-badge {
       display: inline-flex;
       align-items: center;
@@ -86,6 +86,7 @@
     }
     .sync-badge.saving { color: #fbbf24; border-color: #f59e0b; }
     .sync-badge.saved { color: #4ade80; border-color: #22c55e; }
+    .sync-badge.fetching { color: #a78bfa; border-color: #8b5cf6; }
     .sync-badge.error { color: #f87171; border-color: #ef4444; }
 
     .btn {
@@ -107,6 +108,8 @@
     .btn-primary:hover { background: var(--primary-hover); }
     .btn-success { background: #16a34a; color: #fff; }
     .btn-success:hover { background: #15803d; }
+    .btn-purple { background: #7c3aed; color: #fff; }
+    .btn-purple:hover { background: #6d28d9; }
     .btn-warning { background: #d97706; color: #fff; }
     .btn-danger { background: #dc2626; color: #fff; }
     .btn-secondary { background: #475569; color: #fff; }
@@ -116,7 +119,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      max-width: 1280px;
+      max-width: 1320px;
       margin: 10px auto 0;
       padding-top: 8px;
       border-top: 1px solid #334155;
@@ -381,19 +384,20 @@
 
         <label class="control-item" style="cursor:pointer;">
           <input type="checkbox" id="autoSaveToggle" checked onchange="toggleAutoSaveMode(this.checked)">
-          <span>حفظ تلقائي في الشيت</span>
+          <span>مزامنة ثنائية تلقائية</span>
         </label>
 
         <div id="syncBadge" class="sync-badge">
-          <span id="syncText">☁️ الحفظ التلقائي مفعّل</span>
+          <span id="syncText">🔄 جاري الاتصال بالشيت...</span>
         </div>
       </div>
 
       <div class="controls-group">
         <a id="openSheetDirectBtn" href="#" target="_blank" class="btn btn-success" style="display:none;">📂 فتح الشيت ↗</a>
+        <button class="btn btn-purple" onclick="pullFromGoogleSheets(true)">⬇️ جلب التحديثات من الشيت</button>
+        <button class="btn btn-success" onclick="syncCurrentDeptToSheet(true)">⬆️ حفظ الكل للشيت</button>
         <button class="btn btn-warning" onclick="showAllHiddenFields()">👁️ إظهار المخفي</button>
-        <button class="btn btn-danger" onclick="clearCurrentDepartment()">تفريغ الأسماء</button>
-        <button class="btn btn-success" onclick="syncCurrentDeptToSheet(true)">🔄 حفظ فوري للشيت</button>
+        <button class="btn btn-danger" onclick="clearCurrentDepartment()">تفريغ</button>
         <button class="btn btn-primary" onclick="openPrintModal()">🖨️ طباعة (A4)</button>
       </div>
     </div>
@@ -405,7 +409,7 @@
   <!-- منطقة عرض ورقة A4 -->
   <main class="a4-container">
     <div class="a4-page" id="activeA4Page">
-      <div class="page-title" id="sheetMainTitle" contenteditable="true" oninput="saveCurrentState()">
+      <div class="page-title" id="sheetMainTitle" contenteditable="true" oninput="onUserEdit()">
         • جدول خفارات كادر التمريض قسم الطوارئ / تشرين الثاني
       </div>
 
@@ -415,12 +419,12 @@
         <table class="morning-table">
           <thead>
             <tr>
-              <th id="morningHeader" contenteditable="true" oninput="saveCurrentState()">الصباحي لكل الشهر من الاحد الى الخميس</th>
+              <th id="morningHeader" contenteditable="true" oninput="onUserEdit()">الصباحي لكل الشهر من الاحد الى الخميس</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td id="morningBody" contenteditable="true" oninput="saveCurrentState()"></td>
+              <td id="morningBody" contenteditable="true" oninput="onUserEdit()"></td>
             </tr>
           </tbody>
         </table>
@@ -429,7 +433,7 @@
       <!-- جدول الخفر المسائي -->
       <div class="section-wrapper" id="sec-evening">
         <button class="hide-btn" onclick="toggleHideElement('sec-evening')">👁️ إخفاء الجدول المسائي</button>
-        <div class="section-heading" id="eveningTitle" contenteditable="true" oninput="saveCurrentState()">
+        <div class="section-heading" id="eveningTitle" contenteditable="true" oninput="onUserEdit()">
           الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا
         </div>
         <table>
@@ -445,7 +449,7 @@
       <!-- جدول الخفر الليلي -->
       <div class="section-wrapper" id="sec-night">
         <button class="hide-btn" onclick="toggleHideElement('sec-night')">👁️ إخفاء الجدول الليلي</button>
-        <div class="section-heading" id="nightTitle" contenteditable="true" oninput="saveCurrentState()">
+        <div class="section-heading" id="nightTitle" contenteditable="true" oninput="onUserEdit()">
           الخفر الليلي من الساعة الحادي عشر ليلا الى الساعة الثامنة والنصف صباحا
         </div>
         <table>
@@ -461,7 +465,7 @@
       <!-- التوقيع -->
       <div class="section-wrapper signature-box" id="sec-signature">
         <button class="hide-btn" onclick="toggleHideElement('sec-signature')">👁️ إخفاء التوقيع</button>
-        <div class="signature-content" id="signatureText" contenteditable="true" oninput="saveCurrentState()">
+        <div class="signature-content" id="signatureText" contenteditable="true" oninput="onUserEdit()">
           ممرض جامعي<br>عباس تحسين احمد<br>مسؤول التمريض
         </div>
       </div>
@@ -492,7 +496,7 @@
   </div>
 
   <script>
-    const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbyDzq_jbmhvAkeja-nW_pr3959_LCaRt6mUXFJV5iRXfHM6yV9_dq4SEHkHAf1-m3v6KA/exec";
+    const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbxDuxBYA1q8FmQ7izX5f3oYm_SKOgT8JwRmkfNIYbCazORpKc_w4qQZnCapoDqgK08uNg/exec";
 
     const DEPARTMENTS = [
       "قسم الطوارئ",
@@ -517,9 +521,12 @@
     ];
 
     let currentDept = DEPARTMENTS[0];
-    let store = JSON.parse(localStorage.getItem('nursing_schedule_autosave_v2') || '{}');
+    let store = JSON.parse(localStorage.getItem('nursing_schedule_twoway_v1') || '{}');
     let autoSaveEnabled = true;
     let autoSaveTimer = null;
+    let isTyping = false;
+    let isSavingToCloud = false;
+    let lastEditTimestamp = 0;
 
     function getEmergencyTemplate() {
       return {
@@ -572,7 +579,7 @@
       };
     }
 
-    function initApp() {
+    async function initApp() {
       const select = document.getElementById('deptSelect');
       const pills = document.getElementById('deptPills');
       select.innerHTML = '';
@@ -602,6 +609,18 @@
       }
 
       renderDepartment(currentDept);
+
+      // ١. جلب أحدث التعديلات من الشيت فور فتح صفحة الويب
+      await pullFromGoogleSheets(false);
+
+      // ٢. فحص دوري كل 8 ثوانٍ لجلب أي تعديل جرى داخل الشيت وتحديث صفحة الويب تلقائياً
+      setInterval(() => {
+        const activeEl = document.activeElement;
+        const userCurrentlyEditingCell = activeEl && activeEl.getAttribute('contenteditable') === 'true';
+        if (autoSaveEnabled && !isTyping && !isSavingToCloud && !userCurrentlyEditingCell && (Date.now() - lastEditTimestamp > 4000)) {
+          pullFromGoogleSheets(false);
+        }
+      }, 8000);
     }
 
     function switchDepartment(dept) {
@@ -616,13 +635,14 @@
 
     function renderDepartment(dept) {
       const data = store[dept];
+      if (!data) return;
       const month = document.getElementById('monthSelect').value;
       document.getElementById('sheetMainTitle').textContent = `• جدول خفارات كادر التمريض ${dept} / ${month}`;
-      document.getElementById('morningHeader').textContent = data.morningHeader;
-      document.getElementById('morningBody').innerHTML = data.morningNames.join('<br>');
-      document.getElementById('eveningTitle').textContent = data.eveningTitle;
-      document.getElementById('nightTitle').textContent = data.nightTitle;
-      document.getElementById('signatureText').innerHTML = data.signature.replace(/\n/g, '<br>');
+      document.getElementById('morningHeader').textContent = data.morningHeader || "الصباحي لكل الشهر من الاحد الى الخميس";
+      document.getElementById('morningBody').innerHTML = (data.morningNames || []).join('<br>');
+      document.getElementById('eveningTitle').textContent = data.eveningTitle || "الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا";
+      document.getElementById('nightTitle').textContent = data.nightTitle || "الخفر الليلي من الساعة الحادي عشر ليلا الى الساعة الثامنة والنصف صباحا";
+      document.getElementById('signatureText').innerHTML = (data.signature || "ممرض جامعي\nعباس تحسين احمد\nمسؤول التمريض").replace(/\n/g, '<br>');
 
       const evHead = document.getElementById('eveningHeadRow');
       const evBody = document.getElementById('eveningBodyRow');
@@ -634,31 +654,33 @@
       niHead.innerHTML = '';
       niBody.innerHTML = '';
 
+      const periods = (data.periods && data.periods.length === 6) ? data.periods : [...DEFAULT_PERIODS];
+
       for (let i = 0; i < 6; i++) {
         const thE = document.createElement('th');
         thE.id = `ev-col-h-${i}`;
-        thE.innerHTML = `<div contenteditable="true" oninput="saveCurrentState()">${data.periods[i]}</div>
+        thE.innerHTML = `<div contenteditable="true" oninput="onUserEdit()">${periods[i] || ''}</div>
                          <button class="col-hide-btn" onclick="toggleHideCol('ev', ${i})">✕ إخفاء</button>`;
         evHead.appendChild(thE);
 
         const tdE = document.createElement('td');
         tdE.id = `ev-col-b-${i}`;
         tdE.contentEditable = "true";
-        tdE.oninput = () => saveCurrentState(true);
-        tdE.innerHTML = (data.eveningCols[i] || []).join('<br>');
+        tdE.oninput = onUserEdit;
+        tdE.innerHTML = ((data.eveningCols && data.eveningCols[i]) || []).join('<br>');
         evBody.appendChild(tdE);
 
         const thN = document.createElement('th');
         thN.id = `ni-col-h-${i}`;
-        thN.innerHTML = `<div contenteditable="true" oninput="saveCurrentState()">${data.periods[i]}</div>
+        thN.innerHTML = `<div contenteditable="true" oninput="onUserEdit()">${periods[i] || ''}</div>
                          <button class="col-hide-btn" onclick="toggleHideCol('ni', ${i})">✕ إخفاء</button>`;
         niHead.appendChild(thN);
 
         const tdN = document.createElement('td');
         tdN.id = `ni-col-b-${i}`;
         tdN.contentEditable = "true";
-        tdN.oninput = () => saveCurrentState(true);
-        tdN.innerHTML = (data.nightCols[i] || []).join('<br>');
+        tdN.oninput = onUserEdit;
+        tdN.innerHTML = ((data.nightCols && data.nightCols[i]) || []).join('<br>');
         niBody.appendChild(tdN);
       }
 
@@ -686,12 +708,18 @@
     function toggleAutoSaveMode(enabled) {
       autoSaveEnabled = enabled;
       if (enabled) {
-        setSyncStatus('', '☁️ الحفظ التلقائي مفعّل');
-        scheduleAutoSync();
+        setSyncStatus('', '☁️ المزامنة الثنائية مفعّلة');
+        pullFromGoogleSheets(false);
       } else {
         clearTimeout(autoSaveTimer);
-        setSyncStatus('', '⏸️ الحفظ التلقائي متوقف');
+        setSyncStatus('', '⏸️ المزامنة التلقائية متوقفة');
       }
+    }
+
+    function onUserEdit() {
+      isTyping = true;
+      lastEditTimestamp = Date.now();
+      saveCurrentState(true);
     }
 
     function saveCurrentState(triggerCloud = true) {
@@ -712,25 +740,27 @@
         if (tdN) data.nightCols[i] = htmlToLines(tdN);
       }
 
-      localStorage.setItem('nursing_schedule_autosave_v2', JSON.stringify(store));
+      localStorage.setItem('nursing_schedule_twoway_v1', JSON.stringify(store));
 
       if (triggerCloud && autoSaveEnabled) {
         scheduleAutoSync();
       }
     }
 
-    // مؤقت ذكي (Debounce) يرسل التعديلات تلقائياً بعد توقف الكتابة بـ 1.2 ثانية
     function scheduleAutoSync() {
       setSyncStatus('saving', '✍️ جاري رصد التعديلات...');
       clearTimeout(autoSaveTimer);
       autoSaveTimer = setTimeout(() => {
+        isTyping = false;
         syncCurrentDeptToSheet(false);
       }, 1200);
     }
 
+    // إرسال التعديلات من صفحة الويب إلى الشيت
     async function syncCurrentDeptToSheet(syncAll = false) {
       saveCurrentState(false);
-      setSyncStatus('saving', '⏳ جاري الحفظ في Google Sheets...');
+      isSavingToCloud = true;
+      setSyncStatus('saving', '⬆️ جاري الحفظ في الشيت...');
 
       const payload = {
         action: syncAll ? 'syncAll' : 'autoSaveDept',
@@ -760,22 +790,70 @@
             btn.style.display = 'inline-flex';
           }
           const timeStr = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-          setSyncStatus('saved', `✅ تم الحفظ تلقائياً (${timeStr})`);
+          setSyncStatus('saved', `✅ متزامن مع الشيت (${timeStr})`);
         } else {
           setSyncStatus('error', '⚠️ خطأ في السكربت');
         }
       } catch (err) {
-        try {
-          await fetch(DEFAULT_GAS_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload)
+        setSyncStatus('error', '❌ تعذر الاتصال بالشيت');
+      } finally {
+        isSavingToCloud = false;
+      }
+    }
+
+    // جلب البيانات المحدثة من Google Sheets وعرضها في صفحة الويب
+    async function pullFromGoogleSheets(showManualNotice = false) {
+      if (isSavingToCloud || isTyping) return;
+      if (showManualNotice) {
+        setSyncStatus('fetching', '⬇️ جاري جلب أحدث البيانات من الشيت...');
+      }
+
+      try {
+        const ssId = localStorage.getItem('nursing_spreadsheet_id') || '';
+        const fetchUrl = `${DEFAULT_GAS_URL}?action=loadAll&spreadsheetId=${encodeURIComponent(ssId)}&t=${Date.now()}`;
+        const res = await fetch(fetchUrl);
+        const result = await res.json();
+
+        if (result.status === 'success' && result.departments) {
+          if (result.spreadsheetId) {
+            localStorage.setItem('nursing_spreadsheet_id', result.spreadsheetId);
+          }
+          if (result.url) {
+            localStorage.setItem('nursing_sheet_url', result.url);
+            const btn = document.getElementById('openSheetDirectBtn');
+            btn.href = result.url;
+            btn.style.display = 'inline-flex';
+          }
+          if (result.month) {
+            document.getElementById('monthSelect').value = result.month;
+          }
+
+          let hasChanges = false;
+          Object.keys(result.departments).forEach(dept => {
+            const incoming = result.departments[dept];
+            const existingHidden = (store[dept] && store[dept].hiddenIds) ? store[dept].hiddenIds : [];
+            incoming.hiddenIds = existingHidden;
+
+            if (JSON.stringify(store[dept]) !== JSON.stringify(incoming)) {
+              store[dept] = incoming;
+              if (dept === currentDept) hasChanges = true;
+            }
           });
+
+          localStorage.setItem('nursing_schedule_twoway_v1', JSON.stringify(store));
+
+          if (hasChanges || showManualNotice) {
+            renderDepartment(currentDept);
+          }
+
           const timeStr = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-          setSyncStatus('saved', `✅ تم الإرسال للشيت (${timeStr})`);
-        } catch (e2) {
-          setSyncStatus('error', '❌ تعذر الاتصال بالشيت');
+          setSyncStatus('saved', `✅ متزامن مع الشيت (${timeStr})`);
+        } else if (result.status === 'empty') {
+          await syncCurrentDeptToSheet(true);
+        }
+      } catch (err) {
+        if (showManualNotice) {
+          setSyncStatus('error', '⚠️ تأكد من تحديث كود السكربت (New Version)');
         }
       }
     }
@@ -783,14 +861,14 @@
     function updateTitleAndSave() {
       const month = document.getElementById('monthSelect').value;
       document.getElementById('sheetMainTitle').textContent = `• جدول خفارات كادر التمريض ${currentDept} / ${month}`;
-      saveCurrentState(true);
+      onUserEdit();
     }
 
     function toggleHideElement(id) {
       const data = store[currentDept];
       if (!data.hiddenIds.includes(id)) data.hiddenIds.push(id);
       applyHiddenElements(data.hiddenIds);
-      saveCurrentState(true);
+      saveCurrentState(false);
     }
 
     function toggleHideCol(prefix, idx) {
@@ -799,7 +877,7 @@
       const bId = `${prefix}-col-b-${idx}`;
       if (!data.hiddenIds.includes(hId)) data.hiddenIds.push(hId, bId);
       applyHiddenElements(data.hiddenIds);
-      saveCurrentState(true);
+      saveCurrentState(false);
     }
 
     function applyHiddenElements(hiddenIds) {
@@ -813,14 +891,14 @@
     function showAllHiddenFields() {
       store[currentDept].hiddenIds = [];
       applyHiddenElements([]);
-      saveCurrentState(true);
+      saveCurrentState(false);
     }
 
     function clearCurrentDepartment() {
       if (!confirm(`هل تريد تفريغ الأسماء في "${currentDept}"؟`)) return;
       store[currentDept] = getBlankTemplate();
       renderDepartment(currentDept);
-      saveCurrentState(true);
+      onUserEdit();
     }
 
     function populateCheckList(containerId, cbClass, checkAll = false) {
