@@ -313,7 +313,7 @@
       grid-template-columns: repeat(2, 1fr);
       gap: 8px;
       margin: 14px 0;
-      max-height: 260px;
+      max-height: 300px;
       overflow-y: auto;
     }
 
@@ -397,7 +397,7 @@
       </div>
     </div>
 
-    <!-- أزرار التنقل السريع بين الأقسام العشرة -->
+    <!-- أزرار التنقل السريع بين الأقسام الـ 14 -->
     <div class="dept-pills" id="deptPills"></div>
   </header>
 
@@ -521,7 +521,11 @@
       "الطابق الثالث",
       "الطابق الرابع",
       "الطابق الخامس",
-      "الطابق السادس"
+      "الطابق السادس",
+      "قسم الديلزة",
+      "قسم عمليات الطوارى",
+      "قسم الجهاز الهضمي",
+      "القسطرة القلبية"
     ];
 
     // لا توجد أي تواريخ مضمنة في الكود؛ تُستورد التواريخ حصرياً كما هي محفوظة ومعدلة في الشيت
@@ -616,13 +620,6 @@
     }
 
     async function initApp() {
-      localStorage.removeItem('nursing_schedule_v2');
-      localStorage.removeItem('nursing_schedule_github_v1');
-      localStorage.removeItem('nursing_schedule_autosave_v1');
-      localStorage.removeItem('nursing_schedule_autosave_v2');
-      localStorage.removeItem('nursing_schedule_twoway_v1');
-      localStorage.removeItem('nursing_schedule_auto_v2');
-
       const select = document.getElementById('deptSelect');
       const pills = document.getElementById('deptPills');
       select.innerHTML = '';
