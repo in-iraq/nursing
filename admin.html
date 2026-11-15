@@ -166,6 +166,7 @@
       font-size: 22px;
       font-weight: bold;
       margin-bottom: 14px;
+      min-height: 28px;
     }
 
     .section-wrapper {
@@ -245,6 +246,7 @@
       font-size: 20px;
       font-weight: bold;
       margin: 10px 0 8px;
+      min-height: 26px;
     }
 
     [contenteditable="true"]:focus {
@@ -313,7 +315,7 @@
       grid-template-columns: repeat(2, 1fr);
       gap: 8px;
       margin: 14px 0;
-      max-height: 300px;
+      max-height: 260px;
       overflow-y: auto;
     }
 
@@ -386,7 +388,7 @@
         </div>
 
         <div id="syncBadge" class="sync-badge fetching">
-          <span id="syncText">⏳ جاري قراءة البيانات من الشيت...</span>
+          <span id="syncText">⏳ جاري قراءة الأسماء من الشيت...</span>
         </div>
       </div>
 
@@ -404,9 +406,7 @@
   <!-- منطقة عرض ورقة A4 -->
   <main class="a4-container">
     <div class="a4-page" id="activeA4Page">
-      <div class="page-title" id="sheetMainTitle" contenteditable="true" oninput="onUserEdit()">
-        • جدول خفارات كادر التمريض قسم الطوارئ / تشرين الثاني
-      </div>
+      <div class="page-title" id="sheetMainTitle" contenteditable="true" oninput="onUserEdit()"></div>
 
       <!-- جدول الخفر الصباحي -->
       <div class="section-wrapper" id="sec-morning">
@@ -414,7 +414,7 @@
         <table class="morning-table">
           <thead>
             <tr>
-              <th id="morningHeader" contenteditable="true" oninput="onUserEdit()">الصباحي لكل الشهر من الاحد الى الخميس</th>
+              <th id="morningHeader" contenteditable="true" oninput="onUserEdit()"></th>
             </tr>
           </thead>
           <tbody>
@@ -428,9 +428,7 @@
       <!-- جدول الخفر المسائي -->
       <div class="section-wrapper" id="sec-evening">
         <button class="hide-btn" onclick="toggleHideElement('sec-evening')">👁️ إخفاء الجدول المسائي</button>
-        <div class="section-heading" id="eveningTitle" contenteditable="true" oninput="onUserEdit()">
-          الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا
-        </div>
+        <div class="section-heading" id="eveningTitle" contenteditable="true" oninput="onUserEdit()"></div>
         <table>
           <thead>
             <tr id="eveningHeadRow"></tr>
@@ -444,9 +442,7 @@
       <!-- جدول الخفر الليلي -->
       <div class="section-wrapper" id="sec-night">
         <button class="hide-btn" onclick="toggleHideElement('sec-night')">👁️ إخفاء الجدول الليلي</button>
-        <div class="section-heading" id="nightTitle" contenteditable="true" oninput="onUserEdit()">
-          الخفر الليلي من الساعة الحادي عشر ليلا الى الساعة الثامنة والنصف صباحا
-        </div>
+        <div class="section-heading" id="nightTitle" contenteditable="true" oninput="onUserEdit()"></div>
         <table>
           <thead>
             <tr id="nightHeadRow"></tr>
@@ -509,7 +505,7 @@
   </div>
 
   <script>
-    const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbxulzrL881hq_xLd0yHxViPkLausd6o3rgGtXxPUjszKKBgrskZe9Z5WFZHvypzI_6pzQ/exec";
+    const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbxfPhL5FL--gmr-GW6jXdEJ6jFINj2CyZvP3sBka0wb80HL_rb7BTlHPf_5eRVV3y6ddw/exec";
 
     const DEPARTMENTS = [
       "قسم الطوارئ",
@@ -528,7 +524,6 @@
       "القسطرة القلبية"
     ];
 
-    // لا توجد أي تواريخ مضمنة في الكود؛ تُستورد التواريخ حصرياً كما هي محفوظة ومعدلة في الشيت
     const DEFAULT_PERIODS = ["", "", "", "", "", ""];
 
     let currentDept = DEPARTMENTS[0];
@@ -542,10 +537,11 @@
 
     function getEmptyTemplate(deptName = "") {
       return {
-        morningHeader: "الصباحي لكل الشهر من الاحد الى الخميس",
+        mainTitle: "",
+        morningHeader: "",
         morningNames: [],
-        eveningTitle: "الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا",
-        nightTitle: "الخفر الليلي من الساعة الحادي عشر ليلا الى الساعة الثامنة والنصف صباحا",
+        eveningTitle: "",
+        nightTitle: "",
         periods: [...DEFAULT_PERIODS],
         nightPeriods: [...DEFAULT_PERIODS],
         eveningCols: [[], [], [], [], [], []],
@@ -576,10 +572,11 @@
       const base = getEmptyTemplate(deptName);
       if (!raw || typeof raw !== 'object') return base;
 
-      base.morningHeader = String(raw.morningHeader || base.morningHeader).trim();
+      base.mainTitle = raw.mainTitle !== undefined && raw.mainTitle !== null ? String(raw.mainTitle).trim() : "";
+      base.morningHeader = raw.morningHeader !== undefined && raw.morningHeader !== null ? String(raw.morningHeader).trim() : "";
       base.morningNames = toLinesArray(raw.morningNames);
-      base.eveningTitle = String(raw.eveningTitle || base.eveningTitle).trim();
-      base.nightTitle = String(raw.nightTitle || base.nightTitle).trim();
+      base.eveningTitle = raw.eveningTitle !== undefined && raw.eveningTitle !== null ? String(raw.eveningTitle).trim() : "";
+      base.nightTitle = raw.nightTitle !== undefined && raw.nightTitle !== null ? String(raw.nightTitle).trim() : "";
       let rawSig = Array.isArray(raw.signature) ? raw.signature.join('\n') : String(raw.signature || "").trim();
       if (rawSig.includes("<!--HIDDEN:")) {
         const parts = rawSig.split("<!--HIDDEN:");
@@ -620,13 +617,22 @@
     }
 
     async function initApp() {
+      localStorage.removeItem('nursing_schedule_v2');
+      localStorage.removeItem('nursing_schedule_github_v1');
+      localStorage.removeItem('nursing_schedule_autosave_v1');
+      localStorage.removeItem('nursing_schedule_autosave_v2');
+      localStorage.removeItem('nursing_schedule_twoway_v1');
+      localStorage.removeItem('nursing_schedule_auto_v2');
+      localStorage.removeItem('nursing_cloud_cache_v3');
+
       const select = document.getElementById('deptSelect');
       const pills = document.getElementById('deptPills');
       select.innerHTML = '';
       pills.innerHTML = '';
 
+      const cachedStore = JSON.parse(localStorage.getItem('nursing_cloud_cache_v4') || '{}');
       DEPARTMENTS.forEach((dept) => {
-        store[dept] = getEmptyTemplate(dept);
+        store[dept] = cachedStore[dept] ? normalizeDeptObject(cachedStore[dept], dept) : getEmptyTemplate(dept);
         sheetTabNameMap[dept] = dept;
 
         const opt = document.createElement('option');
@@ -678,12 +684,11 @@
 
     function renderDepartment(dept) {
       const data = store[dept] || getEmptyTemplate(dept);
-      const month = document.getElementById('monthSelect').value;
-      document.getElementById('sheetMainTitle').textContent = `• جدول خفارات كادر التمريض ${dept} / ${month}`;
-      document.getElementById('morningHeader').textContent = data.morningHeader || "الصباحي لكل الشهر من الاحد الى الخميس";
+      document.getElementById('sheetMainTitle').textContent = data.mainTitle || "";
+      document.getElementById('morningHeader').textContent = data.morningHeader || "";
       document.getElementById('morningBody').innerHTML = toLinesArray(data.morningNames).join('<br>');
-      document.getElementById('eveningTitle').textContent = data.eveningTitle || "الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا";
-      document.getElementById('nightTitle').textContent = data.nightTitle || "الخفر الليلي من الساعة الحادي عشر ليلا الى الساعة الثامنة والنصف صباحا";
+      document.getElementById('eveningTitle').textContent = data.eveningTitle || "";
+      document.getElementById('nightTitle').textContent = data.nightTitle || "";
       document.getElementById('signatureText').innerHTML = String(data.signature || "").replace(/\r?\n/g, '<br>');
 
       const evHead = document.getElementById('eveningHeadRow');
@@ -702,7 +707,7 @@
       for (let i = 0; i < 6; i++) {
         const thE = document.createElement('th');
         thE.id = `ev-col-h-${i}`;
-        thE.innerHTML = `<div contenteditable="true" oninput="onUserEdit()">${evPeriods[i] || ''}</div>
+        thE.innerHTML = `<div contenteditable="true" oninput="onDateHeaderEdit('ev', ${i}, this)">${evPeriods[i] || ''}</div>
                          <button class="col-hide-btn" onclick="toggleHideCol('ev', ${i})">✕ إخفاء</button>`;
         evHead.appendChild(thE);
 
@@ -715,7 +720,7 @@
 
         const thN = document.createElement('th');
         thN.id = `ni-col-h-${i}`;
-        thN.innerHTML = `<div contenteditable="true" oninput="onUserEdit()">${niPeriods[i] || ''}</div>
+        thN.innerHTML = `<div contenteditable="true" oninput="onDateHeaderEdit('ni', ${i}, this)">${niPeriods[i] || ''}</div>
                          <button class="col-hide-btn" onclick="toggleHideCol('ni', ${i})">✕ إخفاء</button>`;
         niHead.appendChild(thN);
 
@@ -748,6 +753,23 @@
       txt.textContent = text;
     }
 
+    function onDateHeaderEdit(source, idx, el) {
+      const val = el.innerText.trim();
+      const data = store[currentDept];
+      if (data) {
+        if (!Array.isArray(data.periods)) data.periods = [...DEFAULT_PERIODS];
+        if (!Array.isArray(data.nightPeriods)) data.nightPeriods = [...DEFAULT_PERIODS];
+        data.periods[idx] = val;
+        data.nightPeriods[idx] = val;
+        const otherPrefix = source === 'ev' ? 'ni' : 'ev';
+        const otherDiv = document.querySelector(`#${otherPrefix}-col-h-${idx} div`);
+        if (otherDiv && otherDiv !== el && otherDiv.innerText.trim() !== val) {
+          otherDiv.innerText = val;
+        }
+      }
+      onUserEdit();
+    }
+
     function onUserEdit() {
       isTyping = true;
       lastEditTimestamp = Date.now();
@@ -757,18 +779,22 @@
     function saveCurrentState(triggerCloud = true) {
       const data = store[currentDept];
       if (!data) return;
+      data.mainTitle = document.getElementById('sheetMainTitle').innerText.trim();
       data.morningHeader = document.getElementById('morningHeader').innerText.trim();
       data.morningNames = htmlToLines(document.getElementById('morningBody'));
       data.eveningTitle = document.getElementById('eveningTitle').innerText.trim();
       data.nightTitle = document.getElementById('nightTitle').innerText.trim();
       data.signature = htmlToLines(document.getElementById('signatureText')).join('\n').split('<!--HIDDEN:')[0].trim();
 
+      if (!Array.isArray(data.periods)) data.periods = [...DEFAULT_PERIODS];
       if (!Array.isArray(data.nightPeriods)) data.nightPeriods = [...DEFAULT_PERIODS];
       for (let i = 0; i < 6; i++) {
         const thE = document.querySelector(`#ev-col-h-${i} div`);
-        if (thE) data.periods[i] = thE.innerText.trim();
         const thN = document.querySelector(`#ni-col-h-${i} div`);
-        if (thN) data.nightPeriods[i] = thN.innerText.trim();
+        const evVal = thE ? thE.innerText.trim() : "";
+        const niVal = thN ? thN.innerText.trim() : "";
+        data.periods[i] = evVal || niVal || "";
+        data.nightPeriods[i] = niVal || evVal || "";
         const tdE = document.getElementById(`ev-col-b-${i}`);
         if (tdE) data.eveningCols[i] = htmlToLines(tdE);
         const tdN = document.getElementById(`ni-col-b-${i}`);
@@ -777,6 +803,7 @@
 
       hiddenStore[currentDept] = data.hiddenIds || [];
       localStorage.setItem('nursing_hidden_fields_v1', JSON.stringify(hiddenStore));
+      localStorage.setItem('nursing_cloud_cache_v4', JSON.stringify(store));
 
       if (triggerCloud) {
         scheduleAutoSync();
@@ -884,6 +911,7 @@
             }
           });
 
+          localStorage.setItem('nursing_cloud_cache_v4', JSON.stringify(store));
           if (forceRender || hasChanges) {
             renderDepartment(currentDept);
           }
@@ -947,15 +975,14 @@
       isTyping = false;
 
       selected.forEach(dept => {
-        const currentPeriods = (store[dept] && store[dept].periods && store[dept].periods.length === 6)
-          ? [...store[dept].periods]
-          : [...DEFAULT_PERIODS];
-        const currentNightPeriods = (store[dept] && store[dept].nightPeriods && store[dept].nightPeriods.length === 6)
-          ? [...store[dept].nightPeriods]
-          : [...currentPeriods];
+        const prev = store[dept] || getEmptyTemplate(dept);
         const emptyObj = getEmptyTemplate(dept);
-        emptyObj.periods = currentPeriods;
-        emptyObj.nightPeriods = currentNightPeriods;
+        emptyObj.mainTitle = prev.mainTitle || "";
+        emptyObj.morningHeader = prev.morningHeader || "";
+        emptyObj.eveningTitle = prev.eveningTitle || "";
+        emptyObj.nightTitle = prev.nightTitle || "";
+        emptyObj.periods = (prev.periods && prev.periods.length === 6) ? [...prev.periods] : [...DEFAULT_PERIODS];
+        emptyObj.nightPeriods = (prev.nightPeriods && prev.nightPeriods.length === 6) ? [...prev.nightPeriods] : [...emptyObj.periods];
         store[dept] = emptyObj;
       });
 
@@ -1008,7 +1035,7 @@
         const page = document.createElement('div');
         page.className = 'a4-page';
         page.innerHTML = `
-          <div class="page-title">• جدول خفارات كادر التمريض ${dept} / ${month}</div>
+          <div class="page-title">${d.mainTitle || ''}</div>
           ${!d.hiddenIds.includes('sec-morning') ? `
           <div class="section-wrapper">
             <table class="morning-table">
