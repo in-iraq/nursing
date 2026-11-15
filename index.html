@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>منظومة جداول خفارات الكادر التمريضي</title>
+  <title>جداول خفارات الكادر التمريضي</title>
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -22,7 +22,7 @@
       padding-bottom: 40px;
     }
 
-    /* شريط التحكم العلوي */
+    /* شريط علوي مختصر للعرض والطباعة فقط */
     .toolbar {
       background: #1e293b;
       color: #fff;
@@ -36,17 +36,17 @@
     .toolbar-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 12px;
       align-items: center;
       justify-content: space-between;
-      max-width: 1280px;
+      max-width: 1100px;
       margin: 0 auto;
     }
 
     .controls-group {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 10px;
       align-items: center;
     }
 
@@ -55,60 +55,37 @@
       align-items: center;
       gap: 6px;
       background: #334155;
-      padding: 6px 10px;
+      padding: 6px 12px;
       border-radius: 6px;
-      font-size: 13px;
+      font-size: 14px;
     }
 
     .control-item select {
       background: #0f172a;
       color: #fff;
       border: 1px solid #475569;
-      padding: 4px 8px;
+      padding: 4px 10px;
       border-radius: 4px;
       font-family: 'Tajawal', sans-serif;
-      font-size: 13px;
+      font-size: 14px;
     }
-
-    /* مؤشر المزامنة التلقائية الثنائية */
-    .sync-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
-      background: #0f172a;
-      border: 1px solid #334155;
-      color: #38bdf8;
-      transition: 0.25s;
-    }
-    .sync-badge.saving { color: #fbbf24; border-color: #f59e0b; }
-    .sync-badge.saved { color: #4ade80; border-color: #22c55e; }
-    .sync-badge.fetching { color: #a78bfa; border-color: #8b5cf6; }
-    .sync-badge.error { color: #f87171; border-color: #ef4444; }
 
     .btn {
       cursor: pointer;
       border: none;
-      padding: 8px 12px;
+      padding: 9px 16px;
       border-radius: 6px;
       font-family: 'Tajawal', sans-serif;
       font-weight: 700;
-      font-size: 13px;
+      font-size: 14px;
       transition: 0.2s;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      text-decoration: none;
     }
 
     .btn-primary { background: var(--primary); color: #fff; }
     .btn-primary:hover { background: var(--primary-hover); }
-    .btn-warning { background: #d97706; color: #fff; }
-    .btn-danger { background: #dc2626; color: #fff; }
-    .btn-danger:hover { background: #b91c1c; }
     .btn-secondary { background: #475569; color: #fff; }
 
     /* أزرار التنقل السريع بين الأقسام */
@@ -116,7 +93,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      max-width: 1280px;
+      max-width: 1100px;
       margin: 10px auto 0;
       padding-top: 8px;
       border-top: 1px solid #334155;
@@ -141,7 +118,7 @@
       border-color: #14b8a6;
     }
 
-    /* ورقة A4 */
+    /* ورقة A4 للعرض فقط */
     .a4-container {
       display: flex;
       justify-content: center;
@@ -169,43 +146,7 @@
     }
 
     .section-wrapper {
-      position: relative;
       margin-bottom: 18px;
-    }
-
-    .hide-btn {
-      position: absolute;
-      top: -22px;
-      left: 0;
-      background: #ef4444;
-      color: #fff;
-      border: none;
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 4px;
-      cursor: pointer;
-      opacity: 0;
-      transition: opacity 0.2s;
-      font-family: 'Tajawal', sans-serif;
-    }
-
-    .section-wrapper:hover .hide-btn,
-    th:hover .col-hide-btn {
-      opacity: 1;
-    }
-
-    .col-hide-btn {
-      display: block;
-      margin: 2px auto 0;
-      background: #ef4444;
-      color: #fff;
-      border: none;
-      font-size: 10px;
-      padding: 1px 5px;
-      border-radius: 3px;
-      cursor: pointer;
-      opacity: 0;
-      font-family: 'Tajawal', sans-serif;
     }
 
     table {
@@ -246,11 +187,6 @@
       margin: 10px 0 8px;
     }
 
-    [contenteditable="true"]:focus {
-      outline: 2px solid #0d9488;
-      background: #f0fdfa;
-    }
-
     .signature-box {
       margin-top: auto;
       padding-top: 25px;
@@ -273,7 +209,7 @@
       display: none !important;
     }
 
-    /* النوافذ المنبثقة */
+    /* نافذة تحديد الأقسام للطباعة */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -290,7 +226,7 @@
     .modal-card {
       background: #fff;
       width: 100%;
-      max-width: 540px;
+      max-width: 520px;
       border-radius: 12px;
       padding: 20px;
       box-shadow: 0 20px 40px rgba(0,0,0,0.3);
@@ -333,7 +269,7 @@
     @media print {
       @page { size: A4 portrait; margin: 0; }
       body { background: #fff; padding: 0; }
-      .toolbar, .hide-btn, .col-hide-btn, .modal-overlay { display: none !important; }
+      .toolbar, .modal-overlay { display: none !important; }
       .a4-container { display: none !important; }
       #printBatchContainer { display: block !important; }
       .a4-page {
@@ -348,77 +284,42 @@
 </head>
 <body>
 
-  <!-- شريط التحكم العلوي -->
+  <!-- شريط علوي مختصر لاختيار القسم وزر الطباعة فقط -->
   <header class="toolbar">
     <div class="toolbar-row">
       <div class="controls-group">
         <div class="control-item">
-          <label>السنة:</label>
-          <select id="yearSelect" onchange="updateTitleAndSave()">
-            <option value="2025">2025</option>
-            <option value="2026" selected>2026</option>
-            <option value="2027">2027</option>
-          </select>
-        </div>
-
-        <div class="control-item">
-          <label>الشهر:</label>
-          <select id="monthSelect" onchange="updateTitleAndSave()">
-            <option value="كانون الثاني">كانون الثاني (1)</option>
-            <option value="شباط">شباط (2)</option>
-            <option value="آذار">آذار (3)</option>
-            <option value="نيسان">نيسان (4)</option>
-            <option value="أيار">أيار (5)</option>
-            <option value="حزيران">حزيران (6)</option>
-            <option value="تموز">تموز (7)</option>
-            <option value="آب">آب (8)</option>
-            <option value="أيلول">أيلول (9)</option>
-            <option value="تشرين الأول">تشرين الأول (10)</option>
-            <option value="تشرين الثاني" selected>تشرين الثاني (11)</option>
-            <option value="كانون الأول">كانون الأول (12)</option>
-          </select>
-        </div>
-
-        <div class="control-item">
           <label>القسم:</label>
           <select id="deptSelect" onchange="switchDepartment(this.value)"></select>
-        </div>
-
-        <div id="syncBadge" class="sync-badge fetching">
-          <span id="syncText">⏳ جاري قراءة الأسماء من الشيت...</span>
         </div>
       </div>
 
       <div class="controls-group">
-        <button class="btn btn-warning" onclick="showAllHiddenFields()">👁️ إظهار المخفي</button>
-        <button class="btn btn-danger" onclick="openClearModal()">🗑️ تفريغ الأسماء</button>
-        <button class="btn btn-primary" onclick="openPrintModal()">🖨️ طباعة (A4)</button>
+        <button class="btn btn-primary" onclick="openPrintModal()">🖨️ طباعة الجداول (الكل أو تحديد)</button>
       </div>
     </div>
 
-    <!-- أزرار التنقل السريع بين الأقسام العشرة -->
     <div class="dept-pills" id="deptPills"></div>
   </header>
 
-  <!-- منطقة عرض ورقة A4 -->
+  <!-- منطقة عرض ورقة A4 (للقراءة فقط مع إخفاء الحقول المخفية في الأدمن) -->
   <main class="a4-container">
     <div class="a4-page" id="activeA4Page">
-      <div class="page-title" id="sheetMainTitle" contenteditable="true" oninput="onUserEdit()">
+      <div class="page-title" id="sheetMainTitle">
         • جدول خفارات كادر التمريض قسم الطوارئ / تشرين الثاني
       </div>
 
       <!-- جدول الخفر الصباحي -->
       <div class="section-wrapper" id="sec-morning">
-        <button class="hide-btn" onclick="toggleHideElement('sec-morning')">👁️ إخفاء الجدول الصباحي</button>
         <table class="morning-table">
           <thead>
             <tr>
-              <th id="morningHeader" contenteditable="true" oninput="onUserEdit()">الصباحي لكل الشهر من الاحد الى الخميس</th>
+              <th id="morningHeader">الصباحي لكل الشهر من الاحد الى الخميس</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td id="morningBody" contenteditable="true" oninput="onUserEdit()"></td>
+              <td id="morningBody"></td>
             </tr>
           </tbody>
         </table>
@@ -426,8 +327,7 @@
 
       <!-- جدول الخفر المسائي -->
       <div class="section-wrapper" id="sec-evening">
-        <button class="hide-btn" onclick="toggleHideElement('sec-evening')">👁️ إخفاء الجدول المسائي</button>
-        <div class="section-heading" id="eveningTitle" contenteditable="true" oninput="onUserEdit()">
+        <div class="section-heading" id="eveningTitle">
           الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا
         </div>
         <table>
@@ -442,8 +342,7 @@
 
       <!-- جدول الخفر الليلي -->
       <div class="section-wrapper" id="sec-night">
-        <button class="hide-btn" onclick="toggleHideElement('sec-night')">👁️ إخفاء الجدول الليلي</button>
-        <div class="section-heading" id="nightTitle" contenteditable="true" oninput="onUserEdit()">
+        <div class="section-heading" id="nightTitle">
           الخفر الليلي من الساعة الحادي عشر ليلا الى الساعة الثامنة والنصف صباحا
         </div>
         <table>
@@ -458,34 +357,13 @@
 
       <!-- التوقيع -->
       <div class="section-wrapper signature-box" id="sec-signature">
-        <button class="hide-btn" onclick="toggleHideElement('sec-signature')">👁️ إخفاء التوقيع</button>
-        <div class="signature-content" id="signatureText" contenteditable="true" oninput="onUserEdit()"></div>
+        <div class="signature-content" id="signatureText"></div>
       </div>
     </div>
   </main>
 
   <!-- حاوية الطباعة المتعددة -->
   <div id="printBatchContainer"></div>
-
-  <!-- نافذة تحديد الأقسام للتفريغ -->
-  <div class="modal-overlay" id="clearModal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <span>🗑️ تحديد الأقسام لتفريغ الأسماء</span>
-        <button class="btn btn-secondary" onclick="closeModals()">✕</button>
-      </div>
-      <div style="display:flex; gap:8px; margin-bottom:10px;">
-        <button class="btn btn-danger" onclick="selectCheckboxes('.clear-dept-cb', 'all')">تحديد الكل (جميع الأقسام)</button>
-        <button class="btn btn-secondary" onclick="selectCheckboxes('.clear-dept-cb', 'current')">القسم الحالي فقط</button>
-        <button class="btn btn-secondary" onclick="selectCheckboxes('.clear-dept-cb', 'none')">إلغاء الكل</button>
-      </div>
-      <div class="dept-check-grid" id="clearDeptList"></div>
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
-        <button class="btn btn-secondary" onclick="closeModals()">إلغاء</button>
-        <button class="btn btn-danger" onclick="executeBatchClear()">تأكيد تفريغ المحدد وحفظه في الشيت</button>
-      </div>
-    </div>
-  </div>
 
   <!-- نافذة تحديد الأقسام للطباعة -->
   <div class="modal-overlay" id="printModal">
@@ -495,9 +373,9 @@
         <button class="btn btn-secondary" onclick="closeModals()">✕</button>
       </div>
       <div style="display:flex; gap:8px; margin-bottom:10px;">
-        <button class="btn btn-primary" onclick="selectCheckboxes('.print-dept-cb', 'all')">تحديد الكل</button>
-        <button class="btn btn-secondary" onclick="selectCheckboxes('.print-dept-cb', 'current')">القسم الحالي فقط</button>
-        <button class="btn btn-secondary" onclick="selectCheckboxes('.print-dept-cb', 'none')">إلغاء الكل</button>
+        <button class="btn btn-primary" onclick="selectCheckboxes('all')">تحديد الكل</button>
+        <button class="btn btn-secondary" onclick="selectCheckboxes('current')">القسم الحالي فقط</button>
+        <button class="btn btn-secondary" onclick="selectCheckboxes('none')">إلغاء الكل</button>
       </div>
       <div class="dept-check-grid" id="printDeptList"></div>
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
@@ -533,13 +411,9 @@
     ];
 
     let currentDept = DEPARTMENTS[0];
+    let currentMonth = "تشرين الثاني";
     let store = {};
-    let sheetTabNameMap = {}; // يحفظ الاسم الدقيق للتبويب داخل الشيت لكل قسم
     let hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
-    let autoSaveTimer = null;
-    let isTyping = false;
-    let isSavingToCloud = false;
-    let lastEditTimestamp = 0;
 
     function getEmptyTemplate(deptName = "") {
       return {
@@ -555,7 +429,6 @@
       };
     }
 
-    // توحيد الحروف العربية لضمان تطابق اسم القسم مع اسم التبويب في الشيت
     function normalizeArabic(str) {
       return String(str || "")
         .trim()
@@ -565,7 +438,6 @@
         .replace(/\s+/g, " ");
     }
 
-    // تحويل أي قيمة (سواء نص أو مصفوفة) إلى مصفوفة أسطر نظيفة
     function toLinesArray(val) {
       if (!val) return [];
       if (Array.isArray(val)) {
@@ -582,7 +454,26 @@
       base.morningNames = toLinesArray(raw.morningNames);
       base.eveningTitle = String(raw.eveningTitle || base.eveningTitle).trim();
       base.nightTitle = String(raw.nightTitle || base.nightTitle).trim();
-      base.signature = Array.isArray(raw.signature) ? raw.signature.join('\n') : String(raw.signature || "").trim();
+
+      let rawSig = Array.isArray(raw.signature) ? raw.signature.join('\n') : String(raw.signature || "").trim();
+      let cloudHidden = Array.isArray(raw.hiddenIds) ? raw.hiddenIds : null;
+
+      if (rawSig.includes("<!--HIDDEN:")) {
+        const parts = rawSig.split("<!--HIDDEN:");
+        rawSig = parts[0].trim();
+        try {
+          cloudHidden = JSON.parse(parts[1].replace("-->", "").trim());
+        } catch (e) {}
+      }
+
+      base.signature = rawSig;
+      if (cloudHidden && Array.isArray(cloudHidden)) {
+        base.hiddenIds = cloudHidden;
+        hiddenStore[deptName] = cloudHidden;
+        localStorage.setItem('nursing_hidden_fields_v1', JSON.stringify(hiddenStore));
+      } else {
+        base.hiddenIds = hiddenStore[deptName] || [];
+      }
 
       if (Array.isArray(raw.periods) && raw.periods.length > 0) {
         for (let i = 0; i < 6; i++) {
@@ -606,13 +497,6 @@
     }
 
     async function initApp() {
-      localStorage.removeItem('nursing_schedule_v2');
-      localStorage.removeItem('nursing_schedule_github_v1');
-      localStorage.removeItem('nursing_schedule_autosave_v1');
-      localStorage.removeItem('nursing_schedule_autosave_v2');
-      localStorage.removeItem('nursing_schedule_twoway_v1');
-      localStorage.removeItem('nursing_schedule_auto_v2');
-
       const select = document.getElementById('deptSelect');
       const pills = document.getElementById('deptPills');
       select.innerHTML = '';
@@ -620,7 +504,6 @@
 
       DEPARTMENTS.forEach((dept) => {
         store[dept] = getEmptyTemplate(dept);
-        sheetTabNameMap[dept] = dept;
 
         const opt = document.createElement('option');
         opt.value = dept;
@@ -636,46 +519,45 @@
 
       renderDepartment(currentDept);
 
-      // ١. جلب الأسماء المحفوظة من Google Sheets وعرضها فوراً في الجداول
-      await pullFromGoogleSheets(true);
-
-      // ٢. مزامنة دورية بالخلفية كل 5 ثوانٍ
-      setInterval(() => {
-        const activeEl = document.activeElement;
-        const userCurrentlyEditingCell = activeEl && activeEl.getAttribute('contenteditable') === 'true';
-        if (!isTyping && !isSavingToCloud && !userCurrentlyEditingCell && (Date.now() - lastEditTimestamp > 4500)) {
-          pullFromGoogleSheets(false);
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'nursing_hidden_fields_v1') {
+          hiddenStore = JSON.parse(e.newValue || '{}');
+          DEPARTMENTS.forEach(d => {
+            if (store[d]) store[d].hiddenIds = hiddenStore[d] || [];
+          });
+          renderDepartment(currentDept);
         }
-      }, 5000);
+      });
+
+      await pullFromGoogleSheets(true);
+      setInterval(() => pullFromGoogleSheets(false), 5000);
     }
 
-    async function switchDepartment(dept) {
-      if (dept === currentDept) return;
-
-      // إذا كان هناك تعديل أو تفريغ معلق في القسم السابق، نحفظه فوراً في الشيت قبل الانتقال
-      if (autoSaveTimer || isTyping) {
-        clearTimeout(autoSaveTimer);
-        autoSaveTimer = null;
-        isTyping = false;
-        saveCurrentState(false);
-        await syncDepartmentsToSheet([currentDept]);
-      } else {
-        saveCurrentState(false);
-      }
-
+    function switchDepartment(dept) {
       currentDept = dept;
       document.getElementById('deptSelect').value = dept;
       document.querySelectorAll('.dept-pill').forEach(btn => {
         btn.classList.toggle('active', btn.textContent === dept);
       });
       renderDepartment(dept);
-      pullFromGoogleSheets(true);
+    }
+
+    function applyHiddenElements(hiddenIds) {
+      document.querySelectorAll('#activeA4Page .hidden-element').forEach(el => el.classList.remove('hidden-element'));
+      (hiddenIds || []).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden-element');
+      });
     }
 
     function renderDepartment(dept) {
+      hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
       const data = store[dept] || getEmptyTemplate(dept);
-      const month = document.getElementById('monthSelect').value;
-      document.getElementById('sheetMainTitle').textContent = `• جدول خفارات كادر التمريض ${dept} / ${month}`;
+      if (hiddenStore[dept] && (!data.hiddenIds || data.hiddenIds.length === 0)) {
+        data.hiddenIds = hiddenStore[dept];
+      }
+
+      document.getElementById('sheetMainTitle').textContent = `• جدول خفارات كادر التمريض ${dept} / ${currentMonth}`;
       document.getElementById('morningHeader').textContent = data.morningHeader || "الصباحي لكل الشهر من الاحد الى الخميس";
       document.getElementById('morningBody').innerHTML = toLinesArray(data.morningNames).join('<br>');
       document.getElementById('eveningTitle').textContent = data.eveningTitle || "الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا";
@@ -697,27 +579,21 @@
       for (let i = 0; i < 6; i++) {
         const thE = document.createElement('th');
         thE.id = `ev-col-h-${i}`;
-        thE.innerHTML = `<div contenteditable="true" oninput="onUserEdit()">${periods[i] || ''}</div>
-                         <button class="col-hide-btn" onclick="toggleHideCol('ev', ${i})">✕ إخفاء</button>`;
+        thE.textContent = periods[i] || '';
         evHead.appendChild(thE);
 
         const tdE = document.createElement('td');
         tdE.id = `ev-col-b-${i}`;
-        tdE.contentEditable = "true";
-        tdE.oninput = onUserEdit;
         tdE.innerHTML = toLinesArray(data.eveningCols && data.eveningCols[i]).join('<br>');
         evBody.appendChild(tdE);
 
         const thN = document.createElement('th');
         thN.id = `ni-col-h-${i}`;
-        thN.innerHTML = `<div contenteditable="true" oninput="onUserEdit()">${periods[i] || ''}</div>
-                         <button class="col-hide-btn" onclick="toggleHideCol('ni', ${i})">✕ إخفاء</button>`;
+        thN.textContent = periods[i] || '';
         niHead.appendChild(thN);
 
         const tdN = document.createElement('td');
         tdN.id = `ni-col-b-${i}`;
-        tdN.contentEditable = "true";
-        tdN.oninput = onUserEdit;
         tdN.innerHTML = toLinesArray(data.nightCols && data.nightCols[i]).join('<br>');
         niBody.appendChild(tdN);
       }
@@ -725,132 +601,12 @@
       applyHiddenElements(data.hiddenIds || []);
     }
 
-    function htmlToLines(el) {
-      return el.innerHTML
-        .replace(/<div>/gi, '\n')
-        .replace(/<\/div>/gi, '')
-        .replace(/<br\s*\/?>/gi, '\n')
-        .replace(/<[^>]+>/g, '')
-        .split('\n')
-        .map(s => s.trim())
-        .filter(Boolean);
-    }
-
-    function setSyncStatus(state, text) {
-      const badge = document.getElementById('syncBadge');
-      const txt = document.getElementById('syncText');
-      badge.className = 'sync-badge ' + state;
-      txt.textContent = text;
-    }
-
-    function onUserEdit() {
-      isTyping = true;
-      lastEditTimestamp = Date.now();
-      saveCurrentState(true);
-    }
-
-    function saveCurrentState(triggerCloud = true) {
-      const data = store[currentDept];
-      if (!data) return;
-      data.morningHeader = document.getElementById('morningHeader').innerText.trim();
-      data.morningNames = htmlToLines(document.getElementById('morningBody'));
-      data.eveningTitle = document.getElementById('eveningTitle').innerText.trim();
-      data.nightTitle = document.getElementById('nightTitle').innerText.trim();
-      data.signature = htmlToLines(document.getElementById('signatureText')).join('\n');
-
-      for (let i = 0; i < 6; i++) {
-        const thE = document.querySelector(`#ev-col-h-${i} div`);
-        if (thE) data.periods[i] = thE.innerText.trim();
-        const tdE = document.getElementById(`ev-col-b-${i}`);
-        if (tdE) data.eveningCols[i] = htmlToLines(tdE);
-        const tdN = document.getElementById(`ni-col-b-${i}`);
-        if (tdN) data.nightCols[i] = htmlToLines(tdN);
-      }
-
-      hiddenStore[currentDept] = data.hiddenIds || [];
-      localStorage.setItem('nursing_hidden_fields_v1', JSON.stringify(hiddenStore));
-
-      if (triggerCloud) {
-        scheduleAutoSync();
-      }
-    }
-
-    function scheduleAutoSync() {
-      setSyncStatus('saving', '✍️ جاري الحفظ في الشيت...');
-      clearTimeout(autoSaveTimer);
-      autoSaveTimer = setTimeout(() => {
-        autoSaveTimer = null;
-        isTyping = false;
-        syncDepartmentsToSheet([currentDept]);
-      }, 800);
-    }
-
-    // إرسال التعديلات أو التفريغ مباشرة إلى التبويبات المطابقة في Google Sheets
-    async function syncDepartmentsToSheet(deptList) {
-      isSavingToCloud = true;
-      lastEditTimestamp = Date.now();
-      setSyncStatus('saving', '⏳ جاري الحفظ في الشيت...');
-
-      const departmentsPayload = {};
-      deptList.forEach(dept => {
-        const d = store[dept] || getEmptyTemplate(dept);
-        const exactSheetTab = sheetTabNameMap[dept] || dept;
-        departmentsPayload[exactSheetTab] = d;
-        if (exactSheetTab !== dept) {
-          departmentsPayload[dept] = d;
-        }
-      });
-
-      const payload = {
-        action: deptList.length > 1 ? 'syncAll' : 'autoSaveDept',
-        year: document.getElementById('yearSelect').value,
-        month: document.getElementById('monthSelect').value,
-        deptName: sheetTabNameMap[deptList[0]] || deptList[0],
-        deptData: store[deptList[0]],
-        departments: departmentsPayload,
-        spreadsheetId: localStorage.getItem('nursing_spreadsheet_id') || ''
-      };
-
-      try {
-        const res = await fetch(DEFAULT_GAS_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
-        });
-        const result = await res.json();
-        if (result.status === 'success') {
-          if (result.spreadsheetId) {
-            localStorage.setItem('nursing_spreadsheet_id', result.spreadsheetId);
-          }
-          lastEditTimestamp = Date.now();
-          const timeStr = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-          setSyncStatus('saved', `✅ متزامن مع الشيت (${timeStr})`);
-        } else {
-          setSyncStatus('error', '⚠️ خطأ في المزامنة');
-        }
-      } catch (err) {
-        setSyncStatus('error', '❌ تعذر الاتصال بالشيت');
-      } finally {
-        isSavingToCloud = false;
-      }
-    }
-
-    // جلب الأسماء والبيانات من Google Sheets وعرضها مباشرة في الجداول
     async function pullFromGoogleSheets(forceRender = false) {
-      if (isSavingToCloud || isTyping || autoSaveTimer) return;
-
       try {
         const ssId = localStorage.getItem('nursing_spreadsheet_id') || '';
         const fetchUrl = `${DEFAULT_GAS_URL}?action=loadAll&spreadsheetId=${encodeURIComponent(ssId)}&t=${Date.now()}`;
         const res = await fetch(fetchUrl, { cache: 'no-store' });
         const result = await res.json();
-
-        if (isSavingToCloud || isTyping || autoSaveTimer) return;
-
-        if (result.status === 'online' && !result.departments) {
-          setSyncStatus('error', '⚠️ يرجى تحديث كود السكربت في Google (Deploy > New version)');
-          return;
-        }
 
         const rawDepts = result.departments || result.data || null;
         if (rawDepts && typeof rawDepts === 'object') {
@@ -858,7 +614,7 @@
             localStorage.setItem('nursing_spreadsheet_id', result.spreadsheetId);
           }
           if (result.month) {
-            document.getElementById('monthSelect').value = result.month;
+            currentMonth = result.month;
           }
 
           const sheetKeys = Object.keys(rawDepts);
@@ -867,7 +623,6 @@
           DEPARTMENTS.forEach(appDept => {
             const matchedKey = sheetKeys.find(k => normalizeArabic(k) === normalizeArabic(appDept));
             if (matchedKey && rawDepts[matchedKey]) {
-              sheetTabNameMap[appDept] = matchedKey;
               const normalizedData = normalizeDeptObject(rawDepts[matchedKey], appDept);
               if (JSON.stringify(store[appDept]) !== JSON.stringify(normalizedData)) {
                 store[appDept] = normalizedData;
@@ -879,150 +634,73 @@
           if (forceRender || hasChanges) {
             renderDepartment(currentDept);
           }
-
-          const timeStr = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-          setSyncStatus('saved', `✅ تم عرض بيانات الشيت (${timeStr})`);
         }
-      } catch (err) {
-        setSyncStatus('error', '⚠️ بانتظار اتصال الشيت...');
-      }
+      } catch (err) {}
     }
 
-    function updateTitleAndSave() {
-      const month = document.getElementById('monthSelect').value;
-      document.getElementById('sheetMainTitle').textContent = `• جدول خفارات كادر التمريض ${currentDept} / ${month}`;
-      onUserEdit();
-    }
-
-    function toggleHideElement(id) {
-      const data = store[currentDept];
-      if (!data.hiddenIds.includes(id)) data.hiddenIds.push(id);
-      applyHiddenElements(data.hiddenIds);
-      saveCurrentState(false);
-    }
-
-    function toggleHideCol(prefix, idx) {
-      const data = store[currentDept];
-      const hId = `${prefix}-col-h-${idx}`;
-      const bId = `${prefix}-col-b-${idx}`;
-      if (!data.hiddenIds.includes(hId)) data.hiddenIds.push(hId, bId);
-      applyHiddenElements(data.hiddenIds);
-      saveCurrentState(false);
-    }
-
-    function applyHiddenElements(hiddenIds) {
-      document.querySelectorAll('#activeA4Page .hidden-element').forEach(el => el.classList.remove('hidden-element'));
-      hiddenIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.add('hidden-element');
-      });
-    }
-
-    function showAllHiddenFields() {
-      store[currentDept].hiddenIds = [];
-      applyHiddenElements([]);
-      saveCurrentState(false);
-    }
-
-    // فتح نافذة تفريغ الأسماء (لتفريغ القسم الحالي أو تحديد أقسام أو تفريغ الكل دفعة واحدة)
-    function openClearModal() {
-      saveCurrentState(false);
-      populateCheckList('clearDeptList', 'clear-dept-cb', false);
-      document.getElementById('clearModal').classList.add('active');
-    }
-
-    async function executeBatchClear() {
-      const selected = Array.from(document.querySelectorAll('.clear-dept-cb:checked')).map(cb => cb.value);
-      if (selected.length === 0) return alert('الرجاء اختيار قسم واحد على الأقل للتفريغ.');
-
-      clearTimeout(autoSaveTimer);
-      autoSaveTimer = null;
-      isTyping = false;
-
-      selected.forEach(dept => {
-        const currentPeriods = (store[dept] && store[dept].periods && store[dept].periods.length === 6)
-          ? [...store[dept].periods]
-          : [...DEFAULT_PERIODS];
-        const emptyObj = getEmptyTemplate(dept);
-        emptyObj.periods = currentPeriods;
-        store[dept] = emptyObj;
-      });
-
-      closeModals();
-      renderDepartment(currentDept);
-
-      // إرسال التفريغ فوراً إلى الشيت لجميع الأقسام المختارة بدون انتظار المؤقت
-      await syncDepartmentsToSheet(selected);
-    }
-
-    function populateCheckList(containerId, cbClass, checkAll = false) {
-      const list = document.getElementById(containerId);
+    function openPrintModal() {
+      const list = document.getElementById('printDeptList');
       list.innerHTML = '';
       DEPARTMENTS.forEach(dept => {
         const label = document.createElement('label');
         label.className = 'dept-check-item';
-        const checked = checkAll || dept === currentDept ? 'checked' : '';
-        label.innerHTML = `<input type="checkbox" class="${cbClass}" value="${dept}" ${checked}> <span>${dept}</span>`;
+        const checked = dept === currentDept ? 'checked' : '';
+        label.innerHTML = `<input type="checkbox" class="print-dept-cb" value="${dept}" ${checked}> <span>${dept}</span>`;
         list.appendChild(label);
       });
+      document.getElementById('printModal').classList.add('active');
     }
 
-    function selectCheckboxes(selector, mode) {
-      document.querySelectorAll(selector).forEach(cb => {
+    function selectCheckboxes(mode) {
+      document.querySelectorAll('.print-dept-cb').forEach(cb => {
         if (mode === 'all') cb.checked = true;
         else if (mode === 'none') cb.checked = false;
         else if (mode === 'current') cb.checked = (cb.value === currentDept);
       });
     }
 
-    function openPrintModal() {
-      saveCurrentState(false);
-      populateCheckList('printDeptList', 'print-dept-cb', false);
-      document.getElementById('printModal').classList.add('active');
-    }
-
     function closeModals() {
-      document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+      document.getElementById('printModal').classList.remove('active');
     }
 
     function executeBatchPrint() {
       const selected = Array.from(document.querySelectorAll('.print-dept-cb:checked')).map(cb => cb.value);
       if (selected.length === 0) return alert('الرجاء اختيار قسم واحد على الأقل للطباعة.');
 
-      const month = document.getElementById('monthSelect').value;
       const batchContainer = document.getElementById('printBatchContainer');
       batchContainer.innerHTML = '';
 
       selected.forEach(dept => {
         const d = store[dept] || getEmptyTemplate(dept);
+        const hiddenIds = d.hiddenIds || hiddenStore[dept] || [];
         const page = document.createElement('div');
         page.className = 'a4-page';
         page.innerHTML = `
-          <div class="page-title">• جدول خفارات كادر التمريض ${dept} / ${month}</div>
-          ${!d.hiddenIds.includes('sec-morning') ? `
+          <div class="page-title">• جدول خفارات كادر التمريض ${dept} / ${currentMonth}</div>
+          ${!hiddenIds.includes('sec-morning') ? `
           <div class="section-wrapper">
             <table class="morning-table">
               <thead><tr><th>${d.morningHeader}</th></tr></thead>
               <tbody><tr><td>${toLinesArray(d.morningNames).join('<br>')}</td></tr></tbody>
             </table>
           </div>` : ''}
-          ${!d.hiddenIds.includes('sec-evening') ? `
+          ${!hiddenIds.includes('sec-evening') ? `
           <div class="section-wrapper">
             <div class="section-heading">${d.eveningTitle}</div>
             <table>
-              <thead><tr>${d.periods.map((p, i) => d.hiddenIds.includes(`ev-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
-              <tbody><tr>${d.eveningCols.map((c, i) => d.hiddenIds.includes(`ev-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
+              <thead><tr>${d.periods.map((p, i) => hiddenIds.includes(`ev-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
+              <tbody><tr>${d.eveningCols.map((c, i) => hiddenIds.includes(`ev-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
-          ${!d.hiddenIds.includes('sec-night') ? `
+          ${!hiddenIds.includes('sec-night') ? `
           <div class="section-wrapper">
             <div class="section-heading">${d.nightTitle}</div>
             <table>
-              <thead><tr>${d.periods.map((p, i) => d.hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
-              <tbody><tr>${d.nightCols.map((c, i) => d.hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
+              <thead><tr>${d.periods.map((p, i) => hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
+              <tbody><tr>${d.nightCols.map((c, i) => hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
-          ${!d.hiddenIds.includes('sec-signature') ? `
+          ${!hiddenIds.includes('sec-signature') ? `
           <div class="signature-box">
             <div class="signature-content">${String(d.signature || '').replace(/\r?\n/g, '<br>')}</div>
           </div>` : ''}
