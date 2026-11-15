@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>منظومة جداول خفارات الكادر التمريضي</title>
-  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://script.google.com/macros/s/AKfycbxx2bvHWN5AIF1M_fQCaciB0vrl0_8kTaOIVVE5qHHG1QtYul9qybvVs0QYJ_-uL0pDTQ/exec">
   <style>
     :root {
       --primary: #0f766e;
@@ -512,7 +512,6 @@
     ];
 
     let currentDept = DEPARTMENTS[0];
-    // لا توجد أي أسماء مخزنة في كود الصفحة؛ جميع الأقسام تبدأ فارغة وتُجلب حصرياً من الشيت
     let store = {};
     let hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
     let autoSaveTimer = null;
@@ -534,8 +533,58 @@
       };
     }
 
+    // توحيد الحروف العربية لضمان تطابق اسم القسم مع اسم التبويب في الشيت
+    function normalizeArabic(str) {
+      return String(str || "")
+        .trim()
+        .replace(/[أإآ]/g, "ا")
+        .replace(/ة/g, "ه")
+        .replace(/[ىئ]/g, "ي")
+        .replace(/\s+/g, " ");
+    }
+
+    // تحويل أي قيمة (سواء نص أو مصفوفة) إلى مصفوفة أسطر نظيفة
+    function toLinesArray(val) {
+      if (!val) return [];
+      if (Array.isArray(val)) {
+        return val.flatMap(item => String(item || "").split(/\r?\n/)).map(s => s.trim()).filter(Boolean);
+      }
+      return String(val).split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    }
+
+    function normalizeDeptObject(raw, deptName) {
+      const base = getEmptyTemplate();
+      base.hiddenIds = hiddenStore[deptName] || [];
+      if (!raw || typeof raw !== 'object') return base;
+
+      base.morningHeader = String(raw.morningHeader || base.morningHeader).trim();
+      base.morningNames = toLinesArray(raw.morningNames);
+      base.eveningTitle = String(raw.eveningTitle || base.eveningTitle).trim();
+      base.nightTitle = String(raw.nightTitle || base.nightTitle).trim();
+      base.signature = Array.isArray(raw.signature) ? raw.signature.join('\n') : String(raw.signature || "").trim();
+
+      if (Array.isArray(raw.periods) && raw.periods.length > 0) {
+        for (let i = 0; i < 6; i++) {
+          base.periods[i] = String(raw.periods[i] || DEFAULT_PERIODS[i]).trim();
+        }
+      }
+
+      if (Array.isArray(raw.eveningCols)) {
+        for (let i = 0; i < 6; i++) {
+          base.eveningCols[i] = toLinesArray(raw.eveningCols[i]);
+        }
+      }
+
+      if (Array.isArray(raw.nightCols)) {
+        for (let i = 0; i < 6; i++) {
+          base.nightCols[i] = toLinesArray(raw.nightCols[i]);
+        }
+      }
+
+      return base;
+    }
+
     async function initApp() {
-      // تنظيف أي ذاكرة تخزين محلية قديمة كانت تحتوي على أسماء افتراضية
       localStorage.removeItem('nursing_schedule_v2');
       localStorage.removeItem('nursing_schedule_github_v1');
       localStorage.removeItem('nursing_schedule_autosave_v1');
@@ -566,15 +615,15 @@
 
       renderDepartment(currentDept);
 
-      // ١. جلب الأسماء المحفوظة من Google Sheets فور فتح الصفحة
-      await pullFromGoogleSheets();
+      // ١. جلب الأسماء المحفوظة من Google Sheets وعرضها فوراً في الجداول
+      await pullFromGoogleSheets(true);
 
-      // ٢. مزامنة دورية بالخلفية كل 5 ثوانٍ لعرض أي تعديل في الشيت تلقائياً
+      // ٢. مزامنة دورية بالخلفية كل 5 ثوانٍ
       setInterval(() => {
         const activeEl = document.activeElement;
         const userCurrentlyEditingCell = activeEl && activeEl.getAttribute('contenteditable') === 'true';
         if (!isTyping && !isSavingToCloud && !userCurrentlyEditingCell && (Date.now() - lastEditTimestamp > 3500)) {
-          pullFromGoogleSheets();
+          pullFromGoogleSheets(false);
         }
       }, 5000);
     }
@@ -589,7 +638,7 @@
         btn.classList.toggle('active', btn.textContent === dept);
       });
       renderDepartment(dept);
-      pullFromGoogleSheets();
+      pullFromGoogleSheets(true);
     }
 
     function renderDepartment(dept) {
@@ -597,10 +646,10 @@
       const month = document.getElementById('monthSelect').value;
       document.getElementById('sheetMainTitle').textContent = `• جدول خفارات كادر التمريض ${dept} / ${month}`;
       document.getElementById('morningHeader').textContent = data.morningHeader || "الصباحي لكل الشهر من الاحد الى الخميس";
-      document.getElementById('morningBody').innerHTML = (data.morningNames || []).join('<br>');
+      document.getElementById('morningBody').innerHTML = toLinesArray(data.morningNames).join('<br>');
       document.getElementById('eveningTitle').textContent = data.eveningTitle || "الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا";
       document.getElementById('nightTitle').textContent = data.nightTitle || "الخفر الليلي من الساعة الحادي عشر ليلا الى الساعة الثامنة والنصف صباحا";
-      document.getElementById('signatureText').innerHTML = (data.signature || "").replace(/\n/g, '<br>');
+      document.getElementById('signatureText').innerHTML = String(data.signature || "").replace(/\r?\n/g, '<br>');
 
       const evHead = document.getElementById('eveningHeadRow');
       const evBody = document.getElementById('eveningBodyRow');
@@ -625,7 +674,7 @@
         tdE.id = `ev-col-b-${i}`;
         tdE.contentEditable = "true";
         tdE.oninput = onUserEdit;
-        tdE.innerHTML = ((data.eveningCols && data.eveningCols[i]) || []).join('<br>');
+        tdE.innerHTML = toLinesArray(data.eveningCols && data.eveningCols[i]).join('<br>');
         evBody.appendChild(tdE);
 
         const thN = document.createElement('th');
@@ -638,7 +687,7 @@
         tdN.id = `ni-col-b-${i}`;
         tdN.contentEditable = "true";
         tdN.oninput = onUserEdit;
-        tdN.innerHTML = ((data.nightCols && data.nightCols[i]) || []).join('<br>');
+        tdN.innerHTML = toLinesArray(data.nightCols && data.nightCols[i]).join('<br>');
         niBody.appendChild(tdN);
       }
 
@@ -743,17 +792,23 @@
       }
     }
 
-    // جلب الأسماء والبيانات حصرياً من Google Sheets وعرضها في صفحة الويب
-    async function pullFromGoogleSheets() {
+    // جلب الأسماء والبيانات من Google Sheets وعرضها مباشرة في الجداول
+    async function pullFromGoogleSheets(forceRender = false) {
       if (isSavingToCloud || isTyping) return;
 
       try {
         const ssId = localStorage.getItem('nursing_spreadsheet_id') || '';
         const fetchUrl = `${DEFAULT_GAS_URL}?action=loadAll&spreadsheetId=${encodeURIComponent(ssId)}&t=${Date.now()}`;
-        const res = await fetch(fetchUrl);
+        const res = await fetch(fetchUrl, { cache: 'no-store' });
         const result = await res.json();
 
-        if (result.status === 'success' && result.departments) {
+        if (result.status === 'online' && !result.departments) {
+          setSyncStatus('error', '⚠️ يرجى تحديث كود السكربت في Google (Deploy > New version)');
+          return;
+        }
+
+        const rawDepts = result.departments || result.data || null;
+        if (rawDepts && typeof rawDepts === 'object') {
           if (result.spreadsheetId) {
             localStorage.setItem('nursing_spreadsheet_id', result.spreadsheetId);
           }
@@ -761,23 +816,26 @@
             document.getElementById('monthSelect').value = result.month;
           }
 
+          const sheetKeys = Object.keys(rawDepts);
           let hasChanges = false;
-          Object.keys(result.departments).forEach(dept => {
-            const incoming = result.departments[dept];
-            incoming.hiddenIds = hiddenStore[dept] || [];
 
-            if (JSON.stringify(store[dept]) !== JSON.stringify(incoming)) {
-              store[dept] = incoming;
-              if (dept === currentDept) hasChanges = true;
+          DEPARTMENTS.forEach(appDept => {
+            const matchedKey = sheetKeys.find(k => normalizeArabic(k) === normalizeArabic(appDept));
+            if (matchedKey && rawDepts[matchedKey]) {
+              const normalizedData = normalizeDeptObject(rawDepts[matchedKey], appDept);
+              if (JSON.stringify(store[appDept]) !== JSON.stringify(normalizedData)) {
+                store[appDept] = normalizedData;
+                if (appDept === currentDept) hasChanges = true;
+              }
             }
           });
 
-          if (hasChanges) {
+          if (forceRender || hasChanges) {
             renderDepartment(currentDept);
           }
 
           const timeStr = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-          setSyncStatus('saved', `✅ البيانات من الشيت (${timeStr})`);
+          setSyncStatus('saved', `✅ تم عرض بيانات الشيت (${timeStr})`);
         }
       } catch (err) {
         setSyncStatus('error', '⚠️ بانتظار اتصال الشيت...');
@@ -875,7 +933,7 @@
           <div class="section-wrapper">
             <table class="morning-table">
               <thead><tr><th>${d.morningHeader}</th></tr></thead>
-              <tbody><tr><td>${(d.morningNames || []).join('<br>')}</td></tr></tbody>
+              <tbody><tr><td>${toLinesArray(d.morningNames).join('<br>')}</td></tr></tbody>
             </table>
           </div>` : ''}
           ${!d.hiddenIds.includes('sec-evening') ? `
@@ -883,7 +941,7 @@
             <div class="section-heading">${d.eveningTitle}</div>
             <table>
               <thead><tr>${d.periods.map((p, i) => d.hiddenIds.includes(`ev-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
-              <tbody><tr>${d.eveningCols.map((c, i) => d.hiddenIds.includes(`ev-col-b-${i}`) ? '' : `<td>${(c || []).join('<br>')}</td>`).join('')}</tr></tbody>
+              <tbody><tr>${d.eveningCols.map((c, i) => d.hiddenIds.includes(`ev-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
           ${!d.hiddenIds.includes('sec-night') ? `
@@ -891,12 +949,12 @@
             <div class="section-heading">${d.nightTitle}</div>
             <table>
               <thead><tr>${d.periods.map((p, i) => d.hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
-              <tbody><tr>${d.nightCols.map((c, i) => d.hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${(c || []).join('<br>')}</td>`).join('')}</tr></tbody>
+              <tbody><tr>${d.nightCols.map((c, i) => d.hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
           ${!d.hiddenIds.includes('sec-signature') ? `
           <div class="signature-box">
-            <div class="signature-content">${(d.signature || '').replace(/\n/g, '<br>')}</div>
+            <div class="signature-content">${String(d.signature || '').replace(/\r?\n/g, '<br>')}</div>
           </div>` : ''}
         `;
         batchContainer.appendChild(page);
