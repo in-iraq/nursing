@@ -321,7 +321,6 @@
         padding: 9px 10px;
         font-size: 12.5px;
       }
-      /* شريط أقسام قابل للسحب باللمس في الهاتف دون أخذ مساحة عمودية كبيرة */
       .dept-pills {
         flex-wrap: nowrap;
         overflow-x: auto;
@@ -462,7 +461,7 @@
   </div>
 
   <script>
-    const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbxulzrL881hq_xLd0yHxViPkLausd6o3rgGtXxPUjszKKBgrskZe9Z5WFZHvypzI_6pzQ/exec";
+    const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbzo_G5n9H99DQtHMR2BtKw4O_dVPVYMH-AJCdfGXmHXPMb6O8SsU1NzIyflWkhxtGjHuA/exec";
 
     const DEPARTMENTS = [
       "قسم الطوارئ",
@@ -481,14 +480,13 @@
       "القسطرة القلبية"
     ];
 
-    // لا توجد أي تواريخ مضمنة في الكود؛ تُستورد التواريخ حصرياً كما هي محفوظة ومعدلة في الشيت
     const DEFAULT_PERIODS = ["", "", "", "", "", ""];
 
     let currentDept = DEPARTMENTS[0];
     let currentMonth = "تشرين الثاني";
     let store = {};
     let hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
-    let fitToScreenMode = true; // افتراضياً: تحجيم الورقة لتناسب عرض الهاتف أو الآيباد بالكامل
+    let fitToScreenMode = true;
 
     function getEmptyTemplate(deptName = "") {
       return {
@@ -505,13 +503,12 @@
       };
     }
 
-    // دالة تحجيم ذكية تجعل ورقة A4 متناسقة تماماً على شاشة الحاسبة والآيباد والهاتف
     function adjustResponsiveA4Scale() {
       const page = document.getElementById('activeA4Page');
       const wrapper = document.getElementById('a4ScaleWrapper');
       if (!page || !wrapper) return;
 
-      const a4WidthPx = 794; // 210mm بالبيكسل
+      const a4WidthPx = 794;
       const availableWidth = window.innerWidth - 20;
 
       if (fitToScreenMode && availableWidth < a4WidthPx) {
@@ -609,8 +606,9 @@
       select.innerHTML = '';
       pills.innerHTML = '';
 
+      const cachedStore = JSON.parse(localStorage.getItem('nursing_cloud_cache_v3') || '{}');
       DEPARTMENTS.forEach((dept) => {
-        store[dept] = getEmptyTemplate(dept);
+        store[dept] = cachedStore[dept] ? normalizeDeptObject(cachedStore[dept], dept) : getEmptyTemplate(dept);
 
         const opt = document.createElement('option');
         opt.value = dept;
@@ -632,6 +630,12 @@
           hiddenStore = JSON.parse(e.newValue || '{}');
           DEPARTMENTS.forEach(d => {
             if (store[d]) store[d].hiddenIds = hiddenStore[d] || [];
+          });
+          renderDepartment(currentDept);
+        } else if (e.key === 'nursing_cloud_cache_v3' && e.newValue) {
+          const updatedCache = JSON.parse(e.newValue || '{}');
+          DEPARTMENTS.forEach(d => {
+            if (updatedCache[d]) store[d] = normalizeDeptObject(updatedCache[d], d);
           });
           renderDepartment(currentDept);
         }
@@ -745,6 +749,7 @@
             }
           });
 
+          localStorage.setItem('nursing_cloud_cache_v3', JSON.stringify(store));
           if (forceRender || hasChanges) {
             renderDepartment(currentDept);
           }
