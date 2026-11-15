@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>منظومة جداول خفارات الكادر التمريضي - لوحة الأدمن</title>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0f766e;
+      --primary-hover: #115e59;
+      --bg: #e2e8f0;
+      --paper-bg: #ffffff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background-color: var(--bg);
+      color: #0f172a;
+      padding-bottom: 40px;
+    }
+
+    /* شريط التحكم العلوي */
+    .toolbar {
+      background: #1e293b;
+      color: #fff;
+      padding: 12px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .toolbar-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .controls-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .control-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #334155;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    .control-item select {
+      background: #0f172a;
+      color: #fff;
+      border: 1px solid #475569;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 13px;
+    }
+
+    /* مؤشر المزامنة التلقائية الثنائية */
+    .sync-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #38bdf8;
+      transition: 0.25s;
+    }
+    .sync-badge.saving { color: #fbbf24; border-color: #f59e0b; }
+    .sync-badge.saved { color: #4ade80; border-color: #22c55e; }
+    .sync-badge.fetching { color: #a78bfa; border-color: #8b5cf6; }
+    .sync-badge.error { color: #f87171; border-color: #ef4444; }
+
+    .btn {
+      cursor: pointer;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: 'Tajawal', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-warning { background: #d97706; color: #fff; }
+    .btn-danger { background: #dc2626; color: #fff; }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-secondary { background: #475569; color: #fff; }
+
+    /* أزرار التنقل السريع بين الأقسام */
+    .dept-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      max-width: 1280px;
+      margin: 10px auto 0;
+      padding-top: 8px;
+      border-top: 1px solid #334155;
+    }
+
+    .dept-pill {
+      background: #334155;
+      color: #cbd5e1;
+      border: 1px solid #475569;
+      padding: 5px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: 'Tajawal', sans-serif;
+      transition: 0.15s;
+    }
+
+    .dept-pill.active {
+      background: #14b8a6;
+      color: #0f172a;
+      font-weight: 700;
+      border-color: #14b8a6;
+    }
+
+    /* ورقة A4 */
+    .a4-container {
+      display: flex;
+      justify-content: center;
+      padding: 25px 10px;
+    }
+
+    .a4-page {
+      width: 210mm;
+      min-height: 297mm;
+      background: var(--paper-bg);
+      padding: 18mm 14mm;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      position: relative;
+      font-family: 'Amiri', serif;
+      color: #000;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page-title {
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 14px;
+    }
+
+    .section-wrapper {
+      position: relative;
+      margin-bottom: 18px;
+    }
+
+    .hide-btn {
+      position: absolute;
+      top: -22px;
+      left: 0;
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s;
+      font-family: 'Tajawal', sans-serif;
+    }
+
+    .section-wrapper:hover .hide-btn,
+    th:hover .col-hide-btn {
+      opacity: 1;
+    }
+
+    .col-hide-btn {
+      display: block;
+      margin: 2px auto 0;
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      cursor: pointer;
+      opacity: 0;
+      font-family: 'Tajawal', sans-serif;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th, td {
+      border: 1.5px solid #222;
+      padding: 6px 4px;
+      text-align: center;
+      vertical-align: top;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    th {
+      background: #f8fafc;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    td {
+      min-height: 110px;
+      height: 120px;
+    }
+
+    .morning-table {
+      width: 58%;
+      margin: 0 auto;
+    }
+
+    .section-heading {
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      margin: 10px 0 8px;
+    }
+
+    [contenteditable="true"]:focus {
+      outline: 2px solid #0d9488;
+      background: #f0fdfa;
+    }
+
+    .signature-box {
+      margin-top: auto;
+      padding-top: 25px;
+      display: flex;
+      justify-content: flex-end;
+      padding-left: 35px;
+    }
+
+    .signature-content {
+      color: #1d4ed8;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      transform: rotate(-10deg);
+      line-height: 1.4;
+      min-width: 160px;
+    }
+
+    .hidden-element {
+      display: none !important;
+    }
+
+    /* النوافذ المنبثقة */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 16px;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal-card {
+      background: #fff;
+      width: 100%;
+      max-width: 540px;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 10px;
+    }
+
+    .dept-check-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin: 14px 0;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    .dept-check-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f8fafc;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    #printBatchContainer { display: none; }
+
+    @media print {
+      @page { size: A4 portrait; margin: 0; }
+      body { background: #fff; padding: 0; }
+      .toolbar, .hide-btn, .col-hide-btn, .modal-overlay { display: none !important; }
+      .a4-container { display: none !important; }
+      #printBatchContainer { display: block !important; }
+      .a4-page {
+        box-shadow: none;
+        width: 210mm;
+        height: 297mm;
+        page-break-after: always;
+        break-after: page;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- شريط التحكم العلوي -->
+  <header class="toolbar">
+    <div class="toolbar-row">
+      <div class="controls-group">
+        <div class="control-item">
+          <label>السنة:</label>
+          <select id="yearSelect" onchange="updateTitleAndSave()">
+            <option value="2025">2025</option>
+            <option value="2026" selected>2026</option>
+            <option value="2027">2027</option>
+          </select>
+        </div>
+
+        <div class="control-item">
+          <label>الشهر:</label>
+          <select id="monthSelect" onchange="updateTitleAndSave()">
+            <option value="كانون الثاني">كانون الثاني (1)</option>
+            <option value="شباط">شباط (2)</option>
+            <option value="آذار">آذار (3)</option>
+            <option value="نيسان">نيسان (4)</option>
+            <option value="أيار">أيار (5)</option>
+            <option value="حزيران">حزيران (6)</option>
+            <option value="تموز">تموز (7)</option>
+            <option value="آب">آب (8)</option>
+            <option value="أيلول">أيلول (9)</option>
+            <option value="تشرين الأول">تشرين الأول (10)</option>
+            <option value="تشرين الثاني" selected>تشرين الثاني (11)</option>
+            <option value="كانون الأول">كانون الأول (12)</option>
+          </select>
+        </div>
+
+        <div class="control-item">
+          <label>القسم:</label>
+          <select id="deptSelect" onchange="switchDepartment(this.value)"></select>
+        </div>
+
+        <div id="syncBadge" class="sync-badge fetching">
+          <span id="syncText">⏳ جاري قراءة الأسماء من الشيت...</span>
+        </div>
+      </div>
+
+      <div class="controls-group">
+        <button class="btn btn-warning" onclick="showAllHiddenFields()">👁️ إظهار المخفي</button>
+        <button class="btn btn-danger" onclick="openClearModal()">🗑️ تفريغ الأسماء</button>
+        <button class="btn btn-primary" onclick="openPrintModal()">🖨️ طباعة (A4)</button>
+      </div>
+    </div>
+
+    <!-- أزرار التنقل السريع بين الأقسام العشرة -->
+    <div class="dept-pills" id="deptPills"></div>
+  </header>
+
+  <!-- منطقة عرض ورقة A4 -->
+  <main class="a4-container">
+    <div class="a4-page" id="activeA4Page">
+      <div class="page-title" id="sheetMainTitle" contenteditable="true" oninput="onUserEdit()">
+        • جدول خفارات كادر التمريض قسم الطوارئ / تشرين الثاني
+      </div>
+
+      <!-- جدول الخفر الصباحي -->
+      <div class="section-wrapper" id="sec-morning">
+        <button class="hide-btn" onclick="toggleHideElement('sec-morning')">👁️ إخفاء الجدول الصباحي</button>
+        <table class="morning-table">
+          <thead>
+            <tr>
+              <th id="morningHeader" contenteditable="true" oninput="onUserEdit()">الصباحي لكل الشهر من الاحد الى الخميس</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td id="morningBody" contenteditable="true" oninput="onUserEdit()"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- جدول الخفر المسائي -->
+      <div class="section-wrapper" id="sec-evening">
+        <button class="hide-btn" onclick="toggleHideElement('sec-evening')">👁️ إخفاء الجدول المسائي</button>
+        <div class="section-heading" id="eveningTitle" contenteditable="true" oninput="onUserEdit()">
+          الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا
+        </div>
+        <table>
+          <thead>
+            <tr id="eveningHeadRow"></tr>
+          </thead>
+          <tbody>
+            <tr id="eveningBodyRow"></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- جدول الخفر الليلي -->
+      <div class="section-wrapper" id="sec-night">
+        <button class="hide-btn" onclick="toggleHideElement('sec-night')">👁️ إخفاء الجدول الليلي</button>
+        <div class="section-heading" id="nightTitle" contenteditable="true" oninput="onUserEdit()">
+          الخفر الليلي من الساعة الحادي عشر ليلا الى الساعة الثامنة والنصف صباحا
+        </div>
+        <table>
+          <thead>
+            <tr id="nightHeadRow"></tr>
+          </thead>
+          <tbody>
+            <tr id="nightBodyRow"></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- التوقيع -->
+      <div class="section-wrapper signature-box" id="sec-signature">
+        <button class="hide-btn" onclick="toggleHideElement('sec-signature')">👁️ إخفاء التوقيع</button>
+        <div class="signature-content" id="signatureText" contenteditable="true" oninput="onUserEdit()"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- حاوية الطباعة المتعددة -->
+  <div id="printBatchContainer"></div>
+
+  <!-- نافذة تحديد الأقسام للتفريغ -->
+  <div class="modal-overlay" id="clearModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span>🗑️ تحديد الأقسام لتفريغ الأسماء</span>
+        <button class="btn btn-secondary" onclick="closeModals()">✕</button>
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <button class="btn btn-danger" onclick="selectCheckboxes('.clear-dept-cb', 'all')">تحديد الكل (جميع الأقسام)</button>
+        <button class="btn btn-secondary" onclick="selectCheckboxes('.clear-dept-cb', 'current')">القسم الحالي فقط</button>
+        <button class="btn btn-secondary" onclick="selectCheckboxes('.clear-dept-cb', 'none')">إلغاء الكل</button>
+      </div>
+      <div class="dept-check-grid" id="clearDeptList"></div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+        <button class="btn btn-secondary" onclick="closeModals()">إلغاء</button>
+        <button class="btn btn-danger" onclick="executeBatchClear()">تأكيد تفريغ المحدد وحفظه في الشيت</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة تحديد الأقسام للطباعة -->
+  <div class="modal-overlay" id="printModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span>🖨️ تحديد الأقسام للطباعة (A4)</span>
+        <button class="btn btn-secondary" onclick="closeModals()">✕</button>
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <button class="btn btn-primary" onclick="selectCheckboxes('.print-dept-cb', 'all')">تحديد الكل</button>
+        <button class="btn btn-secondary" onclick="selectCheckboxes('.print-dept-cb', 'current')">القسم الحالي فقط</button>
+        <button class="btn btn-secondary" onclick="selectCheckboxes('.print-dept-cb', 'none')">إلغاء الكل</button>
+      </div>
+      <div class="dept-check-grid" id="printDeptList"></div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+        <button class="btn btn-secondary" onclick="closeModals()">إلغاء</button>
+        <button class="btn btn-primary" onclick="executeBatchPrint()">بدء الطباعة الآن</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbxulzrL881hq_xLd0yHxViPkLausd6o3rgGtXxPUjszKKBgrskZe9Z5WFZHvypzI_6pzQ/exec";
+
+    const DEPARTMENTS = [
+      "قسم الطوارئ",
+      "الانعاش القلبي",
+      "الانعاش الجراحي",
+      "الطابق الاول",
+      "قسم الخدج",
+      "الطابق الثاني",
+      "الطابق الثالث",
+      "الطابق الرابع",
+      "الطابق الخامس",
+      "الطابق السادس"
+    ];
+
+    const DEFAULT_PERIODS = [
+      "من ١١/١ الى ١١/٥",
+      "من ١١/٦ الى ١١/١٠",
+      "من ١١/١١ الى ١١/١٥",
+      "من ١١/١٦ الى ١١/٢٠",
+      "من ١١/٢١ الى ١١/٢٥",
+      "من ١١/٢٦ الى ١١/٣٠"
+    ];
+
+    let currentDept = DEPARTMENTS[0];
+    let store = {};
+    let sheetTabNameMap = {};
+    let hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
+    let autoSaveTimer = null;
+    let isTyping = false;
+    let isSavingToCloud = false;
+    let lastEditTimestamp = 0;
+
+    function getEmptyTemplate(deptName = "") {
+      return {
+        morningHeader: "الصباحي لكل الشهر من الاحد الى الخميس",
+        morningNames: [],
+        eveningTitle: "الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا",
+        nightTitle: "الخفر الليلي من الساعة الحادي عشر ليلا الى الساعة الثامنة والنصف صباحا",
+        periods: [...DEFAULT_PERIODS],
+        eveningCols: [[], [], [], [], [], []],
+        nightCols: [[], [], [], [], [], []],
+        signature: "",
+        hiddenIds: hiddenStore[deptName] || []
+      };
+    }
+
+    function normalizeArabic(str) {
+      return String(str || "")
+        .trim()
+        .replace(/[أإآ]/g, "ا")
+        .replace(/ة/g, "ه")
+        .replace(/[ىئ]/g, "ي")
+        .replace(/\s+/g, " ");
+    }
+
+    function toLinesArray(val) {
+      if (!val) return [];
+      if (Array.isArray(val)) {
+        return val.flatMap(item => String(item || "").split(/\r?\n/)).map(s => s.trim()).filter(Boolean);
+      }
+      return String(val).split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    }
+
+    function normalizeDeptObject(raw, deptName) {
+      const base = getEmptyTemplate(deptName);
+      if (!raw || typeof raw !== 'object') return base;
+
+      base.morningHeader = String(raw.morningHeader || base.morningHeader).trim();
+      base.morningNames = toLinesArray(raw.morningNames);
+      base.eveningTitle = String(raw.eveningTitle || base.eveningTitle).trim();
+      base.nightTitle = String(raw.nightTitle || base.nightTitle).trim();
+      let rawSig = Array.isArray(raw.signature) ? raw.signature.join('\n') : String(raw.signature || "").trim();
+      if (rawSig.includes("<!--HIDDEN:")) {
+        const parts = rawSig.split("<!--HIDDEN:");
+        rawSig = parts[0].trim();
+        try {
+          const parsedHidden = JSON.parse(parts[1].replace("-->", "").trim());
+          if (Array.isArray(parsedHidden)) {
+            base.hiddenIds = parsedHidden;
+            hiddenStore[deptName] = parsedHidden;
+            localStorage.setItem('nursing_hidden_fields_v1', JSON.stringify(hiddenStore));
+          }
+        } catch (e) {}
+      }
+      base.signature = rawSig;
+
+      if (Array.isArray(raw.periods) && raw.periods.length > 0) {
+        for (let i = 0; i < 6; i++) {
+          base.periods[i] = String(raw.periods[i] || DEFAULT_PERIODS[i]).trim();
+        }
+      }
+
+      if (Array.isArray(raw.eveningCols)) {
+        for (let i = 0; i < 6; i++) {
+          base.eveningCols[i] = toLinesArray(raw.eveningCols[i]);
+        }
+      }
+
+      if (Array.isArray(raw.nightCols)) {
+        for (let i = 0; i < 6; i++) {
+          base.nightCols[i] = toLinesArray(raw.nightCols[i]);
+        }
+      }
+
+      return base;
+    }
+
+    async function initApp() {
+      const select = document.getElementById('deptSelect');
+      const pills = document.getElementById('deptPills');
+      select.innerHTML = '';
+      pills.innerHTML = '';
+
+      DEPARTMENTS.forEach((dept) => {
+        store[dept] = getEmptyTemplate(dept);
+        sheetTabNameMap[dept] = dept;
+
+        const opt = document.createElement('option');
+        opt.value = dept;
+        opt.textContent = dept;
+        select.appendChild(opt);
+
+        const pill = document.createElement('button');
+        pill.className = 'dept-pill' + (dept === currentDept ? ' active' : '');
+        pill.textContent = dept;
+        pill.onclick = () => switchDepartment(dept);
+        pills.appendChild(pill);
+      });
+
+      renderDepartment(currentDept);
+
+      await pullFromGoogleSheets(true);
+
+      setInterval(() => {
+        const activeEl = document.activeElement;
+        const userCurrentlyEditingCell = activeEl && activeEl.getAttribute('contenteditable') === 'true';
+        if (!isTyping && !isSavingToCloud && !userCurrentlyEditingCell && (Date.now() - lastEditTimestamp > 4500)) {
+          pullFromGoogleSheets(false);
+        }
+      }, 5000);
+    }
+
+    async function switchDepartment(dept) {
+      if (dept === currentDept) return;
+
+      if (autoSaveTimer || isTyping) {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = null;
+        isTyping = false;
+        saveCurrentState(false);
+        await syncDepartmentsToSheet([currentDept]);
+      } else {
+        saveCurrentState(false);
+      }
+
+      currentDept = dept;
+      document.getElementById('deptSelect').value = dept;
+      document.querySelectorAll('.dept-pill').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent === dept);
+      });
+      renderDepartment(dept);
+      pullFromGoogleSheets(true);
+    }
+
+    function renderDepartment(dept) {
+      const data = store[dept] || getEmptyTemplate(dept);
+      const month = document.getElementById('monthSelect').value;
+      document.getElementById('sheetMainTitle').textContent = `• جدول خفارات كادر التمريض ${dept} / ${month}`;
+      document.getElementById('morningHeader').textContent = data.morningHeader || "الصباحي لكل الشهر من الاحد الى الخميس";
+      document.getElementById('morningBody').innerHTML = toLinesArray(data.morningNames).join('<br>');
+      document.getElementById('eveningTitle').textContent = data.eveningTitle || "الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا";
+      document.getElementById('nightTitle').textContent = data.nightTitle || "الخفر الليلي من الساعة الحادي عشر ليلا الى الساعة الثامنة والنصف صباحا";
+      document.getElementById('signatureText').innerHTML = String(data.signature || "").replace(/\r?\n/g, '<br>');
+
+      const evHead = document.getElementById('eveningHeadRow');
+      const evBody = document.getElementById('eveningBodyRow');
+      const niHead = document.getElementById('nightHeadRow');
+      const niBody = document.getElementById('nightBodyRow');
+
+      evHead.innerHTML = '';
+      evBody.innerHTML = '';
+      niHead.innerHTML = '';
+      niBody.innerHTML = '';
+
+      const periods = (data.periods && data.periods.length === 6) ? data.periods : [...DEFAULT_PERIODS];
+
+      for (let i = 0; i < 6; i++) {
+        const thE = document.createElement('th');
+        thE.id = `ev-col-h-${i}`;
+        thE.innerHTML = `<div contenteditable="true" oninput="onUserEdit()">${periods[i] || ''}</div>
+                         <button class="col-hide-btn" onclick="toggleHideCol('ev', ${i})">✕ إخفاء</button>`;
+        evHead.appendChild(thE);
+
+        const tdE = document.createElement('td');
+        tdE.id = `ev-col-b-${i}`;
+        tdE.contentEditable = "true";
+        tdE.oninput = onUserEdit;
+        tdE.innerHTML = toLinesArray(data.eveningCols && data.eveningCols[i]).join('<br>');
+        evBody.appendChild(tdE);
+
+        const thN = document.createElement('th');
+        thN.id = `ni-col-h-${i}`;
+        thN.innerHTML = `<div contenteditable="true" oninput="onUserEdit()">${periods[i] || ''}</div>
+                         <button class="col-hide-btn" onclick="toggleHideCol('ni', ${i})">✕ إخفاء</button>`;
+        niHead.appendChild(thN);
+
+        const tdN = document.createElement('td');
+        tdN.id = `ni-col-b-${i}`;
+        tdN.contentEditable = "true";
+        tdN.oninput = onUserEdit;
+        tdN.innerHTML = toLinesArray(data.nightCols && data.nightCols[i]).join('<br>');
+        niBody.appendChild(tdN);
+      }
+
+      applyHiddenElements(data.hiddenIds || []);
+    }
+
+    function htmlToLines(el) {
+      return el.innerHTML
+        .replace(/<div>/gi, '\n')
+        .replace(/<\/div>/gi, '')
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<[^>]+>/g, '')
+        .split('\n')
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+
+    function setSyncStatus(state, text) {
+      const badge = document.getElementById('syncBadge');
+      const txt = document.getElementById('syncText');
+      badge.className = 'sync-badge ' + state;
+      txt.textContent = text;
+    }
+
+    function onUserEdit() {
+      isTyping = true;
+      lastEditTimestamp = Date.now();
+      saveCurrentState(true);
+    }
+
+    function saveCurrentState(triggerCloud = true) {
+      const data = store[currentDept];
+      if (!data) return;
+      data.morningHeader = document.getElementById('morningHeader').innerText.trim();
+      data.morningNames = htmlToLines(document.getElementById('morningBody'));
+      data.eveningTitle = document.getElementById('eveningTitle').innerText.trim();
+      data.nightTitle = document.getElementById('nightTitle').innerText.trim();
+      data.signature = htmlToLines(document.getElementById('signatureText')).join('\n').split('<!--HIDDEN:')[0].trim();
+
+      for (let i = 0; i < 6; i++) {
+        const thE = document.querySelector(`#ev-col-h-${i} div`);
+        if (thE) data.periods[i] = thE.innerText.trim();
+        const tdE = document.getElementById(`ev-col-b-${i}`);
+        if (tdE) data.eveningCols[i] = htmlToLines(tdE);
+        const tdN = document.getElementById(`ni-col-b-${i}`);
+        if (tdN) data.nightCols[i] = htmlToLines(tdN);
+      }
+
+      hiddenStore[currentDept] = data.hiddenIds || [];
+      localStorage.setItem('nursing_hidden_fields_v1', JSON.stringify(hiddenStore));
+
+      if (triggerCloud) {
+        scheduleAutoSync();
+      }
+    }
+
+    function scheduleAutoSync() {
+      setSyncStatus('saving', '✍️ جاري الحفظ في الشيت...');
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = setTimeout(() => {
+        autoSaveTimer = null;
+        isTyping = false;
+        syncDepartmentsToSheet([currentDept]);
+      }, 800);
+    }
+
+    async function syncDepartmentsToSheet(deptList) {
+      isSavingToCloud = true;
+      lastEditTimestamp = Date.now();
+      setSyncStatus('saving', '⏳ جاري الحفظ في الشيت...');
+
+      const departmentsPayload = {};
+      deptList.forEach(dept => {
+        const orig = store[dept] || getEmptyTemplate(dept);
+        const d = JSON.parse(JSON.stringify(orig));
+        const cleanSig = String(d.signature || "").split("<!--HIDDEN:")[0].trim();
+        if (d.hiddenIds && d.hiddenIds.length > 0) {
+          d.signature = cleanSig + "\n<!--HIDDEN:" + JSON.stringify(d.hiddenIds) + "-->";
+        } else {
+          d.signature = cleanSig;
+        }
+        const exactSheetTab = sheetTabNameMap[dept] || dept;
+        departmentsPayload[exactSheetTab] = d;
+        if (exactSheetTab !== dept) {
+          departmentsPayload[dept] = d;
+        }
+      });
+
+      const payload = {
+        action: deptList.length > 1 ? 'syncAll' : 'autoSaveDept',
+        year: document.getElementById('yearSelect').value,
+        month: document.getElementById('monthSelect').value,
+        deptName: sheetTabNameMap[deptList[0]] || deptList[0],
+        deptData: departmentsPayload[sheetTabNameMap[deptList[0]] || deptList[0]],
+        departments: departmentsPayload,
+        spreadsheetId: localStorage.getItem('nursing_spreadsheet_id') || ''
+      };
+
+      try {
+        const res = await fetch(DEFAULT_GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (result.status === 'success') {
+          if (result.spreadsheetId) {
+            localStorage.setItem('nursing_spreadsheet_id', result.spreadsheetId);
+          }
+          lastEditTimestamp = Date.now();
+          const timeStr = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          setSyncStatus('saved', `✅ متزامن مع الشيت (${timeStr})`);
+        } else {
+          setSyncStatus('error', '⚠️ خطأ في المزامنة');
+        }
+      } catch (err) {
+        setSyncStatus('error', '❌ تعذر الاتصال بالشيت');
+      } finally {
+        isSavingToCloud = false;
+      }
+    }
+
+    async function pullFromGoogleSheets(forceRender = false) {
+      if (isSavingToCloud || isTyping || autoSaveTimer) return;
+
+      try {
+        const ssId = localStorage.getItem('nursing_spreadsheet_id') || '';
+        const fetchUrl = `${DEFAULT_GAS_URL}?action=loadAll&spreadsheetId=${encodeURIComponent(ssId)}&t=${Date.now()}`;
+        const res = await fetch(fetchUrl, { cache: 'no-store' });
+        const result = await res.json();
+
+        if (isSavingToCloud || isTyping || autoSaveTimer) return;
+
+        const rawDepts = result.departments || result.data || null;
+        if (rawDepts && typeof rawDepts === 'object') {
+          if (result.spreadsheetId) {
+            localStorage.setItem('nursing_spreadsheet_id', result.spreadsheetId);
+          }
+          if (result.month) {
+            document.getElementById('monthSelect').value = result.month;
+          }
+
+          const sheetKeys = Object.keys(rawDepts);
+          let hasChanges = false;
+
+          DEPARTMENTS.forEach(appDept => {
+            const matchedKey = sheetKeys.find(k => normalizeArabic(k) === normalizeArabic(appDept));
+            if (matchedKey && rawDepts[matchedKey]) {
+              sheetTabNameMap[appDept] = matchedKey;
+              const normalizedData = normalizeDeptObject(rawDepts[matchedKey], appDept);
+              if (JSON.stringify(store[appDept]) !== JSON.stringify(normalizedData)) {
+                store[appDept] = normalizedData;
+                if (appDept === currentDept) hasChanges = true;
+              }
+            }
+          });
+
+          if (forceRender || hasChanges) {
+            renderDepartment(currentDept);
+          }
+
+          const timeStr = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          setSyncStatus('saved', `✅ تم عرض بيانات الشيت (${timeStr})`);
+        }
+      } catch (err) {
+        setSyncStatus('error', '⚠️ بانتظار اتصال الشيت...');
+      }
+    }
+
+    function updateTitleAndSave() {
+      const month = document.getElementById('monthSelect').value;
+      document.getElementById('sheetMainTitle').textContent = `• جدول خفارات كادر التمريض ${currentDept} / ${month}`;
+      onUserEdit();
+    }
+
+    function toggleHideElement(id) {
+      const data = store[currentDept];
+      if (!data.hiddenIds.includes(id)) data.hiddenIds.push(id);
+      applyHiddenElements(data.hiddenIds);
+      onUserEdit();
+    }
+
+    function toggleHideCol(prefix, idx) {
+      const data = store[currentDept];
+      const hId = `${prefix}-col-h-${idx}`;
+      const bId = `${prefix}-col-b-${idx}`;
+      if (!data.hiddenIds.includes(hId)) data.hiddenIds.push(hId, bId);
+      applyHiddenElements(data.hiddenIds);
+      onUserEdit();
+    }
+
+    function applyHiddenElements(hiddenIds) {
+      document.querySelectorAll('#activeA4Page .hidden-element').forEach(el => el.classList.remove('hidden-element'));
+      hiddenIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden-element');
+      });
+    }
+
+    function showAllHiddenFields() {
+      store[currentDept].hiddenIds = [];
+      applyHiddenElements([]);
+      onUserEdit();
+    }
+
+    function openClearModal() {
+      saveCurrentState(false);
+      populateCheckList('clearDeptList', 'clear-dept-cb', false);
+      document.getElementById('clearModal').classList.add('active');
+    }
+
+    async function executeBatchClear() {
+      const selected = Array.from(document.querySelectorAll('.clear-dept-cb:checked')).map(cb => cb.value);
+      if (selected.length === 0) return alert('الرجاء اختيار قسم واحد على الأقل للتفريغ.');
+
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = null;
+      isTyping = false;
+
+      selected.forEach(dept => {
+        const currentPeriods = (store[dept] && store[dept].periods && store[dept].periods.length === 6)
+          ? [...store[dept].periods]
+          : [...DEFAULT_PERIODS];
+        const emptyObj = getEmptyTemplate(dept);
+        emptyObj.periods = currentPeriods;
+        store[dept] = emptyObj;
+      });
+
+      closeModals();
+      renderDepartment(currentDept);
+
+      await syncDepartmentsToSheet(selected);
+    }
+
+    function populateCheckList(containerId, cbClass, checkAll = false) {
+      const list = document.getElementById(containerId);
+      list.innerHTML = '';
+      DEPARTMENTS.forEach(dept => {
+        const label = document.createElement('label');
+        label.className = 'dept-check-item';
+        const checked = checkAll || dept === currentDept ? 'checked' : '';
+        label.innerHTML = `<input type="checkbox" class="${cbClass}" value="${dept}" ${checked}> <span>${dept}</span>`;
+        list.appendChild(label);
+      });
+    }
+
+    function selectCheckboxes(selector, mode) {
+      document.querySelectorAll(selector).forEach(cb => {
+        if (mode === 'all') cb.checked = true;
+        else if (mode === 'none') cb.checked = false;
+        else if (mode === 'current') cb.checked = (cb.value === currentDept);
+      });
+    }
+
+    function openPrintModal() {
+      saveCurrentState(false);
+      populateCheckList('printDeptList', 'print-dept-cb', false);
+      document.getElementById('printModal').classList.add('active');
+    }
+
+    function closeModals() {
+      document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+    }
+
+    function executeBatchPrint() {
+      const selected = Array.from(document.querySelectorAll('.print-dept-cb:checked')).map(cb => cb.value);
+      if (selected.length === 0) return alert('الرجاء اختيار قسم واحد على الأقل للطباعة.');
+
+      const month = document.getElementById('monthSelect').value;
+      const batchContainer = document.getElementById('printBatchContainer');
+      batchContainer.innerHTML = '';
+
+      selected.forEach(dept => {
+        const d = store[dept] || getEmptyTemplate(dept);
+        const page = document.createElement('div');
+        page.className = 'a4-page';
+        page.innerHTML = `
+          <div class="page-title">• جدول خفارات كادر التمريض ${dept} / ${month}</div>
+          ${!d.hiddenIds.includes('sec-morning') ? `
+          <div class="section-wrapper">
+            <table class="morning-table">
+              <thead><tr><th>${d.morningHeader}</th></tr></thead>
+              <tbody><tr><td>${toLinesArray(d.morningNames).join('<br>')}</td></tr></tbody>
+            </table>
+          </div>` : ''}
+          ${!d.hiddenIds.includes('sec-evening') ? `
+          <div class="section-wrapper">
+            <div class="section-heading">${d.eveningTitle}</div>
+            <table>
+              <thead><tr>${d.periods.map((p, i) => d.hiddenIds.includes(`ev-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
+              <tbody><tr>${d.eveningCols.map((c, i) => d.hiddenIds.includes(`ev-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
+            </table>
+          </div>` : ''}
+          ${!d.hiddenIds.includes('sec-night') ? `
+          <div class="section-wrapper">
+            <div class="section-heading">${d.nightTitle}</div>
+            <table>
+              <thead><tr>${d.periods.map((p, i) => d.hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
+              <tbody><tr>${d.nightCols.map((c, i) => d.hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
+            </table>
+          </div>` : ''}
+          ${!d.hiddenIds.includes('sec-signature') ? `
+          <div class="signature-box">
+            <div class="signature-content">${String(d.signature || '').replace(/\r?\n/g, '<br>')}</div>
+          </div>` : ''}
+        `;
+        batchContainer.appendChild(page);
+      });
+
+      closeModals();
+      setTimeout(() => window.print(), 150);
+    }
+
+    window.onload = initApp;
+  </script>
+</body>
+</html>
