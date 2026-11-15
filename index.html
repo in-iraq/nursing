@@ -108,6 +108,7 @@
     .btn-primary:hover { background: var(--primary-hover); }
     .btn-warning { background: #d97706; color: #fff; }
     .btn-danger { background: #dc2626; color: #fff; }
+    .btn-danger:hover { background: #b91c1c; }
     .btn-secondary { background: #475569; color: #fff; }
 
     /* أزرار التنقل السريع بين الأقسام */
@@ -390,7 +391,7 @@
 
       <div class="controls-group">
         <button class="btn btn-warning" onclick="showAllHiddenFields()">👁️ إظهار المخفي</button>
-        <button class="btn btn-danger" onclick="clearCurrentDepartment()">تفريغ</button>
+        <button class="btn btn-danger" onclick="openClearModal()">🗑️ تفريغ الأسماء</button>
         <button class="btn btn-primary" onclick="openPrintModal()">🖨️ طباعة (A4)</button>
       </div>
     </div>
@@ -466,6 +467,26 @@
   <!-- حاوية الطباعة المتعددة -->
   <div id="printBatchContainer"></div>
 
+  <!-- نافذة تحديد الأقسام للتفريغ -->
+  <div class="modal-overlay" id="clearModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span>🗑️ تحديد الأقسام لتفريغ الأسماء</span>
+        <button class="btn btn-secondary" onclick="closeModals()">✕</button>
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <button class="btn btn-danger" onclick="selectCheckboxes('.clear-dept-cb', 'all')">تحديد الكل (جميع الأقسام)</button>
+        <button class="btn btn-secondary" onclick="selectCheckboxes('.clear-dept-cb', 'current')">القسم الحالي فقط</button>
+        <button class="btn btn-secondary" onclick="selectCheckboxes('.clear-dept-cb', 'none')">إلغاء الكل</button>
+      </div>
+      <div class="dept-check-grid" id="clearDeptList"></div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+        <button class="btn btn-secondary" onclick="closeModals()">إلغاء</button>
+        <button class="btn btn-danger" onclick="executeBatchClear()">تأكيد تفريغ المحدد وحفظه في الشيت</button>
+      </div>
+    </div>
+  </div>
+
   <!-- نافذة تحديد الأقسام للطباعة -->
   <div class="modal-overlay" id="printModal">
     <div class="modal-card">
@@ -513,13 +534,14 @@
 
     let currentDept = DEPARTMENTS[0];
     let store = {};
+    let sheetTabNameMap = {}; // يحفظ الاسم الدقيق للتبويب داخل الشيت لكل قسم
     let hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
     let autoSaveTimer = null;
     let isTyping = false;
     let isSavingToCloud = false;
     let lastEditTimestamp = 0;
 
-    function getEmptyTemplate() {
+    function getEmptyTemplate(deptName = "") {
       return {
         morningHeader: "الصباحي لكل الشهر من الاحد الى الخميس",
         morningNames: [],
@@ -529,7 +551,7 @@
         eveningCols: [[], [], [], [], [], []],
         nightCols: [[], [], [], [], [], []],
         signature: "",
-        hiddenIds: []
+        hiddenIds: hiddenStore[deptName] || []
       };
     }
 
@@ -553,8 +575,7 @@
     }
 
     function normalizeDeptObject(raw, deptName) {
-      const base = getEmptyTemplate();
-      base.hiddenIds = hiddenStore[deptName] || [];
+      const base = getEmptyTemplate(deptName);
       if (!raw || typeof raw !== 'object') return base;
 
       base.morningHeader = String(raw.morningHeader || base.morningHeader).trim();
@@ -598,8 +619,8 @@
       pills.innerHTML = '';
 
       DEPARTMENTS.forEach((dept) => {
-        store[dept] = getEmptyTemplate();
-        store[dept].hiddenIds = hiddenStore[dept] || [];
+        store[dept] = getEmptyTemplate(dept);
+        sheetTabNameMap[dept] = dept;
 
         const opt = document.createElement('option');
         opt.value = dept;
@@ -622,16 +643,26 @@
       setInterval(() => {
         const activeEl = document.activeElement;
         const userCurrentlyEditingCell = activeEl && activeEl.getAttribute('contenteditable') === 'true';
-        if (!isTyping && !isSavingToCloud && !userCurrentlyEditingCell && (Date.now() - lastEditTimestamp > 3500)) {
+        if (!isTyping && !isSavingToCloud && !userCurrentlyEditingCell && (Date.now() - lastEditTimestamp > 4500)) {
           pullFromGoogleSheets(false);
         }
       }, 5000);
     }
 
-    function switchDepartment(dept) {
-      if (isTyping) {
-        saveCurrentState(true);
+    async function switchDepartment(dept) {
+      if (dept === currentDept) return;
+
+      // إذا كان هناك تعديل أو تفريغ معلق في القسم السابق، نحفظه فوراً في الشيت قبل الانتقال
+      if (autoSaveTimer || isTyping) {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = null;
+        isTyping = false;
+        saveCurrentState(false);
+        await syncDepartmentsToSheet([currentDept]);
+      } else {
+        saveCurrentState(false);
       }
+
       currentDept = dept;
       document.getElementById('deptSelect').value = dept;
       document.querySelectorAll('.dept-pill').forEach(btn => {
@@ -642,7 +673,7 @@
     }
 
     function renderDepartment(dept) {
-      const data = store[dept] || getEmptyTemplate();
+      const data = store[dept] || getEmptyTemplate(dept);
       const month = document.getElementById('monthSelect').value;
       document.getElementById('sheetMainTitle').textContent = `• جدول خفارات كادر التمريض ${dept} / ${month}`;
       document.getElementById('morningHeader').textContent = data.morningHeader || "الصباحي لكل الشهر من الاحد الى الخميس";
@@ -748,24 +779,35 @@
       setSyncStatus('saving', '✍️ جاري الحفظ في الشيت...');
       clearTimeout(autoSaveTimer);
       autoSaveTimer = setTimeout(() => {
+        autoSaveTimer = null;
         isTyping = false;
-        syncCurrentDeptToSheet(false);
-      }, 900);
+        syncDepartmentsToSheet([currentDept]);
+      }, 800);
     }
 
-    // إرسال التعديلات تلقائياً من صفحة الويب إلى الشيت
-    async function syncCurrentDeptToSheet(syncAll = false) {
-      saveCurrentState(false);
+    // إرسال التعديلات أو التفريغ مباشرة إلى التبويبات المطابقة في Google Sheets
+    async function syncDepartmentsToSheet(deptList) {
       isSavingToCloud = true;
+      lastEditTimestamp = Date.now();
       setSyncStatus('saving', '⏳ جاري الحفظ في الشيت...');
 
+      const departmentsPayload = {};
+      deptList.forEach(dept => {
+        const d = store[dept] || getEmptyTemplate(dept);
+        const exactSheetTab = sheetTabNameMap[dept] || dept;
+        departmentsPayload[exactSheetTab] = d;
+        if (exactSheetTab !== dept) {
+          departmentsPayload[dept] = d;
+        }
+      });
+
       const payload = {
-        action: syncAll ? 'syncAll' : 'autoSaveDept',
+        action: deptList.length > 1 ? 'syncAll' : 'autoSaveDept',
         year: document.getElementById('yearSelect').value,
         month: document.getElementById('monthSelect').value,
-        deptName: currentDept,
-        deptData: store[currentDept],
-        departments: syncAll ? store : { [currentDept]: store[currentDept] },
+        deptName: sheetTabNameMap[deptList[0]] || deptList[0],
+        deptData: store[deptList[0]],
+        departments: departmentsPayload,
         spreadsheetId: localStorage.getItem('nursing_spreadsheet_id') || ''
       };
 
@@ -780,6 +822,7 @@
           if (result.spreadsheetId) {
             localStorage.setItem('nursing_spreadsheet_id', result.spreadsheetId);
           }
+          lastEditTimestamp = Date.now();
           const timeStr = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
           setSyncStatus('saved', `✅ متزامن مع الشيت (${timeStr})`);
         } else {
@@ -794,13 +837,15 @@
 
     // جلب الأسماء والبيانات من Google Sheets وعرضها مباشرة في الجداول
     async function pullFromGoogleSheets(forceRender = false) {
-      if (isSavingToCloud || isTyping) return;
+      if (isSavingToCloud || isTyping || autoSaveTimer) return;
 
       try {
         const ssId = localStorage.getItem('nursing_spreadsheet_id') || '';
         const fetchUrl = `${DEFAULT_GAS_URL}?action=loadAll&spreadsheetId=${encodeURIComponent(ssId)}&t=${Date.now()}`;
         const res = await fetch(fetchUrl, { cache: 'no-store' });
         const result = await res.json();
+
+        if (isSavingToCloud || isTyping || autoSaveTimer) return;
 
         if (result.status === 'online' && !result.departments) {
           setSyncStatus('error', '⚠️ يرجى تحديث كود السكربت في Google (Deploy > New version)');
@@ -822,6 +867,7 @@
           DEPARTMENTS.forEach(appDept => {
             const matchedKey = sheetKeys.find(k => normalizeArabic(k) === normalizeArabic(appDept));
             if (matchedKey && rawDepts[matchedKey]) {
+              sheetTabNameMap[appDept] = matchedKey;
               const normalizedData = normalizeDeptObject(rawDepts[matchedKey], appDept);
               if (JSON.stringify(store[appDept]) !== JSON.stringify(normalizedData)) {
                 store[appDept] = normalizedData;
@@ -878,11 +924,35 @@
       saveCurrentState(false);
     }
 
-    function clearCurrentDepartment() {
-      if (!confirm(`هل تريد تفريغ الأسماء في "${currentDept}" وحفظ التفريغ في الشيت؟`)) return;
-      store[currentDept] = getEmptyTemplate();
+    // فتح نافذة تفريغ الأسماء (لتفريغ القسم الحالي أو تحديد أقسام أو تفريغ الكل دفعة واحدة)
+    function openClearModal() {
+      saveCurrentState(false);
+      populateCheckList('clearDeptList', 'clear-dept-cb', false);
+      document.getElementById('clearModal').classList.add('active');
+    }
+
+    async function executeBatchClear() {
+      const selected = Array.from(document.querySelectorAll('.clear-dept-cb:checked')).map(cb => cb.value);
+      if (selected.length === 0) return alert('الرجاء اختيار قسم واحد على الأقل للتفريغ.');
+
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = null;
+      isTyping = false;
+
+      selected.forEach(dept => {
+        const currentPeriods = (store[dept] && store[dept].periods && store[dept].periods.length === 6)
+          ? [...store[dept].periods]
+          : [...DEFAULT_PERIODS];
+        const emptyObj = getEmptyTemplate(dept);
+        emptyObj.periods = currentPeriods;
+        store[dept] = emptyObj;
+      });
+
+      closeModals();
       renderDepartment(currentDept);
-      onUserEdit();
+
+      // إرسال التفريغ فوراً إلى الشيت لجميع الأقسام المختارة بدون انتظار المؤقت
+      await syncDepartmentsToSheet(selected);
     }
 
     function populateCheckList(containerId, cbClass, checkAll = false) {
@@ -924,7 +994,7 @@
       batchContainer.innerHTML = '';
 
       selected.forEach(dept => {
-        const d = store[dept] || getEmptyTemplate();
+        const d = store[dept] || getEmptyTemplate(dept);
         const page = document.createElement('div');
         page.className = 'a4-page';
         page.innerHTML = `
