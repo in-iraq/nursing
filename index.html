@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>منظومة جداول خفارات الكادر التمريضي</title>
+  <title>منظومة جداول خفارات الكادر التمريضي - مزامنة تلقائية</title>
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -26,7 +26,7 @@
     .toolbar {
       background: #1e293b;
       color: #fff;
-      padding: 14px 20px;
+      padding: 12px 20px;
       position: sticky;
       top: 0;
       z-index: 100;
@@ -39,7 +39,7 @@
       gap: 10px;
       align-items: center;
       justify-content: space-between;
-      max-width: 1250px;
+      max-width: 1280px;
       margin: 0 auto;
     }
 
@@ -57,7 +57,7 @@
       background: #334155;
       padding: 6px 10px;
       border-radius: 6px;
-      font-size: 14px;
+      font-size: 13px;
     }
 
     .control-item select {
@@ -67,13 +67,31 @@
       padding: 4px 8px;
       border-radius: 4px;
       font-family: 'Tajawal', sans-serif;
-      font-size: 14px;
+      font-size: 13px;
     }
+
+    /* مؤشر الحفظ التلقائي */
+    .sync-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #38bdf8;
+      transition: 0.25s;
+    }
+    .sync-badge.saving { color: #fbbf24; border-color: #f59e0b; }
+    .sync-badge.saved { color: #4ade80; border-color: #22c55e; }
+    .sync-badge.error { color: #f87171; border-color: #ef4444; }
 
     .btn {
       cursor: pointer;
       border: none;
-      padding: 8px 13px;
+      padding: 8px 12px;
       border-radius: 6px;
       font-family: 'Tajawal', sans-serif;
       font-weight: 700;
@@ -98,7 +116,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      max-width: 1250px;
+      max-width: 1280px;
       margin: 10px auto 0;
       padding-top: 8px;
       border-top: 1px solid #334155;
@@ -360,13 +378,23 @@
           <label>القسم:</label>
           <select id="deptSelect" onchange="switchDepartment(this.value)"></select>
         </div>
+
+        <label class="control-item" style="cursor:pointer;">
+          <input type="checkbox" id="autoSaveToggle" checked onchange="toggleAutoSaveMode(this.checked)">
+          <span>حفظ تلقائي في الشيت</span>
+        </label>
+
+        <div id="syncBadge" class="sync-badge">
+          <span id="syncText">☁️ الحفظ التلقائي مفعّل</span>
+        </div>
       </div>
 
       <div class="controls-group">
+        <a id="openSheetDirectBtn" href="#" target="_blank" class="btn btn-success" style="display:none;">📂 فتح الشيت ↗</a>
         <button class="btn btn-warning" onclick="showAllHiddenFields()">👁️ إظهار المخفي</button>
         <button class="btn btn-danger" onclick="clearCurrentDepartment()">تفريغ الأسماء</button>
-        <button class="btn btn-success" onclick="openDriveModal()">📊 تصدير إلى Google Sheets</button>
-        <button class="btn btn-primary" onclick="openPrintModal()">🖨️ طباعة الجدول (A4)</button>
+        <button class="btn btn-success" onclick="syncCurrentDeptToSheet(true)">🔄 حفظ فوري للشيت</button>
+        <button class="btn btn-primary" onclick="openPrintModal()">🖨️ طباعة (A4)</button>
       </div>
     </div>
 
@@ -463,33 +491,8 @@
     </div>
   </div>
 
-  <!-- نافذة التصدير إلى Google Drive Sheets -->
-  <div class="modal-overlay" id="driveModal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <span>📊 تصدير الجداول إلى Google Sheets</span>
-        <button class="btn btn-secondary" onclick="closeModals()">✕</button>
-      </div>
-      <div style="display:flex; gap:8px; margin-bottom:10px;">
-        <button class="btn btn-primary" onclick="selectCheckboxes('.drive-dept-cb', 'all')">تحديد الكل</button>
-        <button class="btn btn-secondary" onclick="selectCheckboxes('.drive-dept-cb', 'current')">القسم الحالي فقط</button>
-        <button class="btn btn-secondary" onclick="selectCheckboxes('.drive-dept-cb', 'none')">إلغاء الكل</button>
-      </div>
-      <div class="dept-check-grid" id="driveDeptList"></div>
-      <label style="font-size:12px; color:#475569; display:block; margin-bottom:4px;">رابط Google Apps Script Web App:</label>
-      <input type="url" id="scriptUrlInput"
-             value="https://script.google.com/macros/s/AKfycbzRr2XVkL6q11vmyn2sp_M6UxJbqtDMMv7qk-IRDTJ5tTIj6v5cuVd1P1fc1No8DTZq/exec"
-             style="width:100%; padding:9px; border:1px solid #cbd5e1; border-radius:6px; margin-bottom:12px; direction:ltr; font-size:12px;">
-      <div id="driveStatusMsg" style="font-size:13px; margin-bottom:12px; line-height:1.6;"></div>
-      <div style="display:flex; justify-content:flex-end; gap:8px;">
-        <button class="btn btn-secondary" onclick="closeModals()">إغلاق</button>
-        <button class="btn btn-success" onclick="sendToGoogleSheets()">إرسال وإنشاء الشيت الآن</button>
-      </div>
-    </div>
-  </div>
-
   <script>
-    const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbzRr2XVkL6q11vmyn2sp_M6UxJbqtDMMv7qk-IRDTJ5tTIj6v5cuVd1P1fc1No8DTZq/exec";
+    const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbyDzq_jbmhvAkeja-nW_pr3959_LCaRt6mUXFJV5iRXfHM6yV9_dq4SEHkHAf1-m3v6KA/exec";
 
     const DEPARTMENTS = [
       "قسم الطوارئ",
@@ -514,7 +517,9 @@
     ];
 
     let currentDept = DEPARTMENTS[0];
-    let store = JSON.parse(localStorage.getItem('nursing_schedule_github_v1') || '{}');
+    let store = JSON.parse(localStorage.getItem('nursing_schedule_autosave_v2') || '{}');
+    let autoSaveEnabled = true;
+    let autoSaveTimer = null;
 
     function getEmergencyTemplate() {
       return {
@@ -589,11 +594,18 @@
         pills.appendChild(pill);
       });
 
+      const savedUrl = localStorage.getItem('nursing_sheet_url');
+      if (savedUrl) {
+        const btn = document.getElementById('openSheetDirectBtn');
+        btn.href = savedUrl;
+        btn.style.display = 'inline-flex';
+      }
+
       renderDepartment(currentDept);
     }
 
     function switchDepartment(dept) {
-      saveCurrentState();
+      saveCurrentState(false);
       currentDept = dept;
       document.getElementById('deptSelect').value = dept;
       document.querySelectorAll('.dept-pill').forEach(btn => {
@@ -632,7 +644,7 @@
         const tdE = document.createElement('td');
         tdE.id = `ev-col-b-${i}`;
         tdE.contentEditable = "true";
-        tdE.oninput = saveCurrentState;
+        tdE.oninput = () => saveCurrentState(true);
         tdE.innerHTML = (data.eveningCols[i] || []).join('<br>');
         evBody.appendChild(tdE);
 
@@ -645,7 +657,7 @@
         const tdN = document.createElement('td');
         tdN.id = `ni-col-b-${i}`;
         tdN.contentEditable = "true";
-        tdN.oninput = saveCurrentState;
+        tdN.oninput = () => saveCurrentState(true);
         tdN.innerHTML = (data.nightCols[i] || []).join('<br>');
         niBody.appendChild(tdN);
       }
@@ -664,7 +676,25 @@
         .filter(Boolean);
     }
 
-    function saveCurrentState() {
+    function setSyncStatus(state, text) {
+      const badge = document.getElementById('syncBadge');
+      const txt = document.getElementById('syncText');
+      badge.className = 'sync-badge ' + state;
+      txt.textContent = text;
+    }
+
+    function toggleAutoSaveMode(enabled) {
+      autoSaveEnabled = enabled;
+      if (enabled) {
+        setSyncStatus('', '☁️ الحفظ التلقائي مفعّل');
+        scheduleAutoSync();
+      } else {
+        clearTimeout(autoSaveTimer);
+        setSyncStatus('', '⏸️ الحفظ التلقائي متوقف');
+      }
+    }
+
+    function saveCurrentState(triggerCloud = true) {
       const data = store[currentDept];
       if (!data) return;
       data.morningHeader = document.getElementById('morningHeader').innerText.trim();
@@ -682,20 +712,85 @@
         if (tdN) data.nightCols[i] = htmlToLines(tdN);
       }
 
-      localStorage.setItem('nursing_schedule_github_v1', JSON.stringify(store));
+      localStorage.setItem('nursing_schedule_autosave_v2', JSON.stringify(store));
+
+      if (triggerCloud && autoSaveEnabled) {
+        scheduleAutoSync();
+      }
+    }
+
+    // مؤقت ذكي (Debounce) يرسل التعديلات تلقائياً بعد توقف الكتابة بـ 1.2 ثانية
+    function scheduleAutoSync() {
+      setSyncStatus('saving', '✍️ جاري رصد التعديلات...');
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = setTimeout(() => {
+        syncCurrentDeptToSheet(false);
+      }, 1200);
+    }
+
+    async function syncCurrentDeptToSheet(syncAll = false) {
+      saveCurrentState(false);
+      setSyncStatus('saving', '⏳ جاري الحفظ في Google Sheets...');
+
+      const payload = {
+        action: syncAll ? 'syncAll' : 'autoSaveDept',
+        year: document.getElementById('yearSelect').value,
+        month: document.getElementById('monthSelect').value,
+        deptName: currentDept,
+        deptData: store[currentDept],
+        departments: syncAll ? store : { [currentDept]: store[currentDept] },
+        spreadsheetId: localStorage.getItem('nursing_spreadsheet_id') || ''
+      };
+
+      try {
+        const res = await fetch(DEFAULT_GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (result.status === 'success') {
+          if (result.spreadsheetId) {
+            localStorage.setItem('nursing_spreadsheet_id', result.spreadsheetId);
+          }
+          if (result.url) {
+            localStorage.setItem('nursing_sheet_url', result.url);
+            const btn = document.getElementById('openSheetDirectBtn');
+            btn.href = result.url;
+            btn.style.display = 'inline-flex';
+          }
+          const timeStr = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          setSyncStatus('saved', `✅ تم الحفظ تلقائياً (${timeStr})`);
+        } else {
+          setSyncStatus('error', '⚠️ خطأ في السكربت');
+        }
+      } catch (err) {
+        try {
+          await fetch(DEFAULT_GAS_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+          });
+          const timeStr = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          setSyncStatus('saved', `✅ تم الإرسال للشيت (${timeStr})`);
+        } catch (e2) {
+          setSyncStatus('error', '❌ تعذر الاتصال بالشيت');
+        }
+      }
     }
 
     function updateTitleAndSave() {
       const month = document.getElementById('monthSelect').value;
       document.getElementById('sheetMainTitle').textContent = `• جدول خفارات كادر التمريض ${currentDept} / ${month}`;
-      saveCurrentState();
+      saveCurrentState(true);
     }
 
     function toggleHideElement(id) {
       const data = store[currentDept];
       if (!data.hiddenIds.includes(id)) data.hiddenIds.push(id);
       applyHiddenElements(data.hiddenIds);
-      saveCurrentState();
+      saveCurrentState(true);
     }
 
     function toggleHideCol(prefix, idx) {
@@ -704,7 +799,7 @@
       const bId = `${prefix}-col-b-${idx}`;
       if (!data.hiddenIds.includes(hId)) data.hiddenIds.push(hId, bId);
       applyHiddenElements(data.hiddenIds);
-      saveCurrentState();
+      saveCurrentState(true);
     }
 
     function applyHiddenElements(hiddenIds) {
@@ -718,14 +813,14 @@
     function showAllHiddenFields() {
       store[currentDept].hiddenIds = [];
       applyHiddenElements([]);
-      saveCurrentState();
+      saveCurrentState(true);
     }
 
     function clearCurrentDepartment() {
       if (!confirm(`هل تريد تفريغ الأسماء في "${currentDept}"؟`)) return;
       store[currentDept] = getBlankTemplate();
       renderDepartment(currentDept);
-      saveCurrentState();
+      saveCurrentState(true);
     }
 
     function populateCheckList(containerId, cbClass, checkAll = false) {
@@ -749,9 +844,13 @@
     }
 
     function openPrintModal() {
-      saveCurrentState();
+      saveCurrentState(false);
       populateCheckList('printDeptList', 'print-dept-cb', false);
       document.getElementById('printModal').classList.add('active');
+    }
+
+    function closeModals() {
+      document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
     }
 
     function executeBatchPrint() {
@@ -801,70 +900,6 @@
 
       closeModals();
       setTimeout(() => window.print(), 150);
-    }
-
-    function openDriveModal() {
-      saveCurrentState();
-      populateCheckList('driveDeptList', 'drive-dept-cb', true);
-      document.getElementById('driveStatusMsg').innerHTML = '';
-      document.getElementById('driveModal').classList.add('active');
-    }
-
-    function closeModals() {
-      document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
-    }
-
-    async function sendToGoogleSheets() {
-      const url = (document.getElementById('scriptUrlInput').value || DEFAULT_GAS_URL).trim();
-      const statusEl = document.getElementById('driveStatusMsg');
-      const selected = Array.from(document.querySelectorAll('.drive-dept-cb:checked')).map(cb => cb.value);
-
-      if (selected.length === 0) {
-        statusEl.style.color = '#dc2626';
-        statusEl.textContent = 'الرجاء تحديد قسم واحد على الأقل للتصدير.';
-        return;
-      }
-
-      const filteredDepts = {};
-      selected.forEach(dept => { filteredDepts[dept] = store[dept]; });
-
-      const payload = {
-        year: document.getElementById('yearSelect').value,
-        month: document.getElementById('monthSelect').value,
-        departments: filteredDepts
-      };
-
-      statusEl.style.color = '#0f766e';
-      statusEl.textContent = '⏳ جاري إرسال البيانات وإنشاء ملف الشيت في Google Drive...';
-
-      try {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
-        });
-        const result = await res.json();
-        if (result.status === 'success' && result.url) {
-          statusEl.innerHTML = `✅ تم إنشاء الجدول بنجاح!<br><a href="${result.url}" target="_blank" class="btn btn-success" style="margin-top:8px;">📂 فتح ملف الشيت في Google Drive ↗</a>`;
-        } else {
-          statusEl.style.color = '#dc2626';
-          statusEl.textContent = 'حدث خطأ في السكربت: ' + (result.message || 'غير معروف');
-        }
-      } catch (err) {
-        try {
-          await fetch(url, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload)
-          });
-          statusEl.style.color = '#16a34a';
-          statusEl.innerHTML = '✅ تم إرسال الطلب إلى Google Drive بنجاح! تفقد ملفاتك الحديثة في Google Drive.';
-        } catch (e2) {
-          statusEl.style.color = '#dc2626';
-          statusEl.textContent = 'تعذر الاتصال بالسكربت، تأكد من اتصال الإنترنت وصلاحيات النشر (Anyone).';
-        }
-      }
     }
 
     window.onload = initApp;
