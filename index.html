@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>جداول خفارات الكادر التمريضي</title>
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -20,23 +20,24 @@
       background-color: var(--bg);
       color: #0f172a;
       padding-bottom: 40px;
+      overflow-x: hidden;
     }
 
-    /* شريط علوي مختصر للعرض والطباعة فقط */
+    /* شريط علوي متجاوب للحاسبة والآيباد والهاتف */
     .toolbar {
       background: #1e293b;
       color: #fff;
-      padding: 12px 20px;
+      padding: 12px 16px;
       position: sticky;
       top: 0;
       z-index: 100;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.18);
     }
 
     .toolbar-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 10px;
       align-items: center;
       justify-content: space-between;
       max-width: 1180px;
@@ -46,7 +47,7 @@
     .controls-group {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 8px;
       align-items: center;
     }
 
@@ -56,7 +57,7 @@
       gap: 6px;
       background: #334155;
       padding: 6px 12px;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 14px;
     }
 
@@ -64,31 +65,36 @@
       background: #0f172a;
       color: #fff;
       border: 1px solid #475569;
-      padding: 4px 10px;
-      border-radius: 4px;
+      padding: 5px 10px;
+      border-radius: 6px;
       font-family: 'Tajawal', sans-serif;
       font-size: 14px;
+      outline: none;
     }
 
     .btn {
       cursor: pointer;
       border: none;
-      padding: 9px 16px;
-      border-radius: 6px;
+      padding: 9px 14px;
+      border-radius: 8px;
       font-family: 'Tajawal', sans-serif;
       font-weight: 700;
-      font-size: 14px;
+      font-size: 13px;
       transition: 0.2s;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
+      white-space: nowrap;
     }
 
     .btn-primary { background: var(--primary); color: #fff; }
     .btn-primary:hover { background: var(--primary-hover); }
     .btn-secondary { background: #475569; color: #fff; }
+    .btn-secondary:hover { background: #64748b; }
+    .btn-mode { background: #0284c7; color: #fff; display: none; }
 
-    /* أزرار التنقل السريع بين الأقسام */
+    /* أزرار التنقل السريع بين الأقسام - قابلة للسحب أفقياً في الهاتف */
     .dept-pills {
       display: flex;
       flex-wrap: wrap;
@@ -103,12 +109,14 @@
       background: #334155;
       color: #cbd5e1;
       border: 1px solid #475569;
-      padding: 5px 12px;
+      padding: 6px 13px;
       border-radius: 999px;
       cursor: pointer;
       font-size: 13px;
       font-family: 'Tajawal', sans-serif;
       transition: 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .dept-pill.active {
@@ -118,11 +126,22 @@
       border-color: #14b8a6;
     }
 
-    /* ورقة A4 للعرض فقط */
+    /* حاوية ورقة A4 مع تحجيم تلقائي ذكي لجميع الشاشات */
     .a4-container {
       display: flex;
       justify-content: center;
-      padding: 25px 10px;
+      align-items: flex-start;
+      padding: 24px 10px;
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .a4-scale-wrapper {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      position: relative;
     }
 
     .a4-page {
@@ -136,6 +155,9 @@
       color: #000;
       display: flex;
       flex-direction: column;
+      transform-origin: top center;
+      transition: transform 0.2s ease;
+      flex-shrink: 0;
     }
 
     .page-title {
@@ -162,6 +184,7 @@
       vertical-align: top;
       font-size: 15px;
       line-height: 1.45;
+      word-wrap: break-word;
     }
 
     th {
@@ -214,12 +237,12 @@
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.7);
+      background: rgba(15, 23, 42, 0.75);
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 200;
-      padding: 16px;
+      padding: 14px;
     }
 
     .modal-overlay.active { display: flex; }
@@ -228,15 +251,18 @@
       background: #fff;
       width: 100%;
       max-width: 540px;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
     }
 
     .modal-header {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -248,9 +274,9 @@
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 8px;
-      margin: 14px 0;
-      max-height: 300px;
+      margin: 12px 0;
       overflow-y: auto;
+      padding-left: 4px;
     }
 
     .dept-check-item {
@@ -258,25 +284,71 @@
       align-items: center;
       gap: 8px;
       background: #f8fafc;
-      padding: 8px 10px;
-      border-radius: 6px;
+      padding: 9px 10px;
+      border-radius: 8px;
       border: 1px solid #cbd5e1;
       cursor: pointer;
       font-size: 14px;
+    }
+
+    /* توافق خاص مع الآيباد والأجهزة اللوحية (Tablet / iPad) */
+    @media screen and (max-width: 1024px) {
+      .btn-mode { display: inline-flex; }
+      .a4-container { padding: 16px 6px; }
+    }
+
+    /* توافق خاص مع الهواتف الذكية (Mobile) */
+    @media screen and (max-width: 640px) {
+      .toolbar { padding: 10px 12px; }
+      .toolbar-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+      .controls-group {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .control-item {
+        flex: 1;
+        justify-content: space-between;
+      }
+      .control-item select {
+        flex: 1;
+      }
+      .btn {
+        flex: 1;
+        padding: 9px 10px;
+        font-size: 12.5px;
+      }
+      /* شريط أقسام قابل للسحب باللمس في الهاتف دون أخذ مساحة عمودية كبيرة */
+      .dept-pills {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 6px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .dept-pills::-webkit-scrollbar { display: none; }
+      .dept-check-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     #printBatchContainer { display: none; }
 
     @media print {
       @page { size: A4 portrait; margin: 0; }
-      body { background: #fff; padding: 0; }
+      body { background: #fff; padding: 0; overflow: visible !important; }
       .toolbar, .modal-overlay { display: none !important; }
       .a4-container { display: none !important; }
       #printBatchContainer { display: block !important; }
       .a4-page {
-        box-shadow: none;
-        width: 210mm;
-        height: 297mm;
+        box-shadow: none !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        transform: none !important;
+        margin: 0 !important;
         page-break-after: always;
         break-after: page;
       }
@@ -285,7 +357,7 @@
 </head>
 <body>
 
-  <!-- شريط علوي مختصر لاختيار القسم وزر الطباعة فقط -->
+  <!-- شريط علوي متجاوب للحاسبة والآيباد والهاتف -->
   <header class="toolbar">
     <div class="toolbar-row">
       <div class="controls-group">
@@ -296,6 +368,7 @@
       </div>
 
       <div class="controls-group">
+        <button class="btn btn-mode" id="zoomToggleBtn" onclick="toggleMobileZoom()">🔍 تكبير (حجم فعلي)</button>
         <button class="btn btn-primary" onclick="openPrintModal()">🖨️ طباعة الجداول (الكل أو تحديد)</button>
       </div>
     </div>
@@ -303,62 +376,64 @@
     <div class="dept-pills" id="deptPills"></div>
   </header>
 
-  <!-- منطقة عرض ورقة A4 (للقراءة فقط مع إخفاء الحقول المخفية في الأدمن) -->
-  <main class="a4-container">
-    <div class="a4-page" id="activeA4Page">
-      <div class="page-title" id="sheetMainTitle">
-        • جدول خفارات كادر التمريض قسم الطوارئ / تشرين الثاني
-      </div>
-
-      <!-- جدول الخفر الصباحي -->
-      <div class="section-wrapper" id="sec-morning">
-        <table class="morning-table">
-          <thead>
-            <tr>
-              <th id="morningHeader">الصباحي لكل الشهر من الاحد الى الخميس</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td id="morningBody"></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- جدول الخفر المسائي -->
-      <div class="section-wrapper" id="sec-evening">
-        <div class="section-heading" id="eveningTitle">
-          الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا
+  <!-- منطقة عرض ورقة A4 مع تحجيم ذكي متوافق مع الهاتف والآيباد والحاسبة -->
+  <main class="a4-container" id="a4Container">
+    <div class="a4-scale-wrapper" id="a4ScaleWrapper">
+      <div class="a4-page" id="activeA4Page">
+        <div class="page-title" id="sheetMainTitle">
+          • جدول خفارات كادر التمريض قسم الطوارئ / تشرين الثاني
         </div>
-        <table>
-          <thead>
-            <tr id="eveningHeadRow"></tr>
-          </thead>
-          <tbody>
-            <tr id="eveningBodyRow"></tr>
-          </tbody>
-        </table>
-      </div>
 
-      <!-- جدول الخفر الليلي -->
-      <div class="section-wrapper" id="sec-night">
-        <div class="section-heading" id="nightTitle">
-          الخفر الليلي من الساعة الحادي عشر ليلا الى الساعة الثامنة والنصف صباحا
+        <!-- جدول الخفر الصباحي -->
+        <div class="section-wrapper" id="sec-morning">
+          <table class="morning-table">
+            <thead>
+              <tr>
+                <th id="morningHeader">الصباحي لكل الشهر من الاحد الى الخميس</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="morningBody"></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <table>
-          <thead>
-            <tr id="nightHeadRow"></tr>
-          </thead>
-          <tbody>
-            <tr id="nightBodyRow"></tr>
-          </tbody>
-        </table>
-      </div>
 
-      <!-- التوقيع -->
-      <div class="section-wrapper signature-box" id="sec-signature">
-        <div class="signature-content" id="signatureText"></div>
+        <!-- جدول الخفر المسائي -->
+        <div class="section-wrapper" id="sec-evening">
+          <div class="section-heading" id="eveningTitle">
+            الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا
+          </div>
+          <table>
+            <thead>
+              <tr id="eveningHeadRow"></tr>
+            </thead>
+            <tbody>
+              <tr id="eveningBodyRow"></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- جدول الخفر الليلي -->
+        <div class="section-wrapper" id="sec-night">
+          <div class="section-heading" id="nightTitle">
+            الخفر الليلي من الساعة الحادي عشر ليلا الى الساعة الثامنة والنصف صباحا
+          </div>
+          <table>
+            <thead>
+              <tr id="nightHeadRow"></tr>
+            </thead>
+            <tbody>
+              <tr id="nightBodyRow"></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- التوقيع -->
+        <div class="section-wrapper signature-box" id="sec-signature">
+          <div class="signature-content" id="signatureText"></div>
+        </div>
       </div>
     </div>
   </main>
@@ -371,15 +446,15 @@
     <div class="modal-card">
       <div class="modal-header">
         <span>🖨️ تحديد الأقسام للطباعة (A4)</span>
-        <button class="btn btn-secondary" onclick="closeModals()">✕</button>
+        <button class="btn btn-secondary" style="flex:0; padding:6px 12px;" onclick="closeModals()">✕</button>
       </div>
-      <div style="display:flex; gap:8px; margin-bottom:10px;">
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
         <button class="btn btn-primary" onclick="selectCheckboxes('all')">تحديد الكل</button>
         <button class="btn btn-secondary" onclick="selectCheckboxes('current')">القسم الحالي فقط</button>
         <button class="btn btn-secondary" onclick="selectCheckboxes('none')">إلغاء الكل</button>
       </div>
       <div class="dept-check-grid" id="printDeptList"></div>
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
         <button class="btn btn-secondary" onclick="closeModals()">إلغاء</button>
         <button class="btn btn-primary" onclick="executeBatchPrint()">بدء الطباعة الآن</button>
       </div>
@@ -413,6 +488,7 @@
     let currentMonth = "تشرين الثاني";
     let store = {};
     let hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
+    let fitToScreenMode = true; // افتراضياً: تحجيم الورقة لتناسب عرض الهاتف أو الآيباد بالكامل
 
     function getEmptyTemplate(deptName = "") {
       return {
@@ -427,6 +503,34 @@
         signature: "",
         hiddenIds: hiddenStore[deptName] || []
       };
+    }
+
+    // دالة تحجيم ذكية تجعل ورقة A4 متناسقة تماماً على شاشة الحاسبة والآيباد والهاتف
+    function adjustResponsiveA4Scale() {
+      const page = document.getElementById('activeA4Page');
+      const wrapper = document.getElementById('a4ScaleWrapper');
+      if (!page || !wrapper) return;
+
+      const a4WidthPx = 794; // 210mm بالبيكسل
+      const availableWidth = window.innerWidth - 20;
+
+      if (fitToScreenMode && availableWidth < a4WidthPx) {
+        const scale = Math.max(0.38, availableWidth / a4WidthPx);
+        page.style.transform = `scale(${scale})`;
+        wrapper.style.height = `${Math.ceil(page.offsetHeight * scale)}px`;
+        wrapper.style.justifyContent = 'center';
+      } else {
+        page.style.transform = 'none';
+        wrapper.style.height = 'auto';
+        wrapper.style.justifyContent = availableWidth < a4WidthPx ? 'flex-start' : 'center';
+      }
+    }
+
+    function toggleMobileZoom() {
+      fitToScreenMode = !fitToScreenMode;
+      const btn = document.getElementById('zoomToggleBtn');
+      btn.textContent = fitToScreenMode ? '🔍 تكبير (حجم فعلي)' : '📱 احتواء في الشاشة';
+      adjustResponsiveA4Scale();
     }
 
     function normalizeArabic(str) {
@@ -521,6 +625,7 @@
       });
 
       renderDepartment(currentDept);
+      window.addEventListener('resize', adjustResponsiveA4Scale);
 
       window.addEventListener('storage', (e) => {
         if (e.key === 'nursing_hidden_fields_v1') {
@@ -540,7 +645,11 @@
       currentDept = dept;
       document.getElementById('deptSelect').value = dept;
       document.querySelectorAll('.dept-pill').forEach(btn => {
-        btn.classList.toggle('active', btn.textContent === dept);
+        const isActive = btn.textContent === dept;
+        btn.classList.toggle('active', isActive);
+        if (isActive && window.innerWidth <= 640) {
+          btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
       });
       renderDepartment(dept);
     }
@@ -603,6 +712,7 @@
       }
 
       applyHiddenElements(data.hiddenIds || []);
+      setTimeout(adjustResponsiveA4Scale, 20);
     }
 
     async function pullFromGoogleSheets(forceRender = false) {
