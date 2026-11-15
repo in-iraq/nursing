@@ -168,6 +168,7 @@
       background: #f8fafc;
       font-weight: bold;
       font-size: 14px;
+      min-height: 28px;
     }
 
     td {
@@ -401,14 +402,8 @@
       "الطابق السادس"
     ];
 
-    const DEFAULT_PERIODS = [
-      "من ١١/١ الى ١١/٥",
-      "من ١١/٦ الى ١١/١٠",
-      "من ١١/١١ الى ١١/١٥",
-      "من ١١/١٦ الى ١١/٢٠",
-      "من ١١/٢١ الى ١١/٢٥",
-      "من ١١/٢٦ الى ١١/٣٠"
-    ];
+    // لا توجد أي تواريخ مضمنة في الكود؛ تُستورد التواريخ حصرياً كما هي محفوظة ومعدلة في الشيت
+    const DEFAULT_PERIODS = ["", "", "", "", "", ""];
 
     let currentDept = DEPARTMENTS[0];
     let currentMonth = "تشرين الثاني";
@@ -422,6 +417,7 @@
         eveningTitle: "الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا",
         nightTitle: "الخفر الليلي من الساعة الحادي عشر ليلا الى الساعة الثامنة والنصف صباحا",
         periods: [...DEFAULT_PERIODS],
+        nightPeriods: [...DEFAULT_PERIODS],
         eveningCols: [[], [], [], [], [], []],
         nightCols: [[], [], [], [], [], []],
         signature: "",
@@ -475,11 +471,14 @@
         base.hiddenIds = hiddenStore[deptName] || [];
       }
 
-      if (Array.isArray(raw.periods) && raw.periods.length > 0) {
+      if (Array.isArray(raw.periods)) {
         for (let i = 0; i < 6; i++) {
-          base.periods[i] = String(raw.periods[i] || DEFAULT_PERIODS[i]).trim();
+          base.periods[i] = raw.periods[i] !== undefined && raw.periods[i] !== null ? String(raw.periods[i]).trim() : "";
         }
       }
+      base.nightPeriods = Array.isArray(raw.nightPeriods)
+        ? raw.nightPeriods.slice(0, 6).map(v => String(v || "").trim())
+        : [...base.periods];
 
       if (Array.isArray(raw.eveningCols)) {
         for (let i = 0; i < 6; i++) {
@@ -574,12 +573,13 @@
       niHead.innerHTML = '';
       niBody.innerHTML = '';
 
-      const periods = (data.periods && data.periods.length === 6) ? data.periods : [...DEFAULT_PERIODS];
+      const evPeriods = (data.periods && data.periods.length === 6) ? data.periods : [...DEFAULT_PERIODS];
+      const niPeriods = (data.nightPeriods && data.nightPeriods.length === 6) ? data.nightPeriods : evPeriods;
 
       for (let i = 0; i < 6; i++) {
         const thE = document.createElement('th');
         thE.id = `ev-col-h-${i}`;
-        thE.textContent = periods[i] || '';
+        thE.textContent = evPeriods[i] || '';
         evHead.appendChild(thE);
 
         const tdE = document.createElement('td');
@@ -589,7 +589,7 @@
 
         const thN = document.createElement('th');
         thN.id = `ni-col-h-${i}`;
-        thN.textContent = periods[i] || '';
+        thN.textContent = niPeriods[i] || '';
         niHead.appendChild(thN);
 
         const tdN = document.createElement('td');
@@ -696,7 +696,7 @@
           <div class="section-wrapper">
             <div class="section-heading">${d.nightTitle}</div>
             <table>
-              <thead><tr>${d.periods.map((p, i) => hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
+              <thead><tr>${((d.nightPeriods && d.nightPeriods.length === 6) ? d.nightPeriods : d.periods).map((p, i) => hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
               <tbody><tr>${d.nightCols.map((c, i) => hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
