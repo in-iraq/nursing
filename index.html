@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>منظومة جداول خفارات الكادر التمريضي - مزامنة تلقائية كاملة</title>
+  <title>منظومة جداول خفارات الكادر التمريضي</title>
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -228,6 +228,11 @@
       font-size: 14px;
     }
 
+    td {
+      min-height: 110px;
+      height: 120px;
+    }
+
     .morning-table {
       width: 58%;
       margin: 0 auto;
@@ -342,7 +347,7 @@
 </head>
 <body>
 
-  <!-- شريط التحكم العلوي (بدون أزرار جلب أو حفظ يدوية - مزامنة تلقائية بالكامل) -->
+  <!-- شريط التحكم العلوي -->
   <header class="toolbar">
     <div class="toolbar-row">
       <div class="controls-group">
@@ -378,8 +383,8 @@
           <select id="deptSelect" onchange="switchDepartment(this.value)"></select>
         </div>
 
-        <div id="syncBadge" class="sync-badge">
-          <span id="syncText">🔄 مزامنة تلقائية نشطة...</span>
+        <div id="syncBadge" class="sync-badge fetching">
+          <span id="syncText">⏳ جاري قراءة الأسماء من الشيت...</span>
         </div>
       </div>
 
@@ -453,9 +458,7 @@
       <!-- التوقيع -->
       <div class="section-wrapper signature-box" id="sec-signature">
         <button class="hide-btn" onclick="toggleHideElement('sec-signature')">👁️ إخفاء التوقيع</button>
-        <div class="signature-content" id="signatureText" contenteditable="true" oninput="onUserEdit()">
-          ممرض جامعي<br>عباس تحسين احمد<br>مسؤول التمريض
-        </div>
+        <div class="signature-content" id="signatureText" contenteditable="true" oninput="onUserEdit()"></div>
       </div>
     </div>
   </main>
@@ -509,73 +512,46 @@
     ];
 
     let currentDept = DEPARTMENTS[0];
-    let store = JSON.parse(localStorage.getItem('nursing_schedule_auto_v2') || '{}');
+    // لا توجد أي أسماء مخزنة في كود الصفحة؛ جميع الأقسام تبدأ فارغة وتُجلب حصرياً من الشيت
+    let store = {};
+    let hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
     let autoSaveTimer = null;
     let isTyping = false;
     let isSavingToCloud = false;
     let lastEditTimestamp = 0;
 
-    function getEmergencyTemplate() {
+    function getEmptyTemplate() {
       return {
         morningHeader: "الصباحي لكل الشهر من الاحد الى الخميس",
-        morningNames: [
-          "١. عبدالهادي صلاح // مسؤول الطوارئ",
-          "٢. ابراهيم نزهان حماد",
-          "٣. محمد اركان",
-          "٤. مصطفى صفاء الدين",
-          "٥. نجلاء نعمة فرج",
-          "٦. هنا صالح احمد",
-          "٧. مصطفى محمد حميد",
-          "٨. ندى شلال صالح"
-        ],
+        morningNames: [],
         eveningTitle: "الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا",
         nightTitle: "الخفر الليلي من الساعة الحادي عشر ليلا الى الساعة الثامنة والنصف صباحا",
         periods: [...DEFAULT_PERIODS],
-        eveningCols: [
-          ["محمود خليل عبدالله", "/مسؤول الوجبة", "رنا كامل", "اسماء احمد الطيف", "مانع ازهر عويد", "محمد خليل", "عبدالرحمن عدنان", "قحطان شعلان", "سفيان رياض محمد"],
-          ["شاكر محمود عبد الله", "/مسؤول الوجبة", "مصطفى مرشد رشيد", "علي حسين عزيز", "اوس احمد مصطفى", "شريف انور", "حسن رافع", "سنا ابراهيم", "محمد يوسف"],
-          ["محمد كامل عبد", "/مسؤول الوجبة", "عبد الحميد رمضان", "خديجة صفاء طه", "محمد رجب عويد", "احمد محمد امين", "بشار صباح سعيد", "محمد محجوب فارس"],
-          ["محمود خليل عبدالله", "/مسؤول الوجبة", "رنا كامل", "اسماء احمد الطيف", "مانع ازهر عويد", "محمد خليل", "عبدالرحمن عدنان", "قحطان شعلان", "سفيان رياض محمد"],
-          ["شاكر محمود عبد الله", "/مسؤول الوجبة", "مصطفى مرشد رشيد", "علي حسين عزيز", "اوس احمد مصطفى", "شريف انور", "حسن رافع", "سنا ابراهيم", "محمد يوسف"],
-          ["محمد كامل عبد", "/مسؤول الوجبة", "عبد الحميد رمضان", "خديجة صفاء طه", "محمد رجب عويد", "احمد محمد امين", "بشار صباح سعيد", "محمد محجوب فارس"]
-        ],
-        nightCols: [
-          ["عباس حسين غنو", "مروة كامل", "محمود صالح احمد", "محمد عطية ابراهيم", "سمير فوزي"],
-          ["ازهار توفيق جاسم", "عبد العزيز سحاب", "محمد عباس", "حسين صالح قدوري", "ادهم حسن"],
-          ["اوس عماد ابراهيم", "اسكندر زين عابدين", "جاسم عواد تبان", "هاني ابراهيم محمود", "نسرين حميد تركي"],
-          ["عباس حسين غنو", "مروة كامل", "محمود صالح احمد", "محمد عطية ابراهيم", "سمير فوزي"],
-          ["ازهار توفيق جاسم", "عبد العزيز سحاب", "محمد عباس", "حسين صالح قدوري", "ادهم حسن"],
-          ["اوس عماد ابراهيم", "اسكندر زين عابدين", "جاسم عواد تبان", "هاني ابراهيم محمود", "نسرين حميد تركي"]
-        ],
-        signature: "ممرض جامعي\nعباس تحسين احمد\nمسؤول التمريض",
-        hiddenIds: []
-      };
-    }
-
-    function getBlankTemplate() {
-      return {
-        morningHeader: "الصباحي لكل الشهر من الاحد الى الخميس",
-        morningNames: ["١. ", "٢. ", "٣. ", "٤. "],
-        eveningTitle: "الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا",
-        nightTitle: "الخفر الليلي من الساعة الحادي عشر ليلا الى الساعة الثامنة والنصف صباحا",
-        periods: [...DEFAULT_PERIODS],
-        eveningCols: [["", "", ""], ["", "", ""], ["", "", ""], ["", "", ""], ["", "", ""], ["", "", ""]],
-        nightCols: [["", "", ""], ["", "", ""], ["", "", ""], ["", "", ""], ["", "", ""], ["", "", ""]],
-        signature: "ممرض جامعي\nعباس تحسين احمد\nمسؤول التمريض",
+        eveningCols: [[], [], [], [], [], []],
+        nightCols: [[], [], [], [], [], []],
+        signature: "",
         hiddenIds: []
       };
     }
 
     async function initApp() {
+      // تنظيف أي ذاكرة تخزين محلية قديمة كانت تحتوي على أسماء افتراضية
+      localStorage.removeItem('nursing_schedule_v2');
+      localStorage.removeItem('nursing_schedule_github_v1');
+      localStorage.removeItem('nursing_schedule_autosave_v1');
+      localStorage.removeItem('nursing_schedule_autosave_v2');
+      localStorage.removeItem('nursing_schedule_twoway_v1');
+      localStorage.removeItem('nursing_schedule_auto_v2');
+
       const select = document.getElementById('deptSelect');
       const pills = document.getElementById('deptPills');
       select.innerHTML = '';
       pills.innerHTML = '';
 
-      DEPARTMENTS.forEach((dept, idx) => {
-        if (!store[dept]) {
-          store[dept] = idx === 0 ? getEmergencyTemplate() : getBlankTemplate();
-        }
+      DEPARTMENTS.forEach((dept) => {
+        store[dept] = getEmptyTemplate();
+        store[dept].hiddenIds = hiddenStore[dept] || [];
+
         const opt = document.createElement('option');
         opt.value = dept;
         opt.textContent = dept;
@@ -590,10 +566,10 @@
 
       renderDepartment(currentDept);
 
-      // ١. مزامنة فورية عند فتح الصفحة
+      // ١. جلب الأسماء المحفوظة من Google Sheets فور فتح الصفحة
       await pullFromGoogleSheets();
 
-      // ٢. مزامنة تلقائية بالخلفية كل 5 ثوانٍ بين الشيت وصفحة الويب
+      // ٢. مزامنة دورية بالخلفية كل 5 ثوانٍ لعرض أي تعديل في الشيت تلقائياً
       setInterval(() => {
         const activeEl = document.activeElement;
         const userCurrentlyEditingCell = activeEl && activeEl.getAttribute('contenteditable') === 'true';
@@ -604,7 +580,9 @@
     }
 
     function switchDepartment(dept) {
-      saveCurrentState(false);
+      if (isTyping) {
+        saveCurrentState(true);
+      }
       currentDept = dept;
       document.getElementById('deptSelect').value = dept;
       document.querySelectorAll('.dept-pill').forEach(btn => {
@@ -615,15 +593,14 @@
     }
 
     function renderDepartment(dept) {
-      const data = store[dept];
-      if (!data) return;
+      const data = store[dept] || getEmptyTemplate();
       const month = document.getElementById('monthSelect').value;
       document.getElementById('sheetMainTitle').textContent = `• جدول خفارات كادر التمريض ${dept} / ${month}`;
       document.getElementById('morningHeader').textContent = data.morningHeader || "الصباحي لكل الشهر من الاحد الى الخميس";
       document.getElementById('morningBody').innerHTML = (data.morningNames || []).join('<br>');
       document.getElementById('eveningTitle').textContent = data.eveningTitle || "الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا";
       document.getElementById('nightTitle').textContent = data.nightTitle || "الخفر الليلي من الساعة الحادي عشر ليلا الى الساعة الثامنة والنصف صباحا";
-      document.getElementById('signatureText').innerHTML = (data.signature || "ممرض جامعي\nعباس تحسين احمد\nمسؤول التمريض").replace(/\n/g, '<br>');
+      document.getElementById('signatureText').innerHTML = (data.signature || "").replace(/\n/g, '<br>');
 
       const evHead = document.getElementById('eveningHeadRow');
       const evBody = document.getElementById('eveningBodyRow');
@@ -710,7 +687,8 @@
         if (tdN) data.nightCols[i] = htmlToLines(tdN);
       }
 
-      localStorage.setItem('nursing_schedule_auto_v2', JSON.stringify(store));
+      hiddenStore[currentDept] = data.hiddenIds || [];
+      localStorage.setItem('nursing_hidden_fields_v1', JSON.stringify(hiddenStore));
 
       if (triggerCloud) {
         scheduleAutoSync();
@@ -718,7 +696,7 @@
     }
 
     function scheduleAutoSync() {
-      setSyncStatus('saving', '✍️ جاري الحفظ التلقائي...');
+      setSyncStatus('saving', '✍️ جاري الحفظ في الشيت...');
       clearTimeout(autoSaveTimer);
       autoSaveTimer = setTimeout(() => {
         isTyping = false;
@@ -730,7 +708,7 @@
     async function syncCurrentDeptToSheet(syncAll = false) {
       saveCurrentState(false);
       isSavingToCloud = true;
-      setSyncStatus('saving', '⏳ جاري المزامنة مع الشيت...');
+      setSyncStatus('saving', '⏳ جاري الحفظ في الشيت...');
 
       const payload = {
         action: syncAll ? 'syncAll' : 'autoSaveDept',
@@ -754,7 +732,7 @@
             localStorage.setItem('nursing_spreadsheet_id', result.spreadsheetId);
           }
           const timeStr = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-          setSyncStatus('saved', `✅ متزامن تلقائياً (${timeStr})`);
+          setSyncStatus('saved', `✅ متزامن مع الشيت (${timeStr})`);
         } else {
           setSyncStatus('error', '⚠️ خطأ في المزامنة');
         }
@@ -765,7 +743,7 @@
       }
     }
 
-    // جلب أي تعديلات جديدة من Google Sheets إلى صفحة الويب تلقائياً بالخلفية
+    // جلب الأسماء والبيانات حصرياً من Google Sheets وعرضها في صفحة الويب
     async function pullFromGoogleSheets() {
       if (isSavingToCloud || isTyping) return;
 
@@ -786,8 +764,7 @@
           let hasChanges = false;
           Object.keys(result.departments).forEach(dept => {
             const incoming = result.departments[dept];
-            const existingHidden = (store[dept] && store[dept].hiddenIds) ? store[dept].hiddenIds : [];
-            incoming.hiddenIds = existingHidden;
+            incoming.hiddenIds = hiddenStore[dept] || [];
 
             if (JSON.stringify(store[dept]) !== JSON.stringify(incoming)) {
               store[dept] = incoming;
@@ -795,19 +772,15 @@
             }
           });
 
-          localStorage.setItem('nursing_schedule_auto_v2', JSON.stringify(store));
-
           if (hasChanges) {
             renderDepartment(currentDept);
           }
 
           const timeStr = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-          setSyncStatus('saved', `✅ متزامن تلقائياً (${timeStr})`);
-        } else if (result.status === 'empty') {
-          await syncCurrentDeptToSheet(true);
+          setSyncStatus('saved', `✅ البيانات من الشيت (${timeStr})`);
         }
       } catch (err) {
-        // تجاهل أخطاء الشبكة العابرة في الخلفية
+        setSyncStatus('error', '⚠️ بانتظار اتصال الشيت...');
       }
     }
 
@@ -848,8 +821,8 @@
     }
 
     function clearCurrentDepartment() {
-      if (!confirm(`هل تريد تفريغ الأسماء في "${currentDept}"؟`)) return;
-      store[currentDept] = getBlankTemplate();
+      if (!confirm(`هل تريد تفريغ الأسماء في "${currentDept}" وحفظ التفريغ في الشيت؟`)) return;
+      store[currentDept] = getEmptyTemplate();
       renderDepartment(currentDept);
       onUserEdit();
     }
@@ -893,7 +866,7 @@
       batchContainer.innerHTML = '';
 
       selected.forEach(dept => {
-        const d = store[dept];
+        const d = store[dept] || getEmptyTemplate();
         const page = document.createElement('div');
         page.className = 'a4-page';
         page.innerHTML = `
@@ -902,7 +875,7 @@
           <div class="section-wrapper">
             <table class="morning-table">
               <thead><tr><th>${d.morningHeader}</th></tr></thead>
-              <tbody><tr><td>${d.morningNames.join('<br>')}</td></tr></tbody>
+              <tbody><tr><td>${(d.morningNames || []).join('<br>')}</td></tr></tbody>
             </table>
           </div>` : ''}
           ${!d.hiddenIds.includes('sec-evening') ? `
@@ -910,7 +883,7 @@
             <div class="section-heading">${d.eveningTitle}</div>
             <table>
               <thead><tr>${d.periods.map((p, i) => d.hiddenIds.includes(`ev-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
-              <tbody><tr>${d.eveningCols.map((c, i) => d.hiddenIds.includes(`ev-col-b-${i}`) ? '' : `<td>${c.join('<br>')}</td>`).join('')}</tr></tbody>
+              <tbody><tr>${d.eveningCols.map((c, i) => d.hiddenIds.includes(`ev-col-b-${i}`) ? '' : `<td>${(c || []).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
           ${!d.hiddenIds.includes('sec-night') ? `
@@ -918,12 +891,12 @@
             <div class="section-heading">${d.nightTitle}</div>
             <table>
               <thead><tr>${d.periods.map((p, i) => d.hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
-              <tbody><tr>${d.nightCols.map((c, i) => d.hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${c.join('<br>')}</td>`).join('')}</tr></tbody>
+              <tbody><tr>${d.nightCols.map((c, i) => d.hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${(c || []).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
           ${!d.hiddenIds.includes('sec-signature') ? `
           <div class="signature-box">
-            <div class="signature-content">${d.signature.replace(/\n/g, '<br>')}</div>
+            <div class="signature-content">${(d.signature || '').replace(/\n/g, '<br>')}</div>
           </div>` : ''}
         `;
         batchContainer.appendChild(page);
