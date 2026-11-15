@@ -1,219 +1,873 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>جدول خفارات الملاكات التمريضية</title>
-    <style>
-        :root {
-            --primary-color: #0284c7;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-color: #1e293b;
-            --border-color: #e2e8f0;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 950px;
-            margin: 0 auto;
-        }
-        header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        header h1 {
-            color: var(--primary-color);
-            font-size: 22px;
-            margin-bottom: 8px;
-        }
-        .filter-box {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            margin-bottom: 25px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        label {
-            font-weight: bold;
-            font-size: 14px;
-        }
-        select {
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            font-size: 16px;
-            outline: none;
-            background: #fff;
-            cursor: pointer;
-        }
-        select:focus {
-            border-color: var(--primary-color);
-        }
-        .table-responsive {
-            background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            overflow-x: auto;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: right;
-        }
-        th, td {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 14px;
-        }
-        th {
-            background-color: var(--primary-color);
-            color: white;
-            font-weight: 600;
-        }
-        tr:hover {
-            background-color: #f1f5f9;
-        }
-        .loading {
-            text-align: center;
-            padding: 40px;
-            font-size: 15px;
-            color: #64748b;
-        }
-        .badge {
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: bold;
-            display: inline-block;
-        }
-        .badge-morning { background: #e0f2fe; color: #0369a1; }
-        .badge-evening { background: #fef3c7; color: #d97706; }
-        .badge-night { background: #f3e8ff; color: #7e22ce; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>منظومة جداول خفارات الكادر التمريضي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0f766e;
+      --primary-hover: #115e59;
+      --bg: #e2e8f0;
+      --paper-bg: #ffffff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background-color: var(--bg);
+      color: #0f172a;
+      padding-bottom: 40px;
+    }
+
+    /* شريط التحكم العلوي */
+    .toolbar {
+      background: #1e293b;
+      color: #fff;
+      padding: 14px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .toolbar-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1250px;
+      margin: 0 auto;
+    }
+
+    .controls-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .control-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #334155;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .control-item select {
+      background: #0f172a;
+      color: #fff;
+      border: 1px solid #475569;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 14px;
+    }
+
+    .btn {
+      cursor: pointer;
+      border: none;
+      padding: 8px 13px;
+      border-radius: 6px;
+      font-family: 'Tajawal', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-success { background: #16a34a; color: #fff; }
+    .btn-success:hover { background: #15803d; }
+    .btn-warning { background: #d97706; color: #fff; }
+    .btn-danger { background: #dc2626; color: #fff; }
+    .btn-secondary { background: #475569; color: #fff; }
+
+    /* أزرار التنقل السريع بين الأقسام */
+    .dept-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      max-width: 1250px;
+      margin: 10px auto 0;
+      padding-top: 8px;
+      border-top: 1px solid #334155;
+    }
+
+    .dept-pill {
+      background: #334155;
+      color: #cbd5e1;
+      border: 1px solid #475569;
+      padding: 5px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: 'Tajawal', sans-serif;
+      transition: 0.15s;
+    }
+
+    .dept-pill.active {
+      background: #14b8a6;
+      color: #0f172a;
+      font-weight: 700;
+      border-color: #14b8a6;
+    }
+
+    /* ورقة A4 */
+    .a4-container {
+      display: flex;
+      justify-content: center;
+      padding: 25px 10px;
+    }
+
+    .a4-page {
+      width: 210mm;
+      min-height: 297mm;
+      background: var(--paper-bg);
+      padding: 18mm 14mm;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      position: relative;
+      font-family: 'Amiri', serif;
+      color: #000;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page-title {
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 14px;
+    }
+
+    .section-wrapper {
+      position: relative;
+      margin-bottom: 18px;
+    }
+
+    .hide-btn {
+      position: absolute;
+      top: -22px;
+      left: 0;
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s;
+      font-family: 'Tajawal', sans-serif;
+    }
+
+    .section-wrapper:hover .hide-btn,
+    th:hover .col-hide-btn {
+      opacity: 1;
+    }
+
+    .col-hide-btn {
+      display: block;
+      margin: 2px auto 0;
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      cursor: pointer;
+      opacity: 0;
+      font-family: 'Tajawal', sans-serif;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th, td {
+      border: 1.5px solid #222;
+      padding: 6px 4px;
+      text-align: center;
+      vertical-align: top;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    th {
+      background: #f8fafc;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .morning-table {
+      width: 58%;
+      margin: 0 auto;
+    }
+
+    .section-heading {
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      margin: 10px 0 8px;
+    }
+
+    [contenteditable="true"]:focus {
+      outline: 2px solid #0d9488;
+      background: #f0fdfa;
+    }
+
+    .signature-box {
+      margin-top: auto;
+      padding-top: 25px;
+      display: flex;
+      justify-content: flex-end;
+      padding-left: 35px;
+    }
+
+    .signature-content {
+      color: #1d4ed8;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      transform: rotate(-10deg);
+      line-height: 1.4;
+      min-width: 160px;
+    }
+
+    .hidden-element {
+      display: none !important;
+    }
+
+    /* النوافذ المنبثقة */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 16px;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal-card {
+      background: #fff;
+      width: 100%;
+      max-width: 540px;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 10px;
+    }
+
+    .dept-check-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin: 14px 0;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    .dept-check-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f8fafc;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    #printBatchContainer { display: none; }
+
+    @media print {
+      @page { size: A4 portrait; margin: 0; }
+      body { background: #fff; padding: 0; }
+      .toolbar, .hide-btn, .col-hide-btn, .modal-overlay { display: none !important; }
+      .a4-container { display: none !important; }
+      #printBatchContainer { display: block !important; }
+      .a4-page {
+        box-shadow: none;
+        width: 210mm;
+        height: 297mm;
+        page-break-after: always;
+        break-after: page;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>جدول خفارات ملاكات التمريض - شهر تشرين الثاني</h1>
-            <p>اختر القسم أو الجناح الطبي لعرض أسماء الكوادر وجدول الخفارات الخاص بهم</p>
-        </header>
 
-        <div class="filter-box">
-            <label for="deptSelect">اختر القسم / الجناح الطبي:</label>
-            <select id="deptSelect" onchange="filterSchedule()">
-                <option value="">-- جاري تحميل الأقسام والكوادر --</option>
-            </select>
+  <!-- شريط التحكم العلوي -->
+  <header class="toolbar">
+    <div class="toolbar-row">
+      <div class="controls-group">
+        <div class="control-item">
+          <label>السنة:</label>
+          <select id="yearSelect" onchange="updateTitleAndSave()">
+            <option value="2025">2025</option>
+            <option value="2026" selected>2026</option>
+            <option value="2027">2027</option>
+          </select>
         </div>
 
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>التاريخ</th>
-                        <th>اليوم</th>
-                        <th>اسم الكادر (الممرض / الممرضة)</th>
-                        <th>نوع الخفر</th>
-                        <th>التوقيت</th>
-                    </tr>
-                </thead>
-                <tbody id="scheduleBody">
-                    <tr>
-                        <td colspan="5" class="loading">يرجى اختيار القسم من القائمة أعلاه لعرض كوادر القسم...</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="control-item">
+          <label>الشهر:</label>
+          <select id="monthSelect" onchange="updateTitleAndSave()">
+            <option value="كانون الثاني">كانون الثاني (1)</option>
+            <option value="شباط">شباط (2)</option>
+            <option value="آذار">آذار (3)</option>
+            <option value="نيسان">نيسان (4)</option>
+            <option value="أيار">أيار (5)</option>
+            <option value="حزيران">حزيران (6)</option>
+            <option value="تموز">تموز (7)</option>
+            <option value="آب">آب (8)</option>
+            <option value="أيلول">أيلول (9)</option>
+            <option value="تشرين الأول">تشرين الأول (10)</option>
+            <option value="تشرين الثاني" selected>تشرين الثاني (11)</option>
+            <option value="كانون الأول">كانون الأول (12)</option>
+          </select>
         </div>
+
+        <div class="control-item">
+          <label>القسم:</label>
+          <select id="deptSelect" onchange="switchDepartment(this.value)"></select>
+        </div>
+      </div>
+
+      <div class="controls-group">
+        <button class="btn btn-warning" onclick="showAllHiddenFields()">👁️ إظهار المخفي</button>
+        <button class="btn btn-danger" onclick="clearCurrentDepartment()">تفريغ الأسماء</button>
+        <button class="btn btn-success" onclick="openDriveModal()">📊 تصدير إلى Google Sheets</button>
+        <button class="btn btn-primary" onclick="openPrintModal()">🖨️ طباعة الجدول (A4)</button>
+      </div>
     </div>
 
-    <script>
-        let cachedData = null;
-        // رابط الويب المحدث الجديد
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyoq5xXZPPMStHlX4_EiWNEImioeSyuED9mxBf-vOOtOZSW5kXnTD52dnq_GHDHJJcwSg/exec";
+    <!-- أزرار التنقل السريع بين الأقسام العشرة -->
+    <div class="dept-pills" id="deptPills"></div>
+  </header>
 
-        window.onload = function() {
-            fetch(WEB_APP_URL)
-                .then(response => response.json())
-                .then(data => {
-                    onDataLoaded(data);
-                })
-                .catch(error => {
-                    onDataError(error);
-                });
-        };
+  <!-- منطقة عرض ورقة A4 -->
+  <main class="a4-container">
+    <div class="a4-page" id="activeA4Page">
+      <div class="page-title" id="sheetMainTitle" contenteditable="true" oninput="saveCurrentState()">
+        • جدول خفارات كادر التمريض قسم الطوارئ / تشرين الثاني
+      </div>
 
-        function onDataLoaded(data) {
-            cachedData = data;
-            const select = document.getElementById('deptSelect');
-            select.innerHTML = '<option value="">-- اضغط لاختيار القسم --</option>';
-            
-            if (data && data.departments && data.departments.length > 0) {
-                data.departments.forEach(dept => {
-                    let opt = document.createElement('option');
-                    opt.value = dept;
-                    opt.textContent = dept;
-                    select.appendChild(opt);
-                });
-            } else {
-                select.innerHTML = '<option value="">لا توجد أقسام متاحة في الملف</option>';
-            }
+      <!-- جدول الخفر الصباحي -->
+      <div class="section-wrapper" id="sec-morning">
+        <button class="hide-btn" onclick="toggleHideElement('sec-morning')">👁️ إخفاء الجدول الصباحي</button>
+        <table class="morning-table">
+          <thead>
+            <tr>
+              <th id="morningHeader" contenteditable="true" oninput="saveCurrentState()">الصباحي لكل الشهر من الاحد الى الخميس</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td id="morningBody" contenteditable="true" oninput="saveCurrentState()"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- جدول الخفر المسائي -->
+      <div class="section-wrapper" id="sec-evening">
+        <button class="hide-btn" onclick="toggleHideElement('sec-evening')">👁️ إخفاء الجدول المسائي</button>
+        <div class="section-heading" id="eveningTitle" contenteditable="true" oninput="saveCurrentState()">
+          الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا
+        </div>
+        <table>
+          <thead>
+            <tr id="eveningHeadRow"></tr>
+          </thead>
+          <tbody>
+            <tr id="eveningBodyRow"></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- جدول الخفر الليلي -->
+      <div class="section-wrapper" id="sec-night">
+        <button class="hide-btn" onclick="toggleHideElement('sec-night')">👁️ إخفاء الجدول الليلي</button>
+        <div class="section-heading" id="nightTitle" contenteditable="true" oninput="saveCurrentState()">
+          الخفر الليلي من الساعة الحادي عشر ليلا الى الساعة الثامنة والنصف صباحا
+        </div>
+        <table>
+          <thead>
+            <tr id="nightHeadRow"></tr>
+          </thead>
+          <tbody>
+            <tr id="nightBodyRow"></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- التوقيع -->
+      <div class="section-wrapper signature-box" id="sec-signature">
+        <button class="hide-btn" onclick="toggleHideElement('sec-signature')">👁️ إخفاء التوقيع</button>
+        <div class="signature-content" id="signatureText" contenteditable="true" oninput="saveCurrentState()">
+          ممرض جامعي<br>عباس تحسين احمد<br>مسؤول التمريض
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- حاوية الطباعة المتعددة -->
+  <div id="printBatchContainer"></div>
+
+  <!-- نافذة تحديد الأقسام للطباعة -->
+  <div class="modal-overlay" id="printModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span>🖨️ تحديد الأقسام للطباعة (A4)</span>
+        <button class="btn btn-secondary" onclick="closeModals()">✕</button>
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <button class="btn btn-primary" onclick="selectCheckboxes('.print-dept-cb', 'all')">تحديد الكل</button>
+        <button class="btn btn-secondary" onclick="selectCheckboxes('.print-dept-cb', 'current')">القسم الحالي فقط</button>
+        <button class="btn btn-secondary" onclick="selectCheckboxes('.print-dept-cb', 'none')">إلغاء الكل</button>
+      </div>
+      <div class="dept-check-grid" id="printDeptList"></div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+        <button class="btn btn-secondary" onclick="closeModals()">إلغاء</button>
+        <button class="btn btn-primary" onclick="executeBatchPrint()">بدء الطباعة الآن</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة التصدير إلى Google Drive Sheets -->
+  <div class="modal-overlay" id="driveModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span>📊 تصدير الجداول إلى Google Sheets</span>
+        <button class="btn btn-secondary" onclick="closeModals()">✕</button>
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <button class="btn btn-primary" onclick="selectCheckboxes('.drive-dept-cb', 'all')">تحديد الكل</button>
+        <button class="btn btn-secondary" onclick="selectCheckboxes('.drive-dept-cb', 'current')">القسم الحالي فقط</button>
+        <button class="btn btn-secondary" onclick="selectCheckboxes('.drive-dept-cb', 'none')">إلغاء الكل</button>
+      </div>
+      <div class="dept-check-grid" id="driveDeptList"></div>
+      <label style="font-size:12px; color:#475569; display:block; margin-bottom:4px;">رابط Google Apps Script Web App:</label>
+      <input type="url" id="scriptUrlInput"
+             value="https://script.google.com/macros/s/AKfycbzRr2XVkL6q11vmyn2sp_M6UxJbqtDMMv7qk-IRDTJ5tTIj6v5cuVd1P1fc1No8DTZq/exec"
+             style="width:100%; padding:9px; border:1px solid #cbd5e1; border-radius:6px; margin-bottom:12px; direction:ltr; font-size:12px;">
+      <div id="driveStatusMsg" style="font-size:13px; margin-bottom:12px; line-height:1.6;"></div>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn btn-secondary" onclick="closeModals()">إغلاق</button>
+        <button class="btn btn-success" onclick="sendToGoogleSheets()">إرسال وإنشاء الشيت الآن</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbzRr2XVkL6q11vmyn2sp_M6UxJbqtDMMv7qk-IRDTJ5tTIj6v5cuVd1P1fc1No8DTZq/exec";
+
+    const DEPARTMENTS = [
+      "قسم الطوارئ",
+      "الانعاش القلبي",
+      "الانعاش الجراحي",
+      "الطابق الاول",
+      "قسم الخدج",
+      "الطابق الثاني",
+      "الطابق الثالث",
+      "الطابق الرابع",
+      "الطابق الخامس",
+      "الطابق السادس"
+    ];
+
+    const DEFAULT_PERIODS = [
+      "من ١١/١ الى ١١/٥",
+      "من ١١/٦ الى ١١/١٠",
+      "من ١١/١١ الى ١١/١٥",
+      "من ١١/١٦ الى ١١/٢٠",
+      "من ١١/٢١ الى ١١/٢٥",
+      "من ١١/٢٦ الى ١١/٣٠"
+    ];
+
+    let currentDept = DEPARTMENTS[0];
+    let store = JSON.parse(localStorage.getItem('nursing_schedule_github_v1') || '{}');
+
+    function getEmergencyTemplate() {
+      return {
+        morningHeader: "الصباحي لكل الشهر من الاحد الى الخميس",
+        morningNames: [
+          "١. عبدالهادي صلاح // مسؤول الطوارئ",
+          "٢. ابراهيم نزهان حماد",
+          "٣. محمد اركان",
+          "٤. مصطفى صفاء الدين",
+          "٥. نجلاء نعمة فرج",
+          "٦. هنا صالح احمد",
+          "٧. مصطفى محمد حميد",
+          "٨. ندى شلال صالح"
+        ],
+        eveningTitle: "الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا",
+        nightTitle: "الخفر الليلي من الساعة الحادي عشر ليلا الى الساعة الثامنة والنصف صباحا",
+        periods: [...DEFAULT_PERIODS],
+        eveningCols: [
+          ["محمود خليل عبدالله", "/مسؤول الوجبة", "رنا كامل", "اسماء احمد الطيف", "مانع ازهر عويد", "محمد خليل", "عبدالرحمن عدنان", "قحطان شعلان", "سفيان رياض محمد"],
+          ["شاكر محمود عبد الله", "/مسؤول الوجبة", "مصطفى مرشد رشيد", "علي حسين عزيز", "اوس احمد مصطفى", "شريف انور", "حسن رافع", "سنا ابراهيم", "محمد يوسف"],
+          ["محمد كامل عبد", "/مسؤول الوجبة", "عبد الحميد رمضان", "خديجة صفاء طه", "محمد رجب عويد", "احمد محمد امين", "بشار صباح سعيد", "محمد محجوب فارس"],
+          ["محمود خليل عبدالله", "/مسؤول الوجبة", "رنا كامل", "اسماء احمد الطيف", "مانع ازهر عويد", "محمد خليل", "عبدالرحمن عدنان", "قحطان شعلان", "سفيان رياض محمد"],
+          ["شاكر محمود عبد الله", "/مسؤول الوجبة", "مصطفى مرشد رشيد", "علي حسين عزيز", "اوس احمد مصطفى", "شريف انور", "حسن رافع", "سنا ابراهيم", "محمد يوسف"],
+          ["محمد كامل عبد", "/مسؤول الوجبة", "عبد الحميد رمضان", "خديجة صفاء طه", "محمد رجب عويد", "احمد محمد امين", "بشار صباح سعيد", "محمد محجوب فارس"]
+        ],
+        nightCols: [
+          ["عباس حسين غنو", "مروة كامل", "محمود صالح احمد", "محمد عطية ابراهيم", "سمير فوزي"],
+          ["ازهار توفيق جاسم", "عبد العزيز سحاب", "محمد عباس", "حسين صالح قدوري", "ادهم حسن"],
+          ["اوس عماد ابراهيم", "اسكندر زين عابدين", "جاسم عواد تبان", "هاني ابراهيم محمود", "نسرين حميد تركي"],
+          ["عباس حسين غنو", "مروة كامل", "محمود صالح احمد", "محمد عطية ابراهيم", "سمير فوزي"],
+          ["ازهار توفيق جاسم", "عبد العزيز سحاب", "محمد عباس", "حسين صالح قدوري", "ادهم حسن"],
+          ["اوس عماد ابراهيم", "اسكندر زين عابدين", "جاسم عواد تبان", "هاني ابراهيم محمود", "نسرين حميد تركي"]
+        ],
+        signature: "ممرض جامعي\nعباس تحسين احمد\nمسؤول التمريض",
+        hiddenIds: []
+      };
+    }
+
+    function getBlankTemplate() {
+      return {
+        morningHeader: "الصباحي لكل الشهر من الاحد الى الخميس",
+        morningNames: ["١. ", "٢. ", "٣. ", "٤. "],
+        eveningTitle: "الخفر المسائي من الساعة الثانية ظهرا الى الساعة الحادي عشر ليلا",
+        nightTitle: "الخفر الليلي من الساعة الحادي عشر ليلا الى الساعة الثامنة والنصف صباحا",
+        periods: [...DEFAULT_PERIODS],
+        eveningCols: [["", "", ""], ["", "", ""], ["", "", ""], ["", "", ""], ["", "", ""], ["", "", ""]],
+        nightCols: [["", "", ""], ["", "", ""], ["", "", ""], ["", "", ""], ["", "", ""], ["", "", ""]],
+        signature: "ممرض جامعي\nعباس تحسين احمد\nمسؤول التمريض",
+        hiddenIds: []
+      };
+    }
+
+    function initApp() {
+      const select = document.getElementById('deptSelect');
+      const pills = document.getElementById('deptPills');
+      select.innerHTML = '';
+      pills.innerHTML = '';
+
+      DEPARTMENTS.forEach((dept, idx) => {
+        if (!store[dept]) {
+          store[dept] = idx === 0 ? getEmergencyTemplate() : getBlankTemplate();
         }
+        const opt = document.createElement('option');
+        opt.value = dept;
+        opt.textContent = dept;
+        select.appendChild(opt);
 
-        function onDataError(error) {
-            const select = document.getElementById('deptSelect');
-            select.innerHTML = '<option value="">خطأ في جلب البيانات من الشيت</option>';
-            console.error(error);
+        const pill = document.createElement('button');
+        pill.className = 'dept-pill' + (dept === currentDept ? ' active' : '');
+        pill.textContent = dept;
+        pill.onclick = () => switchDepartment(dept);
+        pills.appendChild(pill);
+      });
+
+      renderDepartment(currentDept);
+    }
+
+    function switchDepartment(dept) {
+      saveCurrentState();
+      currentDept = dept;
+      document.getElementById('deptSelect').value = dept;
+      document.querySelectorAll('.dept-pill').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent === dept);
+      });
+      renderDepartment(dept);
+    }
+
+    function renderDepartment(dept) {
+      const data = store[dept];
+      const month = document.getElementById('monthSelect').value;
+      document.getElementById('sheetMainTitle').textContent = `• جدول خفارات كادر التمريض ${dept} / ${month}`;
+      document.getElementById('morningHeader').textContent = data.morningHeader;
+      document.getElementById('morningBody').innerHTML = data.morningNames.join('<br>');
+      document.getElementById('eveningTitle').textContent = data.eveningTitle;
+      document.getElementById('nightTitle').textContent = data.nightTitle;
+      document.getElementById('signatureText').innerHTML = data.signature.replace(/\n/g, '<br>');
+
+      const evHead = document.getElementById('eveningHeadRow');
+      const evBody = document.getElementById('eveningBodyRow');
+      const niHead = document.getElementById('nightHeadRow');
+      const niBody = document.getElementById('nightBodyRow');
+
+      evHead.innerHTML = '';
+      evBody.innerHTML = '';
+      niHead.innerHTML = '';
+      niBody.innerHTML = '';
+
+      for (let i = 0; i < 6; i++) {
+        const thE = document.createElement('th');
+        thE.id = `ev-col-h-${i}`;
+        thE.innerHTML = `<div contenteditable="true" oninput="saveCurrentState()">${data.periods[i]}</div>
+                         <button class="col-hide-btn" onclick="toggleHideCol('ev', ${i})">✕ إخفاء</button>`;
+        evHead.appendChild(thE);
+
+        const tdE = document.createElement('td');
+        tdE.id = `ev-col-b-${i}`;
+        tdE.contentEditable = "true";
+        tdE.oninput = saveCurrentState;
+        tdE.innerHTML = (data.eveningCols[i] || []).join('<br>');
+        evBody.appendChild(tdE);
+
+        const thN = document.createElement('th');
+        thN.id = `ni-col-h-${i}`;
+        thN.innerHTML = `<div contenteditable="true" oninput="saveCurrentState()">${data.periods[i]}</div>
+                         <button class="col-hide-btn" onclick="toggleHideCol('ni', ${i})">✕ إخفاء</button>`;
+        niHead.appendChild(thN);
+
+        const tdN = document.createElement('td');
+        tdN.id = `ni-col-b-${i}`;
+        tdN.contentEditable = "true";
+        tdN.oninput = saveCurrentState;
+        tdN.innerHTML = (data.nightCols[i] || []).join('<br>');
+        niBody.appendChild(tdN);
+      }
+
+      applyHiddenElements(data.hiddenIds || []);
+    }
+
+    function htmlToLines(el) {
+      return el.innerHTML
+        .replace(/<div>/gi, '\n')
+        .replace(/<\/div>/gi, '')
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<[^>]+>/g, '')
+        .split('\n')
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+
+    function saveCurrentState() {
+      const data = store[currentDept];
+      if (!data) return;
+      data.morningHeader = document.getElementById('morningHeader').innerText.trim();
+      data.morningNames = htmlToLines(document.getElementById('morningBody'));
+      data.eveningTitle = document.getElementById('eveningTitle').innerText.trim();
+      data.nightTitle = document.getElementById('nightTitle').innerText.trim();
+      data.signature = htmlToLines(document.getElementById('signatureText')).join('\n');
+
+      for (let i = 0; i < 6; i++) {
+        const thE = document.querySelector(`#ev-col-h-${i} div`);
+        if (thE) data.periods[i] = thE.innerText.trim();
+        const tdE = document.getElementById(`ev-col-b-${i}`);
+        if (tdE) data.eveningCols[i] = htmlToLines(tdE);
+        const tdN = document.getElementById(`ni-col-b-${i}`);
+        if (tdN) data.nightCols[i] = htmlToLines(tdN);
+      }
+
+      localStorage.setItem('nursing_schedule_github_v1', JSON.stringify(store));
+    }
+
+    function updateTitleAndSave() {
+      const month = document.getElementById('monthSelect').value;
+      document.getElementById('sheetMainTitle').textContent = `• جدول خفارات كادر التمريض ${currentDept} / ${month}`;
+      saveCurrentState();
+    }
+
+    function toggleHideElement(id) {
+      const data = store[currentDept];
+      if (!data.hiddenIds.includes(id)) data.hiddenIds.push(id);
+      applyHiddenElements(data.hiddenIds);
+      saveCurrentState();
+    }
+
+    function toggleHideCol(prefix, idx) {
+      const data = store[currentDept];
+      const hId = `${prefix}-col-h-${idx}`;
+      const bId = `${prefix}-col-b-${idx}`;
+      if (!data.hiddenIds.includes(hId)) data.hiddenIds.push(hId, bId);
+      applyHiddenElements(data.hiddenIds);
+      saveCurrentState();
+    }
+
+    function applyHiddenElements(hiddenIds) {
+      document.querySelectorAll('#activeA4Page .hidden-element').forEach(el => el.classList.remove('hidden-element'));
+      hiddenIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden-element');
+      });
+    }
+
+    function showAllHiddenFields() {
+      store[currentDept].hiddenIds = [];
+      applyHiddenElements([]);
+      saveCurrentState();
+    }
+
+    function clearCurrentDepartment() {
+      if (!confirm(`هل تريد تفريغ الأسماء في "${currentDept}"؟`)) return;
+      store[currentDept] = getBlankTemplate();
+      renderDepartment(currentDept);
+      saveCurrentState();
+    }
+
+    function populateCheckList(containerId, cbClass, checkAll = false) {
+      const list = document.getElementById(containerId);
+      list.innerHTML = '';
+      DEPARTMENTS.forEach(dept => {
+        const label = document.createElement('label');
+        label.className = 'dept-check-item';
+        const checked = checkAll || dept === currentDept ? 'checked' : '';
+        label.innerHTML = `<input type="checkbox" class="${cbClass}" value="${dept}" ${checked}> <span>${dept}</span>`;
+        list.appendChild(label);
+      });
+    }
+
+    function selectCheckboxes(selector, mode) {
+      document.querySelectorAll(selector).forEach(cb => {
+        if (mode === 'all') cb.checked = true;
+        else if (mode === 'none') cb.checked = false;
+        else if (mode === 'current') cb.checked = (cb.value === currentDept);
+      });
+    }
+
+    function openPrintModal() {
+      saveCurrentState();
+      populateCheckList('printDeptList', 'print-dept-cb', false);
+      document.getElementById('printModal').classList.add('active');
+    }
+
+    function executeBatchPrint() {
+      const selected = Array.from(document.querySelectorAll('.print-dept-cb:checked')).map(cb => cb.value);
+      if (selected.length === 0) return alert('الرجاء اختيار قسم واحد على الأقل للطباعة.');
+
+      const month = document.getElementById('monthSelect').value;
+      const batchContainer = document.getElementById('printBatchContainer');
+      batchContainer.innerHTML = '';
+
+      selected.forEach(dept => {
+        const d = store[dept];
+        const page = document.createElement('div');
+        page.className = 'a4-page';
+        page.innerHTML = `
+          <div class="page-title">• جدول خفارات كادر التمريض ${dept} / ${month}</div>
+          ${!d.hiddenIds.includes('sec-morning') ? `
+          <div class="section-wrapper">
+            <table class="morning-table">
+              <thead><tr><th>${d.morningHeader}</th></tr></thead>
+              <tbody><tr><td>${d.morningNames.join('<br>')}</td></tr></tbody>
+            </table>
+          </div>` : ''}
+          ${!d.hiddenIds.includes('sec-evening') ? `
+          <div class="section-wrapper">
+            <div class="section-heading">${d.eveningTitle}</div>
+            <table>
+              <thead><tr>${d.periods.map((p, i) => d.hiddenIds.includes(`ev-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
+              <tbody><tr>${d.eveningCols.map((c, i) => d.hiddenIds.includes(`ev-col-b-${i}`) ? '' : `<td>${c.join('<br>')}</td>`).join('')}</tr></tbody>
+            </table>
+          </div>` : ''}
+          ${!d.hiddenIds.includes('sec-night') ? `
+          <div class="section-wrapper">
+            <div class="section-heading">${d.nightTitle}</div>
+            <table>
+              <thead><tr>${d.periods.map((p, i) => d.hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
+              <tbody><tr>${d.nightCols.map((c, i) => d.hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${c.join('<br>')}</td>`).join('')}</tr></tbody>
+            </table>
+          </div>` : ''}
+          ${!d.hiddenIds.includes('sec-signature') ? `
+          <div class="signature-box">
+            <div class="signature-content">${d.signature.replace(/\n/g, '<br>')}</div>
+          </div>` : ''}
+        `;
+        batchContainer.appendChild(page);
+      });
+
+      closeModals();
+      setTimeout(() => window.print(), 150);
+    }
+
+    function openDriveModal() {
+      saveCurrentState();
+      populateCheckList('driveDeptList', 'drive-dept-cb', true);
+      document.getElementById('driveStatusMsg').innerHTML = '';
+      document.getElementById('driveModal').classList.add('active');
+    }
+
+    function closeModals() {
+      document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+    }
+
+    async function sendToGoogleSheets() {
+      const url = (document.getElementById('scriptUrlInput').value || DEFAULT_GAS_URL).trim();
+      const statusEl = document.getElementById('driveStatusMsg');
+      const selected = Array.from(document.querySelectorAll('.drive-dept-cb:checked')).map(cb => cb.value);
+
+      if (selected.length === 0) {
+        statusEl.style.color = '#dc2626';
+        statusEl.textContent = 'الرجاء تحديد قسم واحد على الأقل للتصدير.';
+        return;
+      }
+
+      const filteredDepts = {};
+      selected.forEach(dept => { filteredDepts[dept] = store[dept]; });
+
+      const payload = {
+        year: document.getElementById('yearSelect').value,
+        month: document.getElementById('monthSelect').value,
+        departments: filteredDepts
+      };
+
+      statusEl.style.color = '#0f766e';
+      statusEl.textContent = '⏳ جاري إرسال البيانات وإنشاء ملف الشيت في Google Drive...';
+
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (result.status === 'success' && result.url) {
+          statusEl.innerHTML = `✅ تم إنشاء الجدول بنجاح!<br><a href="${result.url}" target="_blank" class="btn btn-success" style="margin-top:8px;">📂 فتح ملف الشيت في Google Drive ↗</a>`;
+        } else {
+          statusEl.style.color = '#dc2626';
+          statusEl.textContent = 'حدث خطأ في السكربت: ' + (result.message || 'غير معروف');
         }
-
-        function filterSchedule() {
-            const selectedDept = document.getElementById('deptSelect').value;
-            const tbody = document.getElementById('scheduleBody');
-            
-            if (!selectedDept) {
-                tbody.innerHTML = '<tr><td colspan="5" class="loading">يرجى اختيار القسم لعرض كوادر القسم...</td></tr>';
-                return;
-            }
-
-            if (!cachedData || !cachedData.schedule) {
-                tbody.innerHTML = '<tr><td colspan="5" class="loading">لا توجد بيانات مخزنة مؤقتاً.</td></tr>';
-                return;
-            }
-
-            const filtered = cachedData.schedule.filter(item => {
-                return item.department && item.department.trim() === selectedDept.trim();
-            });
-            
-            if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="loading">لا توجد كوادر أو خفارات مسجلة لهذا القسم.</td></tr>';
-                return;
-            }
-
-            let html = '';
-            filtered.forEach(row => {
-                let badgeClass = '';
-                const shift = row.shiftType || '';
-                if (shift.includes('صباحي')) badgeClass = 'badge-morning';
-                else if (shift.includes('مسائي')) badgeClass = 'badge-evening';
-                else badgeClass = 'badge-night';
-
-                html += `<tr>
-                    <td>${row.date || '-'}</td>
-                    <td>${row.day || '-'}</td>
-                    <td><strong>${row.name || '-'}</strong></td>
-                    <td><span class="badge ${badgeClass}">${shift}</span></td>
-                    <td>${row.time || '-'}</td>
-                </tr>`;
-            });
-            tbody.innerHTML = html;
+      } catch (err) {
+        try {
+          await fetch(url, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+          });
+          statusEl.style.color = '#16a34a';
+          statusEl.innerHTML = '✅ تم إرسال الطلب إلى Google Drive بنجاح! تفقد ملفاتك الحديثة في Google Drive.';
+        } catch (e2) {
+          statusEl.style.color = '#dc2626';
+          statusEl.textContent = 'تعذر الاتصال بالسكربت، تأكد من اتصال الإنترنت وصلاحيات النشر (Anyone).';
         }
-    </script>
+      }
+    }
+
+    window.onload = initApp;
+  </script>
 </body>
 </html>
