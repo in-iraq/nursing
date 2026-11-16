@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>منظومة جداول خفارات الكادر التمريضي - لوحة الأدمن</title>
+  <title>منظومة جداول خفارات الكادر التمريضي</title>
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -166,7 +166,6 @@
       font-size: 22px;
       font-weight: bold;
       margin-bottom: 14px;
-      min-height: 28px;
     }
 
     .section-wrapper {
@@ -228,7 +227,6 @@
       background: #f8fafc;
       font-weight: bold;
       font-size: 14px;
-      min-height: 28px;
     }
 
     td {
@@ -246,7 +244,6 @@
       font-size: 20px;
       font-weight: bold;
       margin: 10px 0 8px;
-      min-height: 26px;
     }
 
     [contenteditable="true"]:focus {
@@ -399,7 +396,7 @@
       </div>
     </div>
 
-    <!-- أزرار التنقل السريع بين الأقسام الـ 14 -->
+    <!-- أزرار التنقل السريع بين الأقسام -->
     <div class="dept-pills" id="deptPills"></div>
   </header>
 
@@ -505,7 +502,7 @@
   </div>
 
   <script>
-    const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbxfPhL5FL--gmr-GW6jXdEJ6jFINj2CyZvP3sBka0wb80HL_rb7BTlHPf_5eRVV3y6ddw/exec";
+    const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbw7rtb4Vessgb-TM3PrI3LaifLurH8tL46vrevfSI5P7dgmf-tsgNTLtf3mbN2CSQ4vvQ/exec";
 
     const DEPARTMENTS = [
       "قسم الطوارئ",
@@ -524,11 +521,12 @@
       "القسطرة القلبية"
     ];
 
+    // لا توجد أي تواريخ مضمنة في الكود؛ تُستورد التواريخ حصرياً كما هي محفوظة ومعدلة في الشيت
     const DEFAULT_PERIODS = ["", "", "", "", "", ""];
 
     let currentDept = DEPARTMENTS[0];
     let store = {};
-    let sheetTabNameMap = {};
+    let sheetTabNameMap = {}; // يحفظ الاسم الدقيق للتبويب داخل الشيت لكل قسم
     let hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
     let autoSaveTimer = null;
     let isTyping = false;
@@ -551,6 +549,7 @@
       };
     }
 
+    // توحيد الحروف العربية لضمان تطابق اسم القسم مع اسم التبويب في الشيت
     function normalizeArabic(str) {
       return String(str || "")
         .trim()
@@ -560,6 +559,7 @@
         .replace(/\s+/g, " ");
     }
 
+    // تحويل أي قيمة (سواء نص أو مصفوفة) إلى مصفوفة أسطر نظيفة
     function toLinesArray(val) {
       if (!val) return [];
       if (Array.isArray(val)) {
@@ -597,9 +597,11 @@
           base.periods[i] = raw.periods[i] !== undefined && raw.periods[i] !== null ? String(raw.periods[i]).trim() : "";
         }
       }
-      base.nightPeriods = Array.isArray(raw.nightPeriods)
-        ? raw.nightPeriods.slice(0, 6).map(v => String(v || "").trim())
-        : [...base.periods];
+      if (Array.isArray(raw.nightPeriods)) {
+        for (let i = 0; i < 6; i++) {
+          base.nightPeriods[i] = raw.nightPeriods[i] !== undefined && raw.nightPeriods[i] !== null ? String(raw.nightPeriods[i]).trim() : "";
+        }
+      }
 
       if (Array.isArray(raw.eveningCols)) {
         for (let i = 0; i < 6; i++) {
@@ -624,13 +626,14 @@
       localStorage.removeItem('nursing_schedule_twoway_v1');
       localStorage.removeItem('nursing_schedule_auto_v2');
       localStorage.removeItem('nursing_cloud_cache_v3');
+      localStorage.removeItem('nursing_cloud_cache_v4');
 
       const select = document.getElementById('deptSelect');
       const pills = document.getElementById('deptPills');
       select.innerHTML = '';
       pills.innerHTML = '';
 
-      const cachedStore = JSON.parse(localStorage.getItem('nursing_cloud_cache_v4') || '{}');
+      const cachedStore = JSON.parse(localStorage.getItem('nursing_cloud_cache_v5') || '{}');
       DEPARTMENTS.forEach((dept) => {
         store[dept] = cachedStore[dept] ? normalizeDeptObject(cachedStore[dept], dept) : getEmptyTemplate(dept);
         sheetTabNameMap[dept] = dept;
@@ -649,8 +652,10 @@
 
       renderDepartment(currentDept);
 
+      // ١. جلب الأسماء المحفوظة من Google Sheets وعرضها فوراً في الجداول
       await pullFromGoogleSheets(true);
 
+      // ٢. مزامنة دورية بالخلفية كل 5 ثوانٍ
       setInterval(() => {
         const activeEl = document.activeElement;
         const userCurrentlyEditingCell = activeEl && activeEl.getAttribute('contenteditable') === 'true';
@@ -663,6 +668,7 @@
     async function switchDepartment(dept) {
       if (dept === currentDept) return;
 
+      // إذا كان هناك تعديل أو تفريغ معلق في القسم السابق، نحفظه فوراً في الشيت قبل الانتقال
       if (autoSaveTimer || isTyping) {
         clearTimeout(autoSaveTimer);
         autoSaveTimer = null;
@@ -702,7 +708,7 @@
       niBody.innerHTML = '';
 
       const evPeriods = (data.periods && data.periods.length === 6) ? data.periods : [...DEFAULT_PERIODS];
-      const niPeriods = (data.nightPeriods && data.nightPeriods.length === 6) ? data.nightPeriods : evPeriods;
+      const niPeriods = (data.nightPeriods && data.nightPeriods.length === 6) ? data.nightPeriods : [...DEFAULT_PERIODS];
 
       for (let i = 0; i < 6; i++) {
         const thE = document.createElement('th');
@@ -759,12 +765,11 @@
       if (data) {
         if (!Array.isArray(data.periods)) data.periods = [...DEFAULT_PERIODS];
         if (!Array.isArray(data.nightPeriods)) data.nightPeriods = [...DEFAULT_PERIODS];
-        data.periods[idx] = val;
-        data.nightPeriods[idx] = val;
-        const otherPrefix = source === 'ev' ? 'ni' : 'ev';
-        const otherDiv = document.querySelector(`#${otherPrefix}-col-h-${idx} div`);
-        if (otherDiv && otherDiv !== el && otherDiv.innerText.trim() !== val) {
-          otherDiv.innerText = val;
+        // فصل تواريخ كل جدول بشكل مستقل تماماً (المسائي وحده والليلي وحده)
+        if (source === 'ev') {
+          data.periods[idx] = val;
+        } else if (source === 'ni') {
+          data.nightPeriods[idx] = val;
         }
       }
       onUserEdit();
@@ -791,10 +796,8 @@
       for (let i = 0; i < 6; i++) {
         const thE = document.querySelector(`#ev-col-h-${i} div`);
         const thN = document.querySelector(`#ni-col-h-${i} div`);
-        const evVal = thE ? thE.innerText.trim() : "";
-        const niVal = thN ? thN.innerText.trim() : "";
-        data.periods[i] = evVal || niVal || "";
-        data.nightPeriods[i] = niVal || evVal || "";
+        if (thE) data.periods[i] = thE.innerText.trim();
+        if (thN) data.nightPeriods[i] = thN.innerText.trim();
         const tdE = document.getElementById(`ev-col-b-${i}`);
         if (tdE) data.eveningCols[i] = htmlToLines(tdE);
         const tdN = document.getElementById(`ni-col-b-${i}`);
@@ -803,7 +806,7 @@
 
       hiddenStore[currentDept] = data.hiddenIds || [];
       localStorage.setItem('nursing_hidden_fields_v1', JSON.stringify(hiddenStore));
-      localStorage.setItem('nursing_cloud_cache_v4', JSON.stringify(store));
+      localStorage.setItem('nursing_cloud_cache_v5', JSON.stringify(store));
 
       if (triggerCloud) {
         scheduleAutoSync();
@@ -820,6 +823,7 @@
       }, 800);
     }
 
+    // إرسال التعديلات أو التفريغ مباشرة إلى التبويبات المطابقة في Google Sheets
     async function syncDepartmentsToSheet(deptList) {
       isSavingToCloud = true;
       lastEditTimestamp = Date.now();
@@ -876,6 +880,7 @@
       }
     }
 
+    // جلب الأسماء والبيانات من Google Sheets وعرضها مباشرة في الجداول
     async function pullFromGoogleSheets(forceRender = false) {
       if (isSavingToCloud || isTyping || autoSaveTimer) return;
 
@@ -885,7 +890,13 @@
         const res = await fetch(fetchUrl, { cache: 'no-store' });
         const result = await res.json();
 
+        // إذا بدأ المستخدم بالكتابة أو التفريغ أثناء انتظار الرد، نتجاهل الرد القديم لعدم إعادة الأسماء الممسوحة
         if (isSavingToCloud || isTyping || autoSaveTimer) return;
+
+        if (result.status === 'online' && !result.departments) {
+          setSyncStatus('error', '⚠️ يرجى تحديث كود السكربت في Google (Deploy > New version)');
+          return;
+        }
 
         const rawDepts = result.departments || result.data || null;
         if (rawDepts && typeof rawDepts === 'object') {
@@ -902,7 +913,7 @@
           DEPARTMENTS.forEach(appDept => {
             const matchedKey = sheetKeys.find(k => normalizeArabic(k) === normalizeArabic(appDept));
             if (matchedKey && rawDepts[matchedKey]) {
-              sheetTabNameMap[appDept] = matchedKey;
+              sheetTabNameMap[appDept] = matchedKey; // حفظ الاسم الفعلي للتبويب في الشيت
               const normalizedData = normalizeDeptObject(rawDepts[matchedKey], appDept);
               if (JSON.stringify(store[appDept]) !== JSON.stringify(normalizedData)) {
                 store[appDept] = normalizedData;
@@ -911,7 +922,7 @@
             }
           });
 
-          localStorage.setItem('nursing_cloud_cache_v4', JSON.stringify(store));
+          localStorage.setItem('nursing_cloud_cache_v5', JSON.stringify(store));
           if (forceRender || hasChanges) {
             renderDepartment(currentDept);
           }
@@ -960,6 +971,7 @@
       onUserEdit();
     }
 
+    // فتح نافذة تفريغ الأسماء (لتفريغ القسم الحالي أو تحديد أقسام أو تفريغ الكل دفعة واحدة)
     function openClearModal() {
       saveCurrentState(false);
       populateCheckList('clearDeptList', 'clear-dept-cb', false);
@@ -982,13 +994,14 @@
         emptyObj.eveningTitle = prev.eveningTitle || "";
         emptyObj.nightTitle = prev.nightTitle || "";
         emptyObj.periods = (prev.periods && prev.periods.length === 6) ? [...prev.periods] : [...DEFAULT_PERIODS];
-        emptyObj.nightPeriods = (prev.nightPeriods && prev.nightPeriods.length === 6) ? [...prev.nightPeriods] : [...emptyObj.periods];
+        emptyObj.nightPeriods = (prev.nightPeriods && prev.nightPeriods.length === 6) ? [...prev.nightPeriods] : [...DEFAULT_PERIODS];
         store[dept] = emptyObj;
       });
 
       closeModals();
       renderDepartment(currentDept);
 
+      // إرسال التفريغ فوراً إلى الشيت لجميع الأقسام المختارة بدون انتظار المؤقت
       await syncDepartmentsToSheet(selected);
     }
 
@@ -1055,7 +1068,7 @@
           <div class="section-wrapper">
             <div class="section-heading">${d.nightTitle}</div>
             <table>
-              <thead><tr>${((d.nightPeriods && d.nightPeriods.length === 6) ? d.nightPeriods : d.periods).map((p, i) => d.hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
+              <thead><tr>${((d.nightPeriods && d.nightPeriods.length === 6) ? d.nightPeriods : DEFAULT_PERIODS).map((p, i) => d.hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
               <tbody><tr>${d.nightCols.map((c, i) => d.hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
