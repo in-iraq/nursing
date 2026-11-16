@@ -218,7 +218,7 @@
 
     .hide-btn {
       position: absolute;
-      top: -22px;
+      top: -24px;
       left: 0;
       background: #ef4444;
       color: #fff;
@@ -234,24 +234,29 @@
     }
 
     .section-wrapper:hover .hide-btn,
-    th:hover .col-hide-btn,
-    .custom-table-controls {
+    th:hover .col-hide-btn {
       opacity: 1;
     }
 
     .custom-table-controls {
       position: absolute;
-      top: -24px;
+      top: -26px;
       right: 0;
       display: flex;
+      flex-wrap: wrap;
       gap: 4px;
       opacity: 0;
       transition: opacity 0.2s;
       font-family: 'Tajawal', sans-serif;
-      z-index: 10;
+      z-index: 15;
+      background: rgba(255,255,255,0.95);
+      padding: 2px 4px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
     }
 
-    .section-wrapper:hover .custom-table-controls {
+    .section-wrapper:hover .custom-table-controls,
+    .section-wrapper.resizing .custom-table-controls {
       opacity: 1;
     }
 
@@ -283,6 +288,7 @@
       font-size: 15px;
       line-height: 1.45;
       word-wrap: break-word;
+      position: relative;
     }
 
     th {
@@ -301,6 +307,135 @@
       min-height: auto;
       height: auto;
       vertical-align: middle;
+    }
+
+    /* مقابض السحب لتغيير الحجم (عرض العمود، ارتفاع الصف، عرض الجدول الكلي) */
+    .custom-table-box {
+      position: relative;
+    }
+
+    .col-resizer {
+      position: absolute;
+      top: 0;
+      left: -4px;
+      width: 8px;
+      height: 100%;
+      cursor: col-resize;
+      z-index: 12;
+      background: transparent;
+      transition: background 0.15s;
+    }
+    .col-resizer:hover, .col-resizer.active {
+      background: rgba(14, 165, 233, 0.55);
+    }
+
+    .row-resizer {
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 100%;
+      height: 8px;
+      cursor: row-resize;
+      z-index: 12;
+      background: transparent;
+      transition: background 0.15s;
+    }
+    .row-resizer:hover, .row-resizer.active {
+      background: rgba(14, 165, 233, 0.55);
+    }
+
+    .table-width-resizer {
+      position: absolute;
+      top: 0;
+      left: -6px;
+      width: 10px;
+      height: 100%;
+      cursor: ew-resize;
+      z-index: 14;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .section-wrapper:hover .table-width-resizer,
+    .table-width-resizer.active {
+      opacity: 1;
+    }
+    .table-width-resizer::after {
+      content: "⋮";
+      background: #0284c7;
+      color: #fff;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 4px 2px;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    /* أزرار التحكم بالعمود والصف من داخل الجدول مباشرة */
+    .inline-col-actions {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      display: flex;
+      gap: 2px;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 11;
+      font-family: 'Tajawal', sans-serif;
+    }
+    th:hover .inline-col-actions,
+    td:hover .inline-col-actions {
+      opacity: 1;
+    }
+
+    .inline-row-actions {
+      position: absolute;
+      top: 50%;
+      right: -24px;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 11;
+      font-family: 'Tajawal', sans-serif;
+    }
+    tr:hover .inline-row-actions {
+      opacity: 1;
+    }
+
+    .mini-act-btn {
+      border: none;
+      border-radius: 3px;
+      padding: 1px 4px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      line-height: 1.2;
+      font-family: 'Tajawal', sans-serif;
+    }
+    .mini-add { background: #0d9488; }
+    .mini-add:hover { background: #0f766e; }
+    .mini-del { background: #ef4444; }
+    .mini-del:hover { background: #dc2626; }
+
+    .resize-tooltip {
+      position: fixed;
+      background: #0f172a;
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: 'Tajawal', sans-serif;
+      font-weight: 700;
+      pointer-events: none;
+      z-index: 9999;
+      display: none;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
     }
 
     .morning-table {
@@ -449,7 +584,7 @@
     @media print {
       @page { size: A4 portrait; margin: 0; }
       body { background: #fff; padding: 0; }
-      .toolbar, .hide-btn, .col-hide-btn, .custom-table-controls, .modal-overlay { display: none !important; }
+      .toolbar, .hide-btn, .col-hide-btn, .custom-table-controls, .col-resizer, .row-resizer, .table-width-resizer, .inline-col-actions, .inline-row-actions, .resize-tooltip, .modal-overlay { display: none !important; }
       .a4-container { display: none !important; }
       #printBatchContainer { display: block !important; }
       .a4-page {
@@ -463,6 +598,8 @@
   </style>
 </head>
 <body>
+
+  <div class="resize-tooltip" id="resizeTooltip"></div>
 
   <!-- شريط التحكم العلوي -->
   <header class="toolbar">
@@ -650,7 +787,7 @@
       </div>
 
       <div class="col-widths-box">
-        <div style="font-size:13px; font-weight:700; color:#1e293b;">تخصيص عرض كل عمود بالـ (%) — اتركه فارغاً للتوزيع المتساوي:</div>
+        <div style="font-size:13px; font-weight:700; color:#1e293b;">تخصيص عرض كل عمود بالـ (%) — أو اسحب حدود الأعمدة مباشرة داخل الجدول:</div>
         <div class="col-widths-grid" id="ctColWidthsGrid"></div>
       </div>
 
@@ -733,6 +870,7 @@
     let autoSaveTimer = null;
     let isTyping = false;
     let isSavingToCloud = false;
+    let isResizing = false;
     let lastEditTimestamp = 0;
 
     function getEmptyTemplate(deptName = "") {
@@ -769,7 +907,7 @@
       return String(val).split(/\r?\n/).map(s => s.trim()).filter(Boolean);
     }
 
-    function parseMetadataFromSignature(rawSig, deptName) {
+    function parseMetadataFromSignature(rawSig) {
       let sig = String(rawSig || "");
       let parsedHidden = null;
       let parsedTables = null;
@@ -805,7 +943,7 @@
       base.nightTitle = raw.nightTitle !== undefined && raw.nightTitle !== null ? String(raw.nightTitle).trim() : "";
 
       const rawSigInput = Array.isArray(raw.signature) ? raw.signature.join('\n') : String(raw.signature || "").trim();
-      const { cleanSig, parsedHidden, parsedTables } = parseMetadataFromSignature(rawSigInput, deptName);
+      const { cleanSig, parsedHidden, parsedTables } = parseMetadataFromSignature(rawSigInput);
       base.signature = cleanSig;
 
       if (parsedHidden) {
@@ -913,7 +1051,7 @@
       setInterval(() => {
         const activeEl = document.activeElement;
         const userCurrentlyEditingCell = activeEl && activeEl.getAttribute('contenteditable') === 'true';
-        if (!isTyping && !isSavingToCloud && !userCurrentlyEditingCell && (Date.now() - lastEditTimestamp > 4500)) {
+        if (!isTyping && !isSavingToCloud && !isResizing && !userCurrentlyEditingCell && (Date.now() - lastEditTimestamp > 4500)) {
           pullFromGoogleSheets(false);
         }
       }, 5000);
@@ -942,27 +1080,69 @@
       if (!Array.isArray(tablesList) || tablesList.length === 0) return '';
       return tablesList.map((t, tIdx) => {
         const marginStyle = t.align === 'right' ? 'margin: 0 0 0 auto;' : (t.align === 'left' ? 'margin: 0 auto 0 0;' : 'margin: 0 auto;');
-        const colGroupHTML = `<colgroup>${(t.colWidths || []).map(w => `<col style="width:${w ? w + '%' : 'auto'}">`).join('')}</colgroup>`;
+        const colWidths = Array.isArray(t.colWidths) ? t.colWidths : [];
+        const colGroupHTML = `<colgroup>${Array.from({ length: t.cols }, (_, idx) => {
+          const w = colWidths[idx];
+          return `<col style="width:${w ? w + '%' : 'auto'}">`;
+        }).join('')}</colgroup>`;
 
         let theadHTML = '';
         if (t.hasHeader !== false) {
-          const ths = (t.headers || []).map((h, cIdx) =>
-            `<th style="height:${t.headerHeight || 34}px; font-size:${t.fontSize || 15}px;" ${isEditable ? `contenteditable="true" oninput="onCustomCellEdit(${tIdx}, 'header', 0, ${cIdx}, this)"` : ''}>${h || ''}</th>`
-          ).join('');
+          const hHeight = t.headerHeight || 34;
+          const ths = Array.from({ length: t.cols }, (_, cIdx) => {
+            const hVal = (t.headers && t.headers[cIdx]) || '';
+            const colControls = isEditable ? `
+              <div class="inline-col-actions" contenteditable="false">
+                <button class="mini-act-btn mini-add" title="إضافة عمود بعد هذا العمود" onclick="insertCustomCol(${tIdx}, ${cIdx})">+عمود</button>
+                ${t.cols > 1 ? `<button class="mini-act-btn mini-del" title="حذف هذا العمود" onclick="deleteCustomCol(${tIdx}, ${cIdx})">✕</button>` : ''}
+              </div>
+              <div class="col-resizer" contenteditable="false" title="اسحب لتغيير عرض العمود" onmousedown="startColResize(event, ${tIdx}, ${cIdx})"></div>
+              <div class="row-resizer" contenteditable="false" title="اسحب لتغيير ارتفاع العنوان" onmousedown="startRowResize(event, ${tIdx}, 'header', 0)"></div>
+            ` : '';
+            return `<th style="height:${hHeight}px; font-size:${t.fontSize || 15}px;">
+              ${colControls}
+              <div ${isEditable ? `contenteditable="true" oninput="onCustomCellEdit(${tIdx}, 'header', 0, ${cIdx}, this)"` : ''}>${hVal}</div>
+            </th>`;
+          }).join('');
           theadHTML = `<thead><tr>${ths}</tr></thead>`;
         }
 
+        const rowHeights = Array.isArray(t.rowHeights) ? t.rowHeights : [];
         const trs = (t.rows || []).map((row, rIdx) => {
-          const tds = row.map((cell, cIdx) =>
-            `<td style="height:${t.rowHeight || 42}px; font-size:${t.fontSize || 15}px;" ${isEditable ? `contenteditable="true" oninput="onCustomCellEdit(${tIdx}, 'cell', ${rIdx}, ${cIdx}, this)"` : ''}>${String(cell || '').replace(/\r?\n/g, '<br>')}</td>`
-          ).join('');
+          const rHeight = rowHeights[rIdx] || t.rowHeight || 42;
+          const tds = Array.from({ length: t.cols }, (_, cIdx) => {
+            const cellVal = row[cIdx] || '';
+            const showColBtnsHere = isEditable && t.hasHeader === false && rIdx === 0;
+            const colControls = showColBtnsHere ? `
+              <div class="inline-col-actions" contenteditable="false">
+                <button class="mini-act-btn mini-add" title="إضافة عمود" onclick="insertCustomCol(${tIdx}, ${cIdx})">+عمود</button>
+                ${t.cols > 1 ? `<button class="mini-act-btn mini-del" title="حذف العمود" onclick="deleteCustomCol(${tIdx}, ${cIdx})">✕</button>` : ''}
+              </div>` : '';
+
+            const colResizer = isEditable ? `<div class="col-resizer" contenteditable="false" title="اسحب لتغيير عرض العمود" onmousedown="startColResize(event, ${tIdx}, ${cIdx})"></div>` : '';
+            const rowResizer = isEditable ? `<div class="row-resizer" contenteditable="false" title="اسحب لتغيير ارتفاع الصف" onmousedown="startRowResize(event, ${tIdx}, 'row', ${rIdx})"></div>` : '';
+            const rowControls = (isEditable && cIdx === 0) ? `
+              <div class="inline-row-actions" contenteditable="false">
+                <button class="mini-act-btn mini-add" title="إضافة صف أسفل هذا الصف" onclick="insertCustomRow(${tIdx}, ${rIdx})">+صف</button>
+                ${(t.rows || []).length > 1 ? `<button class="mini-act-btn mini-del" title="حذف هذا الصف" onclick="deleteCustomRow(${tIdx}, ${rIdx})">✕</button>` : ''}
+              </div>` : '';
+
+            return `<td style="height:${rHeight}px; font-size:${t.fontSize || 15}px;">
+              ${colControls}
+              ${rowControls}
+              ${colResizer}
+              ${rowResizer}
+              <div ${isEditable ? `contenteditable="true" oninput="onCustomCellEdit(${tIdx}, 'cell', ${rIdx}, ${cIdx}, this)"` : ''}>${String(cellVal).replace(/\r?\n/g, '<br>')}</div>
+            </td>`;
+          }).join('');
           return `<tr>${tds}</tr>`;
         }).join('');
 
         const controlsHTML = isEditable ? `
           <div class="custom-table-controls">
-            <button class="btn btn-info btn-sm" onclick="openEditTableModal(${tIdx})">⚙️ تخصيص الحجم والأعمدة</button>
-            <button class="btn btn-warning btn-sm" onclick="addCustomTableRow(${tIdx})">➕ صف</button>
+            <button class="btn btn-info btn-sm" onclick="openEditTableModal(${tIdx})">⚙️ الخصائص</button>
+            <button class="btn btn-primary btn-sm" onclick="insertCustomCol(${tIdx}, ${t.cols - 1})">➕ عمود</button>
+            <button class="btn btn-warning btn-sm" onclick="insertCustomRow(${tIdx}, ${(t.rows || []).length - 1})">➕ صف</button>
             <button class="btn btn-danger btn-sm" onclick="deleteCustomTable(${tIdx})">🗑️ حذف الجدول</button>
           </div>` : '';
 
@@ -970,15 +1150,20 @@
           <div class="section-heading" style="font-size:${(Number(t.fontSize) || 15) + 4}px; ${!t.title && !isEditable ? 'display:none;' : ''}"
                ${isEditable ? `contenteditable="true" oninput="onCustomTitleEdit(${tIdx}, this)"` : ''}>${t.title || ''}</div>` : '';
 
+        const tableWidthResizer = isEditable ? `<div class="table-width-resizer" title="اسحب لتغيير عرض الجدول بالكامل" onmousedown="startTableWidthResize(event, ${tIdx})"></div>` : '';
+
         return `
           <div class="section-wrapper" id="custom-table-wrap-${tIdx}">
             ${controlsHTML}
             ${titleHTML}
-            <table class="custom-table" style="width:${t.tableWidth || 100}%; ${marginStyle}">
-              ${colGroupHTML}
-              ${theadHTML}
-              <tbody>${trs}</tbody>
-            </table>
+            <div class="custom-table-box" id="custom-table-box-${tIdx}" style="width:${t.tableWidth || 100}%; ${marginStyle}">
+              ${tableWidthResizer}
+              <table class="custom-table" id="custom-table-el-${tIdx}" style="width:100%;">
+                ${colGroupHTML}
+                ${theadHTML}
+                <tbody>${trs}</tbody>
+              </table>
+            </div>
           </div>`;
       }).join('');
     }
@@ -1037,6 +1222,240 @@
       applyHiddenElements(data.hiddenIds || []);
     }
 
+    /* ١. إضافة وحذف الأعمدة والصفوف من داخل الجدول مباشرة دون حذفه كله */
+    function insertCustomCol(tIdx, afterColIdx) {
+      const t = (store[currentDept].customTables || [])[tIdx];
+      if (!t) return;
+      if (t.cols >= 12) return alert('الحد الأقصى للأعمدة هو 12 عموداً.');
+
+      const insertPos = afterColIdx + 1;
+      t.cols += 1;
+      if (!Array.isArray(t.headers)) t.headers = [];
+      t.headers.splice(insertPos, 0, '');
+      t.colWidths = new Array(t.cols).fill('');
+
+      (t.rows || []).forEach(row => {
+        row.splice(insertPos, 0, '');
+      });
+
+      renderDepartment(currentDept);
+      onUserEdit();
+    }
+
+    function deleteCustomCol(tIdx, colIdx) {
+      const t = (store[currentDept].customTables || [])[tIdx];
+      if (!t || t.cols <= 1) return;
+
+      t.cols -= 1;
+      if (Array.isArray(t.headers)) t.headers.splice(colIdx, 1);
+      if (Array.isArray(t.colWidths)) t.colWidths.splice(colIdx, 1);
+      t.colWidths = new Array(t.cols).fill('');
+
+      (t.rows || []).forEach(row => {
+        row.splice(colIdx, 1);
+      });
+
+      renderDepartment(currentDept);
+      onUserEdit();
+    }
+
+    function insertCustomRow(tIdx, afterRowIdx) {
+      const t = (store[currentDept].customTables || [])[tIdx];
+      if (!t) return;
+      if (!Array.isArray(t.rows)) t.rows = [];
+      if (!Array.isArray(t.rowHeights)) t.rowHeights = [];
+
+      const insertPos = afterRowIdx + 1;
+      t.rows.splice(insertPos, 0, new Array(t.cols).fill(''));
+      t.rowHeights.splice(insertPos, 0, t.rowHeight || 42);
+
+      renderDepartment(currentDept);
+      onUserEdit();
+    }
+
+    function deleteCustomRow(tIdx, rowIdx) {
+      const t = (store[currentDept].customTables || [])[tIdx];
+      if (!t || !Array.isArray(t.rows) || t.rows.length <= 1) return;
+
+      t.rows.splice(rowIdx, 1);
+      if (Array.isArray(t.rowHeights)) t.rowHeights.splice(rowIdx, 1);
+
+      renderDepartment(currentDept);
+      onUserEdit();
+    }
+
+    /* ٢. تغيير حجم الجدول والأعمدة والصفوف بالسحب المباشر (Drag to Resize) */
+    function showTooltip(x, y, text) {
+      const tip = document.getElementById('resizeTooltip');
+      tip.textContent = text;
+      tip.style.left = (x + 12) + 'px';
+      tip.style.top = (y + 12) + 'px';
+      tip.style.display = 'block';
+    }
+
+    function hideTooltip() {
+      document.getElementById('resizeTooltip').style.display = 'none';
+    }
+
+    // أ) سحب حدود العمود لتغيير عرضه (%)
+    function startColResize(e, tIdx, colIdx) {
+      e.preventDefault();
+      e.stopPropagation();
+      const t = (store[currentDept].customTables || [])[tIdx];
+      const tableEl = document.getElementById(`custom-table-el-${tIdx}`);
+      if (!t || !tableEl) return;
+
+      isResizing = true;
+      const handle = e.target;
+      handle.classList.add('active');
+      document.getElementById(`custom-table-wrap-${tIdx}`).classList.add('resizing');
+
+      const tableWidthPx = tableEl.getBoundingClientRect().width;
+      const colsEls = tableEl.querySelectorAll('colgroup col');
+      const currentWidthsPct = Array.from(colsEls).map(c => (c.getBoundingClientRect().width / tableWidthPx) * 100);
+
+      const startX = e.clientX;
+      const startColPct = currentWidthsPct[colIdx];
+      const hasNext = colIdx + 1 < t.cols;
+      const startNextPct = hasNext ? currentWidthsPct[colIdx + 1] : 0;
+
+      function onMouseMove(ev) {
+        const deltaPx = startX - ev.clientX;
+        const deltaPct = (deltaPx / tableWidthPx) * 100;
+
+        if (hasNext) {
+          const minPct = 6;
+          const maxShift = startNextPct - minPct;
+          const minShift = -(startColPct - minPct);
+          const clampedShift = Math.max(minShift, Math.min(maxShift, deltaPct));
+
+          const newColPct = Math.round((startColPct + clampedShift) * 10) / 10;
+          const newNextPct = Math.round((startNextPct - clampedShift) * 10) / 10;
+
+          currentWidthsPct[colIdx] = newColPct;
+          currentWidthsPct[colIdx + 1] = newNextPct;
+          colsEls[colIdx].style.width = newColPct + '%';
+          colsEls[colIdx + 1].style.width = newNextPct + '%';
+          showTooltip(ev.clientX, ev.clientY, `عرض العمود ${colIdx + 1}: ${newColPct}%`);
+        } else {
+          const newColPct = Math.max(8, Math.min(90, Math.round((startColPct + deltaPct) * 10) / 10));
+          currentWidthsPct[colIdx] = newColPct;
+          colsEls[colIdx].style.width = newColPct + '%';
+          showTooltip(ev.clientX, ev.clientY, `عرض العمود ${colIdx + 1}: ${newColPct}%`);
+        }
+      }
+
+      function onMouseUp() {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        handle.classList.remove('active');
+        const wrap = document.getElementById(`custom-table-wrap-${tIdx}`);
+        if (wrap) wrap.classList.remove('resizing');
+        hideTooltip();
+        isResizing = false;
+
+        t.colWidths = currentWidthsPct.map(v => String(Math.round(v * 10) / 10));
+        onUserEdit();
+      }
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    }
+
+    // ب) سحب الحد السفلي للصف لتغيير ارتفاعه (px)
+    function startRowResize(e, tIdx, rowType, rowIdx) {
+      e.preventDefault();
+      e.stopPropagation();
+      const t = (store[currentDept].customTables || [])[tIdx];
+      const tableEl = document.getElementById(`custom-table-el-${tIdx}`);
+      if (!t || !tableEl) return;
+
+      isResizing = true;
+      const handle = e.target;
+      handle.classList.add('active');
+      document.getElementById(`custom-table-wrap-${tIdx}`).classList.add('resizing');
+
+      const tr = handle.closest('tr');
+      const cells = tr ? tr.querySelectorAll('th, td') : [];
+      const startY = e.clientY;
+      const startHeight = tr ? tr.getBoundingClientRect().height : (rowType === 'header' ? (t.headerHeight || 34) : (t.rowHeight || 42));
+      let finalHeight = Math.round(startHeight);
+
+      function onMouseMove(ev) {
+        const deltaY = ev.clientY - startY;
+        finalHeight = Math.max(22, Math.min(400, Math.round(startHeight + deltaY)));
+        cells.forEach(cell => cell.style.height = finalHeight + 'px');
+        showTooltip(ev.clientX, ev.clientY, `الارتفاع: ${finalHeight}px`);
+      }
+
+      function onMouseUp() {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        handle.classList.remove('active');
+        const wrap = document.getElementById(`custom-table-wrap-${tIdx}`);
+        if (wrap) wrap.classList.remove('resizing');
+        hideTooltip();
+        isResizing = false;
+
+        if (rowType === 'header') {
+          t.headerHeight = finalHeight;
+        } else {
+          if (!Array.isArray(t.rowHeights)) t.rowHeights = [];
+          t.rowHeights[rowIdx] = finalHeight;
+        }
+        onUserEdit();
+      }
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    }
+
+    // ج) سحب الحافة اليسرى للجدول لتغيير عرضه الكلي داخل الورقة (%)
+    function startTableWidthResize(e, tIdx) {
+      e.preventDefault();
+      e.stopPropagation();
+      const t = (store[currentDept].customTables || [])[tIdx];
+      const box = document.getElementById(`custom-table-box-${tIdx}`);
+      const page = document.getElementById('activeA4Page');
+      if (!t || !box || !page) return;
+
+      isResizing = true;
+      const handle = e.target;
+      handle.classList.add('active');
+      document.getElementById(`custom-table-wrap-${tIdx}`).classList.add('resizing');
+
+      const pageInnerWidth = page.clientWidth - 105;
+      const startX = e.clientX;
+      const startWidthPct = Number(t.tableWidth) || 100;
+      let finalPct = startWidthPct;
+
+      function onMouseMove(ev) {
+        const deltaPx = startX - ev.clientX;
+        const mult = t.align === 'center' ? 2 : 1;
+        const deltaPct = ((deltaPx * mult) / pageInnerWidth) * 100;
+        finalPct = Math.max(25, Math.min(100, Math.round(startWidthPct + deltaPct)));
+        box.style.width = finalPct + '%';
+        showTooltip(ev.clientX, ev.clientY, `عرض الجدول: ${finalPct}%`);
+      }
+
+      function onMouseUp() {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        handle.classList.remove('active');
+        const wrap = document.getElementById(`custom-table-wrap-${tIdx}`);
+        if (wrap) wrap.classList.remove('resizing');
+        hideTooltip();
+        isResizing = false;
+
+        t.tableWidth = finalPct;
+        onUserEdit();
+      }
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    }
+
+    /* نافذة إعدادات الجدول المخصص */
     function openAddTableModal() {
       editingCustomTableIdx = null;
       document.getElementById('customTableModalTitle').textContent = '➕ إضافة جدول مخصص وتحديد حجمه';
@@ -1057,7 +1476,7 @@
       const t = (store[currentDept].customTables || [])[tIdx];
       if (!t) return;
       editingCustomTableIdx = tIdx;
-      document.getElementById('customTableModalTitle').textContent = '⚙️ تخصيص حجم وأعمدة وصفوف الجدول';
+      document.getElementById('customTableModalTitle').textContent = '⚙️ خصائص الجدول المخصص';
       document.getElementById('ctTitle').value = t.title || '';
       document.getElementById('ctCols').value = t.cols || 4;
       document.getElementById('ctRows').value = (t.rows || []).length || 3;
@@ -1099,13 +1518,16 @@
         headers.push((oldTable && oldTable.headers && oldTable.headers[c] !== undefined) ? oldTable.headers[c] : '');
       }
 
+      const defaultRowH = Math.max(24, Math.min(300, parseInt(document.getElementById('ctRowHeight').value) || 42));
       const rows = [];
+      const rowHeights = [];
       for (let r = 0; r < rowsCount; r++) {
         const rowArr = [];
         for (let c = 0; c < cols; c++) {
           rowArr.push((oldTable && oldTable.rows && oldTable.rows[r] && oldTable.rows[r][c] !== undefined) ? oldTable.rows[r][c] : '');
         }
         rows.push(rowArr);
+        rowHeights.push((oldTable && oldTable.rowHeights && oldTable.rowHeights[r]) ? oldTable.rowHeights[r] : defaultRowH);
       }
 
       const newTableObj = {
@@ -1116,7 +1538,8 @@
         tableWidth: Math.max(20, Math.min(100, parseInt(document.getElementById('ctTableWidth').value) || 100)),
         align: document.getElementById('ctAlign').value,
         headerHeight: Math.max(20, Math.min(150, parseInt(document.getElementById('ctHeaderHeight').value) || 34)),
-        rowHeight: Math.max(24, Math.min(300, parseInt(document.getElementById('ctRowHeight').value) || 42)),
+        rowHeight: defaultRowH,
+        rowHeights: rowHeights,
         fontSize: Math.max(10, Math.min(28, parseInt(document.getElementById('ctFontSize').value) || 15)),
         colWidths: colWidths,
         headers: headers,
@@ -1134,16 +1557,8 @@
       onUserEdit();
     }
 
-    function addCustomTableRow(tIdx) {
-      const t = (store[currentDept].customTables || [])[tIdx];
-      if (!t) return;
-      t.rows.push(new Array(t.cols).fill(''));
-      renderDepartment(currentDept);
-      onUserEdit();
-    }
-
     function deleteCustomTable(tIdx) {
-      if (!confirm('هل تريد حذف هذا الجدول الإضافي؟')) return;
+      if (!confirm('هل تريد حذف هذا الجدول الإضافي بالكامل؟')) return;
       store[currentDept].customTables.splice(tIdx, 1);
       renderDepartment(currentDept);
       onUserEdit();
@@ -1309,7 +1724,7 @@
     }
 
     async function pullFromGoogleSheets(forceRender = false) {
-      if (isSavingToCloud || isTyping || autoSaveTimer) return;
+      if (isSavingToCloud || isTyping || isResizing || autoSaveTimer) return;
 
       try {
         const ssId = localStorage.getItem('nursing_spreadsheet_id') || '';
@@ -1317,7 +1732,7 @@
         const res = await fetch(fetchUrl, { cache: 'no-store' });
         const result = await res.json();
 
-        if (isSavingToCloud || isTyping || autoSaveTimer) return;
+        if (isSavingToCloud || isTyping || isResizing || autoSaveTimer) return;
 
         const rawDepts = result.departments || result.data || null;
         if (rawDepts && typeof rawDepts === 'object') {
