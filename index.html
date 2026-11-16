@@ -490,10 +490,7 @@
     const DEFAULT_PERIODS = ["", "", "", "", "", ""];
 
     let currentDept = DEPARTMENTS[0];
-    let currentMonth = "تشرين الثاني";
     let store = {};
-    let hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
-    let customTablesStore = JSON.parse(localStorage.getItem('nursing_custom_tables_v1') || '{}');
     let fitToScreenMode = true;
 
     function getEmptyTemplate(deptName = "") {
@@ -509,8 +506,8 @@
         nightCols: [[], [], [], [], [], []],
         signature: "",
         orientation: "portrait",
-        hiddenIds: hiddenStore[deptName] || [],
-        customTables: customTablesStore[deptName] || []
+        hiddenIds: [],
+        customTables: []
       };
     }
 
@@ -586,8 +583,8 @@
       return { cleanSig: sig, parsedHidden, parsedTables, parsedOrientation };
     }
 
-    function normalizeDeptObject(raw, deptName) {
-      const base = getEmptyTemplate(deptName);
+    function normalizeDeptObject(raw) {
+      const base = getEmptyTemplate();
       if (!raw || typeof raw !== 'object') return base;
 
       base.mainTitle = raw.mainTitle !== undefined && raw.mainTitle !== null ? String(raw.mainTitle).trim() : "";
@@ -601,18 +598,11 @@
       base.signature = cleanSig;
       base.orientation = parsedOrientation || (raw.orientation === 'landscape' ? 'landscape' : 'portrait');
 
-      if (parsedHidden) {
-        base.hiddenIds = parsedHidden;
-        hiddenStore[deptName] = parsedHidden;
-      } else if (Array.isArray(raw.hiddenIds)) {
-        base.hiddenIds = raw.hiddenIds;
-      }
+      if (parsedHidden) base.hiddenIds = parsedHidden;
+      else if (Array.isArray(raw.hiddenIds)) base.hiddenIds = raw.hiddenIds;
 
-      if (parsedTables) {
-        base.customTables = parsedTables;
-      } else if (Array.isArray(raw.customTables)) {
-        base.customTables = raw.customTables;
-      }
+      if (parsedTables) base.customTables = parsedTables;
+      else if (Array.isArray(raw.customTables)) base.customTables = raw.customTables;
 
       if (Array.isArray(raw.periods)) {
         for (let i = 0; i < 6; i++) {
@@ -666,16 +656,12 @@
       return tablesList.map((t) => {
         const marginStyle = t.align === 'right' ? 'margin: 0 0 0 auto;' : (t.align === 'left' ? 'margin: 0 auto 0 0;' : 'margin: 0 auto;');
         const colWidths = Array.isArray(t.colWidths) ? t.colWidths : [];
-        const colGroupHTML = `<colgroup>${Array.from({ length: t.cols }, (_, idx) => {
-          const w = colWidths[idx];
-          return `<col style="width:${w ? w + '%' : 'auto'}">`;
-        }).join('')}</colgroup>`;
+        const colGroupHTML = `<colgroup>${(t.colWidths || []).map(w => `<col style="width:${w ? w + '%' : 'auto'}">`).join('')}</colgroup>`;
 
         let theadHTML = '';
         if (t.hasHeader !== false) {
-          const hHeight = t.headerHeight || 34;
           const ths = (t.headers || []).map(h =>
-            `<th style="height:${hHeight}px; font-size:${t.fontSize || 15}px;">${h || ''}</th>`
+            `<th style="height:${t.headerHeight || 34}px; font-size:${t.fontSize || 15}px;">${h || ''}</th>`
           ).join('');
           theadHTML = `<thead><tr>${ths}</tr></thead>`;
         }
@@ -703,36 +689,11 @@
       }).join('');
     }
 
-    async function initApp() {
-      const cachedStore = JSON.parse(localStorage.getItem('nursing_cloud_cache_v6') || '{}');
-      DEPARTMENTS.forEach((dept) => {
-        store[dept] = cachedStore[dept] ? normalizeDeptObject(cachedStore[dept], dept) : getEmptyTemplate(dept);
-        sheetTabNameMap[dept] = dept;
-      });
-
-      renderDepartmentControls();
-      renderDepartment(currentDept);
-      window.addEventListener('resize', adjustResponsiveA4Scale);
-
-      window.addEventListener('storage', (e) => {
-        if (e.key === 'nursing_departments_list_v1' && e.newValue) {
-          DEPARTMENTS = JSON.parse(e.newValue);
-          renderDepartmentControls();
-        } else if (e.key === 'nursing_hidden_fields_v1' || e.key === 'nursing_custom_tables_v1' || e.key === 'nursing_cloud_cache_v6') {
-          pullFromGoogleSheets(true);
-        }
-      });
-
-      await pullFromGoogleSheets(true);
-      setInterval(() => pullFromGoogleSheets(false), 5000);
-    }
-
     function switchDepartment(dept) {
       if (dept === currentDept) return;
       currentDept = dept;
       renderDepartmentControls();
       renderDepartment(dept);
-      pullFromGoogleSheets(true);
     }
 
     function applyHiddenElements(hiddenIds) {
@@ -744,6 +705,10 @@
     }
 
     function renderDepartment(dept) {
+      const cachedStore = JSON.parse(localStorage.getItem('nursing_cloud_cache_v6') || '{}');
+      if (cachedStore[dept]) {
+        store[dept] = normalizeDeptObject(cachedStore[dept]);
+      }
       const data = store[dept] || getEmptyTemplate(dept);
 
       const pageEl = document.getElementById('activeA4Page');
@@ -781,7 +746,7 @@
       setTimeout(adjustResponsiveA4Scale, 20);
     }
 
-    async function pullFromGoogleSheets(forceRender = false) {
+    async function pullFromGoogleSheets() {
       try {
         const ssId = localStorage.getItem('nursing_spreadsheet_id') || '';
         const res = await fetch(`${DEFAULT_GAS_URL}?action=loadAll&spreadsheetId=${encodeURIComponent(ssId)}&t=${Date.now()}`, { cache: 'no-store' });
@@ -792,7 +757,6 @@
           if (result.spreadsheetId) localStorage.setItem('nursing_spreadsheet_id', result.spreadsheetId);
 
           const sheetKeys = Object.keys(rawDepts);
-          let hasChanges = false;
           let deptListChanged = false;
 
           sheetKeys.forEach(sKey => {
@@ -811,18 +775,12 @@
           DEPARTMENTS.forEach(appDept => {
             const matchedKey = sheetKeys.find(k => normalizeArabic(k) === normalizeArabic(appDept));
             if (matchedKey && rawDepts[matchedKey]) {
-              const normalizedData = normalizeDeptObject(rawDepts[matchedKey], appDept);
-              if (JSON.stringify(store[appDept]) !== JSON.stringify(normalizedData)) {
-                store[appDept] = normalizedData;
-                if (appDept === currentDept) hasChanges = true;
-              }
+              store[appDept] = normalizeDeptObject(rawDepts[matchedKey]);
             }
           });
 
           localStorage.setItem('nursing_cloud_cache_v6', JSON.stringify(store));
-          if (forceRender || hasChanges) {
-            renderDepartment(currentDept);
-          }
+          renderDepartment(currentDept);
         }
       } catch (err) {}
     }
@@ -902,7 +860,18 @@
       setTimeout(() => window.print(), 150);
     }
 
-    window.onload = initApp;
+    window.onload = async () => {
+      const cachedStore = JSON.parse(localStorage.getItem('nursing_cloud_cache_v6') || '{}');
+      DEPARTMENTS.forEach(dept => {
+        if (cachedStore[dept]) store[dept] = normalizeDeptObject(cachedStore[dept]);
+        else store[dept] = getEmptyTemplate(dept);
+      });
+      renderDepartmentControls();
+      renderDepartment(currentDept);
+      window.addEventListener('resize', adjustResponsiveA4Scale);
+      await pullFromGoogleSheets();
+      setInterval(pullFromGoogleSheets, 5000);
+    };
   </script>
 </body>
 </html>
