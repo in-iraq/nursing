@@ -1,0 +1,1969 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>منظومة جداول خفارات الكادر التمريضي - لوحة الأدمن</title>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0f766e;
+      --primary-hover: #115e59;
+      --bg: #e2e8f0;
+      --paper-bg: #ffffff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background-color: var(--bg);
+      color: #0f172a;
+      padding-bottom: 40px;
+    }
+
+    /* شريط التحكم العلوي */
+    .toolbar {
+      background: #1e293b;
+      color: #fff;
+      padding: 12px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .toolbar-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .controls-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .control-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #334155;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    .control-item select, .control-item input {
+      background: #0f172a;
+      color: #fff;
+      border: 1px solid #475569;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .control-item input::placeholder {
+      color: #94a3b8;
+    }
+
+    /* مؤشر المزامنة التلقائية الثنائية */
+    .sync-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #38bdf8;
+      transition: 0.25s;
+    }
+    .sync-badge.saving { color: #fbbf24; border-color: #f59e0b; }
+    .sync-badge.saved { color: #4ade80; border-color: #22c55e; }
+    .sync-badge.fetching { color: #a78bfa; border-color: #8b5cf6; }
+    .sync-badge.error { color: #f87171; border-color: #ef4444; }
+
+    .btn {
+      cursor: pointer;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: 'Tajawal', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-info { background: #0284c7; color: #fff; }
+    .btn-info:hover { background: #0369a1; }
+    .btn-warning { background: #d97706; color: #fff; }
+    .btn-danger { background: #dc2626; color: #fff; }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-secondary { background: #475569; color: #fff; }
+    .btn-sm { padding: 4px 8px; font-size: 11px; }
+
+    /* أزرار التنقل السريع بين الأقسام + حقل إضافة قسم جديد */
+    .dept-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1280px;
+      margin: 10px auto 0;
+      padding-top: 8px;
+      border-top: 1px solid #334155;
+    }
+
+    .dept-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      flex: 1;
+    }
+
+    .dept-pill {
+      background: #334155;
+      color: #cbd5e1;
+      border: 1px solid #475569;
+      padding: 5px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: 'Tajawal', sans-serif;
+      transition: 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dept-pill.active {
+      background: #14b8a6;
+      color: #0f172a;
+      font-weight: 700;
+      border-color: #14b8a6;
+    }
+
+    .new-dept-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #0f172a;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #475569;
+    }
+
+    .new-dept-box input {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 13px;
+      width: 145px;
+      padding: 3px 6px;
+      outline: none;
+    }
+
+    /* ورقة A4 */
+    .a4-container {
+      display: flex;
+      justify-content: center;
+      padding: 25px 10px;
+    }
+
+    .a4-page {
+      width: 210mm;
+      min-height: 297mm;
+      background: var(--paper-bg);
+      padding: 18mm 14mm;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      position: relative;
+      font-family: 'Amiri', serif;
+      color: #000;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page-title {
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 14px;
+      min-height: 28px;
+    }
+
+    .section-wrapper {
+      position: relative;
+      margin-bottom: 18px;
+    }
+
+    .hide-btn {
+      position: absolute;
+      top: -24px;
+      left: 0;
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s;
+      font-family: 'Tajawal', sans-serif;
+      z-index: 10;
+    }
+
+    .section-wrapper:hover .hide-btn,
+    th:hover .col-hide-btn {
+      opacity: 1;
+    }
+
+    .custom-table-controls {
+      position: absolute;
+      top: -26px;
+      right: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      font-family: 'Tajawal', sans-serif;
+      z-index: 15;
+      background: rgba(255,255,255,0.95);
+      padding: 2px 4px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    }
+
+    .section-wrapper:hover .custom-table-controls,
+    .section-wrapper.resizing .custom-table-controls {
+      opacity: 1;
+    }
+
+    .col-hide-btn {
+      display: block;
+      margin: 2px auto 0;
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      cursor: pointer;
+      opacity: 0;
+      font-family: 'Tajawal', sans-serif;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th, td {
+      border: 1.5px solid #222;
+      padding: 6px 4px;
+      text-align: center;
+      vertical-align: top;
+      font-size: 15px;
+      line-height: 1.45;
+      word-wrap: break-word;
+      position: relative;
+    }
+
+    th {
+      background: #f8fafc;
+      font-weight: bold;
+      font-size: 14px;
+      min-height: 28px;
+    }
+
+    td {
+      min-height: 110px;
+      height: 120px;
+    }
+
+    .custom-table td {
+      min-height: auto;
+      height: auto;
+      vertical-align: middle;
+    }
+
+    /* مقابض السحب لتغيير الحجم (عرض العمود، ارتفاع الصف، عرض الجدول الكلي) */
+    .custom-table-box {
+      position: relative;
+    }
+
+    .col-resizer {
+      position: absolute;
+      top: 0;
+      left: -4px;
+      width: 8px;
+      height: 100%;
+      cursor: col-resize;
+      z-index: 12;
+      background: transparent;
+      transition: background 0.15s;
+    }
+    .col-resizer:hover, .col-resizer.active {
+      background: rgba(14, 165, 233, 0.55);
+    }
+
+    .row-resizer {
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 100%;
+      height: 8px;
+      cursor: row-resize;
+      z-index: 12;
+      background: transparent;
+      transition: background 0.15s;
+    }
+    .row-resizer:hover, .row-resizer.active {
+      background: rgba(14, 165, 233, 0.55);
+    }
+
+    .table-width-resizer {
+      position: absolute;
+      top: 0;
+      left: -6px;
+      width: 10px;
+      height: 100%;
+      cursor: ew-resize;
+      z-index: 14;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .section-wrapper:hover .table-width-resizer,
+    .table-width-resizer.active {
+      opacity: 1;
+    }
+    .table-width-resizer::after {
+      content: "⋮";
+      background: #0284c7;
+      color: #fff;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 4px 2px;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    /* أزرار التحكم بالعمود والصف من داخل الجدول مباشرة */
+    .inline-col-actions {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      display: flex;
+      gap: 2px;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 11;
+      font-family: 'Tajawal', sans-serif;
+    }
+    th:hover .inline-col-actions,
+    td:hover .inline-col-actions {
+      opacity: 1;
+    }
+
+    .inline-row-actions {
+      position: absolute;
+      top: 50%;
+      right: -24px;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 11;
+      font-family: 'Tajawal', sans-serif;
+    }
+    tr:hover .inline-row-actions {
+      opacity: 1;
+    }
+
+    .mini-act-btn {
+      border: none;
+      border-radius: 3px;
+      padding: 1px 4px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      line-height: 1.2;
+      font-family: 'Tajawal', sans-serif;
+    }
+    .mini-add { background: #0d9488; }
+    .mini-add:hover { background: #0f766e; }
+    .mini-del { background: #ef4444; }
+    .mini-del:hover { background: #dc2626; }
+
+    .resize-tooltip {
+      position: fixed;
+      background: #0f172a;
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: 'Tajawal', sans-serif;
+      font-weight: 700;
+      pointer-events: none;
+      z-index: 9999;
+      display: none;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    }
+
+    .morning-table {
+      width: 58%;
+      margin: 0 auto;
+    }
+
+    .section-heading {
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      margin: 10px 0 8px;
+      min-height: 26px;
+    }
+
+    [contenteditable="true"]:focus {
+      outline: 2px solid #0d9488;
+      background: #f0fdfa;
+    }
+
+    .signature-box {
+      margin-top: auto;
+      padding-top: 25px;
+      display: flex;
+      justify-content: flex-end;
+      padding-left: 35px;
+    }
+
+    .signature-content {
+      color: #1d4ed8;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      transform: rotate(-10deg);
+      line-height: 1.4;
+      min-width: 160px;
+    }
+
+    .hidden-element {
+      display: none !important;
+    }
+
+    /* النوافذ المنبثقة */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 16px;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal-card {
+      background: #fff;
+      width: 100%;
+      max-width: 560px;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 10px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    .form-group input, .form-group select {
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 14px;
+      color: #0f172a;
+    }
+
+    .col-widths-box {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 14px;
+    }
+
+    .col-widths-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .dept-check-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin: 14px 0;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    .dept-check-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f8fafc;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    #printBatchContainer { display: none; }
+
+    @media print {
+      @page { size: A4 portrait; margin: 0; }
+      body { background: #fff; padding: 0; }
+      .toolbar, .hide-btn, .col-hide-btn, .custom-table-controls, .col-resizer, .row-resizer, .table-width-resizer, .inline-col-actions, .inline-row-actions, .resize-tooltip, .modal-overlay { display: none !important; }
+      .a4-container { display: none !important; }
+      #printBatchContainer { display: block !important; }
+      .a4-page {
+        box-shadow: none;
+        width: 210mm;
+        height: 297mm;
+        page-break-after: always;
+        break-after: page;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="resize-tooltip" id="resizeTooltip"></div>
+
+  <!-- شريط التحكم العلوي -->
+  <header class="toolbar">
+    <div class="toolbar-row">
+      <div class="controls-group">
+        <div class="control-item">
+          <label>السنة:</label>
+          <select id="yearSelect" onchange="updateTitleAndSave()">
+            <option value="2025">2025</option>
+            <option value="2026" selected>2026</option>
+            <option value="2027">2027</option>
+          </select>
+        </div>
+
+        <div class="control-item">
+          <label>الشهر:</label>
+          <select id="monthSelect" onchange="updateTitleAndSave()">
+            <option value="كانون الثاني">كانون الثاني (1)</option>
+            <option value="شباط">شباط (2)</option>
+            <option value="آذار">آذار (3)</option>
+            <option value="نيسان">نيسان (4)</option>
+            <option value="أيار">أيار (5)</option>
+            <option value="حزيران">حزيران (6)</option>
+            <option value="تموز">تموز (7)</option>
+            <option value="آب">آب (8)</option>
+            <option value="أيلول">أيلول (9)</option>
+            <option value="تشرين الأول">تشرين الأول (10)</option>
+            <option value="تشرين الثاني" selected>تشرين الثاني (11)</option>
+            <option value="كانون الأول">كانون الأول (12)</option>
+          </select>
+        </div>
+
+        <div class="control-item">
+          <label>القسم:</label>
+          <select id="deptSelect" onchange="switchDepartment(this.value)"></select>
+        </div>
+
+        <div id="syncBadge" class="sync-badge fetching">
+          <span id="syncText">⏳ جاري قراءة البيانات من الشيت...</span>
+        </div>
+      </div>
+
+      <div class="controls-group">
+        <button class="btn btn-info" onclick="openAddTableModal()">➕ إضافة جدول مخصص</button>
+        <button class="btn btn-warning" onclick="showAllHiddenFields()">👁️ إظهار المخفي</button>
+        <button class="btn btn-danger" onclick="openClearModal()">🗑️ تفريغ الأسماء</button>
+        <button class="btn btn-primary" onclick="openPrintModal()">🖨️ طباعة (A4)</button>
+      </div>
+    </div>
+
+    <!-- شريط الأقسام + حقل إدخال قسم جديد -->
+    <div class="dept-bar">
+      <div class="dept-pills" id="deptPills"></div>
+      <div class="new-dept-box">
+        <input type="text" id="newDeptInput" placeholder="اسم قسم جديد..." onkeydown="if(event.key==='Enter') addNewDepartment()">
+        <button class="btn btn-primary btn-sm" onclick="addNewDepartment()">➕ إضافة قسم</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- منطقة عرض ورقة A4 -->
+  <main class="a4-container">
+    <div class="a4-page" id="activeA4Page">
+      <div class="page-title" id="sheetMainTitle" contenteditable="true" oninput="onUserEdit()"></div>
+
+      <!-- جدول الخفر الصباحي -->
+      <div class="section-wrapper" id="sec-morning">
+        <button class="hide-btn" onclick="toggleHideElement('sec-morning')">👁️ إخفاء الجدول الصباحي</button>
+        <table class="morning-table">
+          <thead>
+            <tr>
+              <th id="morningHeader" contenteditable="true" oninput="onUserEdit()"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td id="morningBody" contenteditable="true" oninput="onUserEdit()"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- جدول الخفر المسائي -->
+      <div class="section-wrapper" id="sec-evening">
+        <button class="hide-btn" onclick="toggleHideElement('sec-evening')">👁️ إخفاء الجدول المسائي</button>
+        <div class="section-heading" id="eveningTitle" contenteditable="true" oninput="onUserEdit()"></div>
+        <table>
+          <thead>
+            <tr id="eveningHeadRow"></tr>
+          </thead>
+          <tbody>
+            <tr id="eveningBodyRow"></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- جدول الخفر الليلي -->
+      <div class="section-wrapper" id="sec-night">
+        <button class="hide-btn" onclick="toggleHideElement('sec-night')">👁️ إخفاء الجدول الليلي</button>
+        <div class="section-heading" id="nightTitle" contenteditable="true" oninput="onUserEdit()"></div>
+        <table>
+          <thead>
+            <tr id="nightHeadRow"></tr>
+          </thead>
+          <tbody>
+            <tr id="nightBodyRow"></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- حاوية الجداول الإضافية المخصصة -->
+      <div id="customTablesContainer"></div>
+
+      <!-- التوقيع -->
+      <div class="section-wrapper signature-box" id="sec-signature">
+        <button class="hide-btn" onclick="toggleHideElement('sec-signature')">👁️ إخفاء التوقيع</button>
+        <div class="signature-content" id="signatureText" contenteditable="true" oninput="onUserEdit()"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- حاوية الطباعة المتعددة -->
+  <div id="printBatchContainer"></div>
+
+  <!-- نافذة إضافة / تخصيص جدول جديد -->
+  <div class="modal-overlay" id="customTableModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span id="customTableModalTitle">➕ إضافة جدول مخصص وتحديد حجمه</span>
+        <button class="btn btn-secondary" onclick="closeModals()">✕</button>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>عنوان الجدول (اختياري):</label>
+          <input type="text" id="ctTitle" placeholder="مثال: جدول الخفارات الإضافية أو الملاحظات">
+        </div>
+
+        <div class="form-group">
+          <label>عدد الأعمدة (1 إلى 12):</label>
+          <input type="number" id="ctCols" min="1" max="12" value="4" onchange="renderColWidthInputs()">
+        </div>
+
+        <div class="form-group">
+          <label>عدد الصفوف (1 إلى 25):</label>
+          <input type="number" id="ctRows" min="1" max="25" value="3">
+        </div>
+
+        <div class="form-group">
+          <label>عرض الجدول الكلي في الورقة (%):</label>
+          <input type="number" id="ctTableWidth" min="20" max="100" value="100">
+        </div>
+
+        <div class="form-group">
+          <label>محاذاة الجدول:</label>
+          <select id="ctAlign">
+            <option value="center" selected>وسط الصفحة</option>
+            <option value="right">يمين الصفحة</option>
+            <option value="left">يسار الصفحة</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>ارتفاع صف العناوين (px):</label>
+          <input type="number" id="ctHeaderHeight" min="20" max="150" value="34">
+        </div>
+
+        <div class="form-group">
+          <label>ارتفاع صفوف البيانات (px):</label>
+          <input type="number" id="ctRowHeight" min="24" max="300" value="42">
+        </div>
+
+        <div class="form-group">
+          <label>حجم الخط (px):</label>
+          <input type="number" id="ctFontSize" min="10" max="28" value="15">
+        </div>
+
+        <div class="form-group">
+          <label>إظهار صف عناوين للأعمدة؟</label>
+          <select id="ctHasHeader">
+            <option value="yes" selected>نعم (صف عناوين علوي)</option>
+            <option value="no">لا (صفوف بيانات فقط)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="col-widths-box">
+        <div style="font-size:13px; font-weight:700; color:#1e293b;">تخصيص عرض كل عمود بالـ (%) — أو اسحب حدود الأعمدة مباشرة داخل الجدول:</div>
+        <div class="col-widths-grid" id="ctColWidthsGrid"></div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn btn-secondary" onclick="closeModals()">إلغاء</button>
+        <button class="btn btn-primary" onclick="saveCustomTableModal()">حفظ وتطبيق الجدول</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة تحديد الأقسام للتفريغ -->
+  <div class="modal-overlay" id="clearModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span>🗑️ تحديد الأقسام لتفريغ الأسماء</span>
+        <button class="btn btn-secondary" onclick="closeModals()">✕</button>
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <button class="btn btn-danger" onclick="selectCheckboxes('.clear-dept-cb', 'all')">تحديد الكل (جميع الأقسام)</button>
+        <button class="btn btn-secondary" onclick="selectCheckboxes('.clear-dept-cb', 'current')">القسم الحالي فقط</button>
+        <button class="btn btn-secondary" onclick="selectCheckboxes('.clear-dept-cb', 'none')">إلغاء الكل</button>
+      </div>
+      <div class="dept-check-grid" id="clearDeptList"></div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+        <button class="btn btn-secondary" onclick="closeModals()">إلغاء</button>
+        <button class="btn btn-danger" onclick="executeBatchClear()">تأكيد تفريغ المحدد وحفظه في الشيت</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة تحديد الأقسام للطباعة -->
+  <div class="modal-overlay" id="printModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span>🖨️ تحديد الأقسام للطباعة (A4)</span>
+        <button class="btn btn-secondary" onclick="closeModals()">✕</button>
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <button class="btn btn-primary" onclick="selectCheckboxes('.print-dept-cb', 'all')">تحديد الكل</button>
+        <button class="btn btn-secondary" onclick="selectCheckboxes('.print-dept-cb', 'current')">القسم الحالي فقط</button>
+        <button class="btn btn-secondary" onclick="selectCheckboxes('.print-dept-cb', 'none')">إلغاء الكل</button>
+      </div>
+      <div class="dept-check-grid" id="printDeptList"></div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+        <button class="btn btn-secondary" onclick="closeModals()">إلغاء</button>
+        <button class="btn btn-primary" onclick="executeBatchPrint()">بدء الطباعة الآن</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbw7rtb4Vessgb-TM3PrI3LaifLurH8tL46vrevfSI5P7dgmf-tsgNTLtf3mbN2CSQ4vvQ/exec";
+
+    const BASE_DEPARTMENTS = [
+      "قسم الطوارئ",
+      "الانعاش القلبي",
+      "الانعاش الجراحي",
+      "الطابق الاول",
+      "قسم الخدج",
+      "الطابق الثاني",
+      "الطابق الثالث",
+      "الطابق الرابع",
+      "الطابق الخامس",
+      "الطابق السادس",
+      "قسم الديلزة",
+      "قسم عمليات الطوارى",
+      "قسم الجهاز الهضمي",
+      "القسطرة القلبية"
+    ];
+
+    let DEPARTMENTS = JSON.parse(localStorage.getItem('nursing_departments_list_v1') || 'null') || [...BASE_DEPARTMENTS];
+    const DEFAULT_PERIODS = ["", "", "", "", "", ""];
+
+    let currentDept = DEPARTMENTS[0];
+    let store = {};
+    let sheetTabNameMap = {};
+    let hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
+    let customTablesStore = JSON.parse(localStorage.getItem('nursing_custom_tables_v1') || '{}');
+    let editingCustomTableIdx = null;
+    let autoSaveTimer = null;
+    let isTyping = false;
+    let isSavingToCloud = false;
+    let isResizing = false;
+    let lastEditTimestamp = 0;
+
+    function getEmptyTemplate(deptName = "") {
+      return {
+        mainTitle: "",
+        morningHeader: "",
+        morningNames: [],
+        eveningTitle: "",
+        nightTitle: "",
+        periods: [...DEFAULT_PERIODS],
+        nightPeriods: [...DEFAULT_PERIODS],
+        eveningCols: [[], [], [], [], [], []],
+        nightCols: [[], [], [], [], [], []],
+        signature: "",
+        hiddenIds: hiddenStore[deptName] || [],
+        customTables: customTablesStore[deptName] || []
+      };
+    }
+
+    function normalizeArabic(str) {
+      return String(str || "")
+        .trim()
+        .replace(/[أإآ]/g, "ا")
+        .replace(/ة/g, "ه")
+        .replace(/[ىئ]/g, "ي")
+        .replace(/\s+/g, " ");
+    }
+
+    function toLinesArray(val) {
+      if (!val) return [];
+      if (Array.isArray(val)) {
+        return val.flatMap(item => String(item || "").split(/
+?
+/)).map(s => s.trim()).filter(Boolean);
+      }
+      return String(val).split(/
+?
+/).map(s => s.trim()).filter(Boolean);
+    }
+
+    function parseMetadataFromSignature(rawSig) {
+      let sig = String(rawSig || "");
+      let parsedHidden = null;
+      let parsedTables = null;
+
+      if (sig.includes("<!--META:")) {
+        const parts = sig.split("<!--META:");
+        sig = parts[0].trim();
+        try {
+          const meta = JSON.parse(parts[1].replace("-->", "").trim());
+          if (Array.isArray(meta.hiddenIds)) parsedHidden = meta.hiddenIds;
+          if (Array.isArray(meta.customTables)) parsedTables = meta.customTables;
+        } catch (e) {}
+      } else if (sig.includes("<!--HIDDEN:")) {
+        const parts = sig.split("<!--HIDDEN:");
+        sig = parts[0].trim();
+        try {
+          const h = JSON.parse(parts[1].replace("-->", "").trim());
+          if (Array.isArray(h)) parsedHidden = h;
+        } catch (e) {}
+      }
+
+      return { cleanSig: sig, parsedHidden, parsedTables };
+    }
+
+    function normalizeDeptObject(raw, deptName) {
+      const base = getEmptyTemplate(deptName);
+      if (!raw || typeof raw !== 'object') return base;
+
+      base.mainTitle = raw.mainTitle !== undefined && raw.mainTitle !== null ? String(raw.mainTitle).trim() : "";
+      base.morningHeader = raw.morningHeader !== undefined && raw.morningHeader !== null ? String(raw.morningHeader).trim() : "";
+      base.morningNames = toLinesArray(raw.morningNames);
+      base.eveningTitle = raw.eveningTitle !== undefined && raw.eveningTitle !== null ? String(raw.eveningTitle).trim() : "";
+      base.nightTitle = raw.nightTitle !== undefined && raw.nightTitle !== null ? String(raw.nightTitle).trim() : "";
+
+      const rawSigInput = Array.isArray(raw.signature) ? raw.signature.join('
+') : String(raw.signature || "").trim();
+      const { cleanSig, parsedHidden, parsedTables } = parseMetadataFromSignature(rawSigInput);
+      base.signature = cleanSig;
+
+      if (parsedHidden) {
+        base.hiddenIds = parsedHidden;
+        hiddenStore[deptName] = parsedHidden;
+        localStorage.setItem('nursing_hidden_fields_v1', JSON.stringify(hiddenStore));
+      } else if (Array.isArray(raw.hiddenIds)) {
+        base.hiddenIds = raw.hiddenIds;
+      } else {
+        base.hiddenIds = hiddenStore[deptName] || [];
+      }
+
+      if (parsedTables) {
+        base.customTables = parsedTables;
+        customTablesStore[deptName] = parsedTables;
+        localStorage.setItem('nursing_custom_tables_v1', JSON.stringify(customTablesStore));
+      } else if (Array.isArray(raw.customTables)) {
+        base.customTables = raw.customTables;
+      } else {
+        base.customTables = customTablesStore[deptName] || [];
+      }
+
+      if (Array.isArray(raw.periods)) {
+        for (let i = 0; i < 6; i++) {
+          base.periods[i] = raw.periods[i] !== undefined && raw.periods[i] !== null ? String(raw.periods[i]).trim() : "";
+        }
+      }
+      if (Array.isArray(raw.nightPeriods)) {
+        for (let i = 0; i < 6; i++) {
+          base.nightPeriods[i] = raw.nightPeriods[i] !== undefined && raw.nightPeriods[i] !== null ? String(raw.nightPeriods[i]).trim() : "";
+        }
+      }
+
+      if (Array.isArray(raw.eveningCols)) {
+        for (let i = 0; i < 6; i++) {
+          base.eveningCols[i] = toLinesArray(raw.eveningCols[i]);
+        }
+      }
+
+      if (Array.isArray(raw.nightCols)) {
+        for (let i = 0; i < 6; i++) {
+          base.nightCols[i] = toLinesArray(raw.nightCols[i]);
+        }
+      }
+
+      return base;
+    }
+
+    function renderDepartmentControls() {
+      const select = document.getElementById('deptSelect');
+      const pills = document.getElementById('deptPills');
+      select.innerHTML = '';
+      pills.innerHTML = '';
+
+      DEPARTMENTS.forEach((dept) => {
+        const opt = document.createElement('option');
+        opt.value = dept;
+        opt.textContent = dept;
+        if (dept === currentDept) opt.selected = true;
+        select.appendChild(opt);
+
+        const pill = document.createElement('button');
+        pill.className = 'dept-pill' + (dept === currentDept ? ' active' : '');
+        pill.textContent = dept;
+        pill.onclick = () => switchDepartment(dept);
+        pills.appendChild(pill);
+      });
+    }
+
+    async function addNewDepartment() {
+      const input = document.getElementById('newDeptInput');
+      const name = input.value.trim();
+      if (!name) return alert('الرجاء كتابة اسم القسم الجديد أولاً.');
+
+      const existing = DEPARTMENTS.find(d => normalizeArabic(d) === normalizeArabic(name));
+      if (existing) {
+        input.value = '';
+        await switchDepartment(existing);
+        return;
+      }
+
+      DEPARTMENTS.push(name);
+      localStorage.setItem('nursing_departments_list_v1', JSON.stringify(DEPARTMENTS));
+      store[name] = getEmptyTemplate(name);
+      sheetTabNameMap[name] = name;
+      input.value = '';
+
+      renderDepartmentControls();
+      await switchDepartment(name);
+      await syncDepartmentsToSheet([name]);
+    }
+
+    async function initApp() {
+      const cachedStore = JSON.parse(localStorage.getItem('nursing_cloud_cache_v6') || '{}');
+      DEPARTMENTS.forEach((dept) => {
+        store[dept] = cachedStore[dept] ? normalizeDeptObject(cachedStore[dept], dept) : getEmptyTemplate(dept);
+        sheetTabNameMap[dept] = dept;
+      });
+
+      renderDepartmentControls();
+      renderDepartment(currentDept);
+
+      await pullFromGoogleSheets(true);
+
+      setInterval(() => {
+        const activeEl = document.activeElement;
+        const userCurrentlyEditingCell = activeEl && activeEl.getAttribute('contenteditable') === 'true';
+        if (!isTyping && !isSavingToCloud && !isResizing && !userCurrentlyEditingCell && (Date.now() - lastEditTimestamp > 4500)) {
+          pullFromGoogleSheets(false);
+        }
+      }, 5000);
+    }
+
+    async function switchDepartment(dept) {
+      if (dept === currentDept) return;
+
+      if (autoSaveTimer || isTyping) {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = null;
+        isTyping = false;
+        saveCurrentState(false);
+        await syncDepartmentsToSheet([currentDept]);
+      } else {
+        saveCurrentState(false);
+      }
+
+      currentDept = dept;
+      renderDepartmentControls();
+      renderDepartment(dept);
+      pullFromGoogleSheets(true);
+    }
+
+    function buildCustomTablesHTML(tablesList, isEditable = false) {
+      if (!Array.isArray(tablesList) || tablesList.length === 0) return '';
+      return tablesList.map((t, tIdx) => {
+        const marginStyle = t.align === 'right' ? 'margin: 0 0 0 auto;' : (t.align === 'left' ? 'margin: 0 auto 0 0;' : 'margin: 0 auto;');
+        const colWidths = Array.isArray(t.colWidths) ? t.colWidths : [];
+        const colGroupHTML = `<colgroup>${Array.from({ length: t.cols }, (_, idx) => {
+          const w = colWidths[idx];
+          return `<col style="width:${w ? w + '%' : 'auto'}">`;
+        }).join('')}</colgroup>`;
+
+        let theadHTML = '';
+        if (t.hasHeader !== false) {
+          const hHeight = t.headerHeight || 34;
+          const ths = Array.from({ length: t.cols }, (_, cIdx) => {
+            const hVal = (t.headers && t.headers[cIdx]) || '';
+            const colControls = isEditable ? `
+              <div class="inline-col-actions" contenteditable="false">
+                <button class="mini-act-btn mini-add" title="إضافة عمود بعد هذا العمود" onclick="insertCustomCol(${tIdx}, ${cIdx})">+عمود</button>
+                ${t.cols > 1 ? `<button class="mini-act-btn mini-del" title="حذف هذا العمود" onclick="deleteCustomCol(${tIdx}, ${cIdx})">✕</button>` : ''}
+              </div>
+              <div class="col-resizer" contenteditable="false" title="اسحب لتغيير عرض العمود" onmousedown="startColResize(event, ${tIdx}, ${cIdx})"></div>
+              <div class="row-resizer" contenteditable="false" title="اسحب لتغيير ارتفاع العنوان" onmousedown="startRowResize(event, ${tIdx}, 'header', 0)"></div>
+            ` : '';
+            return `<th style="height:${hHeight}px; font-size:${t.fontSize || 15}px;">
+              ${colControls}
+              <div ${isEditable ? `contenteditable="true" oninput="onCustomCellEdit(${tIdx}, 'header', 0, ${cIdx}, this)"` : ''}>${hVal}</div>
+            </th>`;
+          }).join('');
+          theadHTML = `<thead><tr>${ths}</tr></thead>`;
+        }
+
+        const rowHeights = Array.isArray(t.rowHeights) ? t.rowHeights : [];
+        const trs = (t.rows || []).map((row, rIdx) => {
+          const rHeight = rowHeights[rIdx] || t.rowHeight || 42;
+          const tds = Array.from({ length: t.cols }, (_, cIdx) => {
+            const cellVal = row[cIdx] || '';
+            const showColBtnsHere = isEditable && t.hasHeader === false && rIdx === 0;
+            const colControls = showColBtnsHere ? `
+              <div class="inline-col-actions" contenteditable="false">
+                <button class="mini-act-btn mini-add" title="إضافة عمود" onclick="insertCustomCol(${tIdx}, ${cIdx})">+عمود</button>
+                ${t.cols > 1 ? `<button class="mini-act-btn mini-del" title="حذف العمود" onclick="deleteCustomCol(${tIdx}, ${cIdx})">✕</button>` : ''}
+              </div>` : '';
+
+            const colResizer = isEditable ? `<div class="col-resizer" contenteditable="false" title="اسحب لتغيير عرض العمود" onmousedown="startColResize(event, ${tIdx}, ${cIdx})"></div>` : '';
+            const rowResizer = isEditable ? `<div class="row-resizer" contenteditable="false" title="اسحب لتغيير ارتفاع الصف" onmousedown="startRowResize(event, ${tIdx}, 'row', ${rIdx})"></div>` : '';
+            const rowControls = (isEditable && cIdx === 0) ? `
+              <div class="inline-row-actions" contenteditable="false">
+                <button class="mini-act-btn mini-add" title="إضافة صف أسفل هذا الصف" onclick="insertCustomRow(${tIdx}, ${rIdx})">+صف</button>
+                ${(t.rows || []).length > 1 ? `<button class="mini-act-btn mini-del" title="حذف هذا الصف" onclick="deleteCustomRow(${tIdx}, ${rIdx})">✕</button>` : ''}
+              </div>` : '';
+
+            return `<td style="height:${rHeight}px; font-size:${t.fontSize || 15}px;">
+              ${colControls}
+              ${rowControls}
+              ${colResizer}
+              ${rowResizer}
+              <div ${isEditable ? `contenteditable="true" oninput="onCustomCellEdit(${tIdx}, 'cell', ${rIdx}, ${cIdx}, this)"` : ''}>${String(cellVal).replace(/
+?
+/g, '<br>')}</div>
+            </td>`;
+          }).join('');
+          return `<tr>${tds}</tr>`;
+        }).join('');
+
+        const controlsHTML = isEditable ? `
+          <div class="custom-table-controls">
+            <button class="btn btn-info btn-sm" onclick="openEditTableModal(${tIdx})">⚙️ الخصائص</button>
+            <button class="btn btn-primary btn-sm" onclick="insertCustomCol(${tIdx}, ${t.cols - 1})">➕ عمود</button>
+            <button class="btn btn-warning btn-sm" onclick="insertCustomRow(${tIdx}, ${(t.rows || []).length - 1})">➕ صف</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteCustomTable(${tIdx})">🗑️ حذف الجدول</button>
+          </div>` : '';
+
+        const titleHTML = (t.title || isEditable) ? `
+          <div class="section-heading" style="font-size:${(Number(t.fontSize) || 15) + 4}px; ${!t.title && !isEditable ? 'display:none;' : ''}"
+               ${isEditable ? `contenteditable="true" oninput="onCustomTitleEdit(${tIdx}, this)"` : ''}>${t.title || ''}</div>` : '';
+
+        const tableWidthResizer = isEditable ? `<div class="table-width-resizer" title="اسحب لتغيير عرض الجدول بالكامل" onmousedown="startTableWidthResize(event, ${tIdx})"></div>` : '';
+
+        return `
+          <div class="section-wrapper" id="custom-table-wrap-${tIdx}">
+            ${controlsHTML}
+            ${titleHTML}
+            <div class="custom-table-box" id="custom-table-box-${tIdx}" style="width:${t.tableWidth || 100}%; ${marginStyle}">
+              ${tableWidthResizer}
+              <table class="custom-table" id="custom-table-el-${tIdx}" style="width:100%;">
+                ${colGroupHTML}
+                ${theadHTML}
+                <tbody>${trs}</tbody>
+              </table>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function renderDepartment(dept) {
+      const data = store[dept] || getEmptyTemplate(dept);
+      document.getElementById('sheetMainTitle').textContent = data.mainTitle || "";
+      document.getElementById('morningHeader').textContent = data.morningHeader || "";
+      document.getElementById('morningBody').innerHTML = toLinesArray(data.morningNames).join('<br>');
+      document.getElementById('eveningTitle').textContent = data.eveningTitle || "";
+      document.getElementById('nightTitle').textContent = data.nightTitle || "";
+      document.getElementById('signatureText').innerHTML = String(data.signature || "").replace(/
+?
+/g, '<br>');
+
+      const evHead = document.getElementById('eveningHeadRow');
+      const evBody = document.getElementById('eveningBodyRow');
+      const niHead = document.getElementById('nightHeadRow');
+      const niBody = document.getElementById('nightBodyRow');
+
+      evHead.innerHTML = '';
+      evBody.innerHTML = '';
+      niHead.innerHTML = '';
+      niBody.innerHTML = '';
+
+      const evPeriods = (data.periods && data.periods.length === 6) ? data.periods : [...DEFAULT_PERIODS];
+      const niPeriods = (data.nightPeriods && data.nightPeriods.length === 6) ? data.nightPeriods : [...DEFAULT_PERIODS];
+
+      for (let i = 0; i < 6; i++) {
+        const thE = document.createElement('th');
+        thE.id = `ev-col-h-${i}`;
+        thE.innerHTML = `<div contenteditable="true" oninput="onDateHeaderEdit('ev', ${i}, this)">${evPeriods[i] || ''}</div>
+                         <button class="col-hide-btn" onclick="toggleHideCol('ev', ${i})">✕ إخفاء</button>`;
+        evHead.appendChild(thE);
+
+        const tdE = document.createElement('td');
+        tdE.id = `ev-col-b-${i}`;
+        tdE.contentEditable = "true";
+        tdE.oninput = onUserEdit;
+        tdE.innerHTML = toLinesArray(data.eveningCols && data.eveningCols[i]).join('<br>');
+        evBody.appendChild(tdE);
+
+        const thN = document.createElement('th');
+        thN.id = `ni-col-h-${i}`;
+        thN.innerHTML = `<div contenteditable="true" oninput="onDateHeaderEdit('ni', ${i}, this)">${niPeriods[i] || ''}</div>
+                         <button class="col-hide-btn" onclick="toggleHideCol('ni', ${i})">✕ إخفاء</button>`;
+        niHead.appendChild(thN);
+
+        const tdN = document.createElement('td');
+        tdN.id = `ni-col-b-${i}`;
+        tdN.contentEditable = "true";
+        tdN.oninput = onUserEdit;
+        tdN.innerHTML = toLinesArray(data.nightCols && data.nightCols[i]).join('<br>');
+        niBody.appendChild(tdN);
+      }
+
+      document.getElementById('customTablesContainer').innerHTML = buildCustomTablesHTML(data.customTables || [], true);
+      applyHiddenElements(data.hiddenIds || []);
+    }
+
+    /* =====================================================================
+       ١. إضافة وحذف الأعمدة والصفوف من داخل الجدول مباشرة دون حذفه كله
+       ===================================================================== */
+    function insertCustomCol(tIdx, afterColIdx) {
+      const t = (store[currentDept].customTables || [])[tIdx];
+      if (!t) return;
+      if (t.cols >= 12) return alert('الحد الأقصى للأعمدة هو 12 عموداً.');
+      if (!confirm(`هل أنت متأكد من إضافة عمود جديد بعد العمود رقم (${afterColIdx + 1})؟`)) return;
+
+      const insertPos = afterColIdx + 1;
+      t.cols += 1;
+      if (!Array.isArray(t.headers)) t.headers = [];
+      t.headers.splice(insertPos, 0, '');
+
+      // إعادة ضبط نسب عرض الأعمدة لتتوزع بنعومة
+      t.colWidths = new Array(t.cols).fill('');
+
+      (t.rows || []).forEach(row => {
+        row.splice(insertPos, 0, '');
+      });
+
+      renderDepartment(currentDept);
+      onUserEdit();
+    }
+
+    function deleteCustomCol(tIdx, colIdx) {
+      const t = (store[currentDept].customTables || [])[tIdx];
+      if (!t || t.cols <= 1) return;
+      if (!confirm(`⚠️ تنبيه: هل أنت متأكد من حذف العمود رقم (${colIdx + 1}) وجميع البيانات بداخله؟`)) return;
+
+      t.cols -= 1;
+      if (Array.isArray(t.headers)) t.headers.splice(colIdx, 1);
+      if (Array.isArray(t.colWidths)) t.colWidths.splice(colIdx, 1);
+      t.colWidths = new Array(t.cols).fill('');
+
+      (t.rows || []).forEach(row => {
+        row.splice(colIdx, 1);
+      });
+
+      renderDepartment(currentDept);
+      onUserEdit();
+    }
+
+    function insertCustomRow(tIdx, afterRowIdx) {
+      const t = (store[currentDept].customTables || [])[tIdx];
+      if (!t) return;
+      if (!confirm(`هل أنت متأكد من إضافة صف جديد أسفل الصف رقم (${afterRowIdx + 1})؟`)) return;
+      if (!Array.isArray(t.rows)) t.rows = [];
+      if (!Array.isArray(t.rowHeights)) t.rowHeights = [];
+
+      const insertPos = afterRowIdx + 1;
+      t.rows.splice(insertPos, 0, new Array(t.cols).fill(''));
+      t.rowHeights.splice(insertPos, 0, t.rowHeight || 42);
+
+      renderDepartment(currentDept);
+      onUserEdit();
+    }
+
+    function deleteCustomRow(tIdx, rowIdx) {
+      const t = (store[currentDept].customTables || [])[tIdx];
+      if (!t || !Array.isArray(t.rows) || t.rows.length <= 1) return;
+      if (!confirm(`⚠️ تنبيه: هل أنت متأكد من حذف الصف رقم (${rowIdx + 1}) وجميع البيانات بداخله؟`)) return;
+
+      t.rows.splice(rowIdx, 1);
+      if (Array.isArray(t.rowHeights)) t.rowHeights.splice(rowIdx, 1);
+
+      renderDepartment(currentDept);
+      onUserEdit();
+    }
+
+    /* =====================================================================
+       ٢. تغيير حجم الجدول والأعمدة والصفوف بالسحب المباشر (Drag to Resize)
+       ===================================================================== */
+    function showTooltip(x, y, text) {
+      const tip = document.getElementById('resizeTooltip');
+      tip.textContent = text;
+      tip.style.left = (x + 12) + 'px';
+      tip.style.top = (y + 12) + 'px';
+      tip.style.display = 'block';
+    }
+
+    function hideTooltip() {
+      document.getElementById('resizeTooltip').style.display = 'none';
+    }
+
+    // أ) سحب حدود العمود لتغيير عرضه (%)
+    function startColResize(e, tIdx, colIdx) {
+      e.preventDefault();
+      e.stopPropagation();
+      const t = (store[currentDept].customTables || [])[tIdx];
+      const tableEl = document.getElementById(`custom-table-el-${tIdx}`);
+      if (!t || !tableEl) return;
+
+      isResizing = true;
+      const handle = e.target;
+      handle.classList.add('active');
+      document.getElementById(`custom-table-wrap-${tIdx}`).classList.add('resizing');
+
+      const tableWidthPx = tableEl.getBoundingClientRect().width;
+      const colsEls = tableEl.querySelectorAll('colgroup col');
+      const currentWidthsPct = Array.from(colsEls).map(c => (c.getBoundingClientRect().width / tableWidthPx) * 100);
+
+      const startX = e.clientX;
+      const startColPct = currentWidthsPct[colIdx];
+      const hasNext = colIdx + 1 < t.cols;
+      const startNextPct = hasNext ? currentWidthsPct[colIdx + 1] : 0;
+
+      function onMouseMove(ev) {
+        // في RTL السحب لليسار (ev.clientX < startX) يزيد عرض العمود
+        const deltaPx = startX - ev.clientX;
+        const deltaPct = (deltaPx / tableWidthPx) * 100;
+
+        if (hasNext) {
+          const minPct = 6;
+          const maxShift = startNextPct - minPct;
+          const minShift = -(startColPct - minPct);
+          const clampedShift = Math.max(minShift, Math.min(maxShift, deltaPct));
+
+          const newColPct = Math.round((startColPct + clampedShift) * 10) / 10;
+          const newNextPct = Math.round((startNextPct - clampedShift) * 10) / 10;
+
+          currentWidthsPct[colIdx] = newColPct;
+          currentWidthsPct[colIdx + 1] = newNextPct;
+          colsEls[colIdx].style.width = newColPct + '%';
+          colsEls[colIdx + 1].style.width = newNextPct + '%';
+          showTooltip(ev.clientX, ev.clientY, `عرض العمود ${colIdx + 1}: ${newColPct}%`);
+        } else {
+          const newColPct = Math.max(8, Math.min(90, Math.round((startColPct + deltaPct) * 10) / 10));
+          currentWidthsPct[colIdx] = newColPct;
+          colsEls[colIdx].style.width = newColPct + '%';
+          showTooltip(ev.clientX, ev.clientY, `عرض العمود ${colIdx + 1}: ${newColPct}%`);
+        }
+      }
+
+      function onMouseUp() {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        handle.classList.remove('active');
+        const wrap = document.getElementById(`custom-table-wrap-${tIdx}`);
+        if (wrap) wrap.classList.remove('resizing');
+        hideTooltip();
+        isResizing = false;
+
+        t.colWidths = currentWidthsPct.map(v => String(Math.round(v * 10) / 10));
+        onUserEdit();
+      }
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    }
+
+    // ب) سحب الحد السفلي للصف لتغيير ارتفاعه (px)
+    function startRowResize(e, tIdx, rowType, rowIdx) {
+      e.preventDefault();
+      e.stopPropagation();
+      const t = (store[currentDept].customTables || [])[tIdx];
+      const tableEl = document.getElementById(`custom-table-el-${tIdx}`);
+      if (!t || !tableEl) return;
+
+      isResizing = true;
+      const handle = e.target;
+      handle.classList.add('active');
+      document.getElementById(`custom-table-wrap-${tIdx}`).classList.add('resizing');
+
+      const tr = handle.closest('tr');
+      const cells = tr ? tr.querySelectorAll('th, td') : [];
+      const startY = e.clientY;
+      const startHeight = tr ? tr.getBoundingClientRect().height : (rowType === 'header' ? (t.headerHeight || 34) : (t.rowHeight || 42));
+      let finalHeight = Math.round(startHeight);
+
+      function onMouseMove(ev) {
+        const deltaY = ev.clientY - startY;
+        finalHeight = Math.max(22, Math.min(400, Math.round(startHeight + deltaY)));
+        cells.forEach(cell => cell.style.height = finalHeight + 'px');
+        showTooltip(ev.clientX, ev.clientY, `الارتفاع: ${finalHeight}px`);
+      }
+
+      function onMouseUp() {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        handle.classList.remove('active');
+        const wrap = document.getElementById(`custom-table-wrap-${tIdx}`);
+        if (wrap) wrap.classList.remove('resizing');
+        hideTooltip();
+        isResizing = false;
+
+        if (rowType === 'header') {
+          t.headerHeight = finalHeight;
+        } else {
+          if (!Array.isArray(t.rowHeights)) t.rowHeights = [];
+          t.rowHeights[rowIdx] = finalHeight;
+        }
+        onUserEdit();
+      }
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    }
+
+    // ج) سحب الحافة اليسرى للجدول لتغيير عرضه الكلي داخل الورقة (%)
+    function startTableWidthResize(e, tIdx) {
+      e.preventDefault();
+      e.stopPropagation();
+      const t = (store[currentDept].customTables || [])[tIdx];
+      const box = document.getElementById(`custom-table-box-${tIdx}`);
+      const page = document.getElementById('activeA4Page');
+      if (!t || !box || !page) return;
+
+      isResizing = true;
+      const handle = e.target;
+      handle.classList.add('active');
+      document.getElementById(`custom-table-wrap-${tIdx}`).classList.add('resizing');
+
+      const pageInnerWidth = page.clientWidth - 105; // عرض الورقة الداخلي
+      const startX = e.clientX;
+      const startWidthPct = Number(t.tableWidth) || 100;
+      let finalPct = startWidthPct;
+
+      function onMouseMove(ev) {
+        const deltaPx = startX - ev.clientX;
+        const mult = t.align === 'center' ? 2 : 1;
+        const deltaPct = ((deltaPx * mult) / pageInnerWidth) * 100;
+        finalPct = Math.max(25, Math.min(100, Math.round(startWidthPct + deltaPct)));
+        box.style.width = finalPct + '%';
+        showTooltip(ev.clientX, ev.clientY, `عرض الجدول: ${finalPct}%`);
+      }
+
+      function onMouseUp() {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        handle.classList.remove('active');
+        const wrap = document.getElementById(`custom-table-wrap-${tIdx}`);
+        if (wrap) wrap.classList.remove('resizing');
+        hideTooltip();
+        isResizing = false;
+
+        t.tableWidth = finalPct;
+        onUserEdit();
+      }
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    }
+
+    /* نافذة إعدادات الجدول المخصص */
+    function openAddTableModal() {
+      editingCustomTableIdx = null;
+      document.getElementById('customTableModalTitle').textContent = '➕ إضافة جدول مخصص وتحديد حجمه';
+      document.getElementById('ctTitle').value = '';
+      document.getElementById('ctCols').value = 4;
+      document.getElementById('ctRows').value = 3;
+      document.getElementById('ctTableWidth').value = 100;
+      document.getElementById('ctAlign').value = 'center';
+      document.getElementById('ctHeaderHeight').value = 34;
+      document.getElementById('ctRowHeight').value = 42;
+      document.getElementById('ctFontSize').value = 15;
+      document.getElementById('ctHasHeader').value = 'yes';
+      renderColWidthInputs([]);
+      document.getElementById('customTableModal').classList.add('active');
+    }
+
+    function openEditTableModal(tIdx) {
+      const t = (store[currentDept].customTables || [])[tIdx];
+      if (!t) return;
+      editingCustomTableIdx = tIdx;
+      document.getElementById('customTableModalTitle').textContent = '⚙️ خصائص الجدول المخصص';
+      document.getElementById('ctTitle').value = t.title || '';
+      document.getElementById('ctCols').value = t.cols || 4;
+      document.getElementById('ctRows').value = (t.rows || []).length || 3;
+      document.getElementById('ctTableWidth').value = t.tableWidth || 100;
+      document.getElementById('ctAlign').value = t.align || 'center';
+      document.getElementById('ctHeaderHeight').value = t.headerHeight || 34;
+      document.getElementById('ctRowHeight').value = t.rowHeight || 42;
+      document.getElementById('ctFontSize').value = t.fontSize || 15;
+      document.getElementById('ctHasHeader').value = t.hasHeader === false ? 'no' : 'yes';
+      renderColWidthInputs(t.colWidths || []);
+      document.getElementById('customTableModal').classList.add('active');
+    }
+
+    function renderColWidthInputs(existingWidths = []) {
+      const cols = Math.max(1, Math.min(12, parseInt(document.getElementById('ctCols').value) || 1));
+      const grid = document.getElementById('ctColWidthsGrid');
+      grid.innerHTML = '';
+      for (let i = 0; i < cols; i++) {
+        const div = document.createElement('div');
+        div.className = 'form-group';
+        div.innerHTML = `<label>عمود ${i + 1} (%):</label>
+          <input type="number" class="ct-col-width-input" min="5" max="95" placeholder="تلقائي" value="${existingWidths[i] || ''}">`;
+        grid.appendChild(div);
+      }
+    }
+
+    function saveCustomTableModal() {
+      const cols = Math.max(1, Math.min(12, parseInt(document.getElementById('ctCols').value) || 1));
+      const rowsCount = Math.max(1, Math.min(25, parseInt(document.getElementById('ctRows').value) || 1));
+      const colWidths = Array.from(document.querySelectorAll('.ct-col-width-input')).map(inp => inp.value.trim());
+
+      const data = store[currentDept];
+      if (!Array.isArray(data.customTables)) data.customTables = [];
+
+      const oldTable = editingCustomTableIdx !== null ? data.customTables[editingCustomTableIdx] : null;
+
+      const headers = [];
+      for (let c = 0; c < cols; c++) {
+        headers.push((oldTable && oldTable.headers && oldTable.headers[c] !== undefined) ? oldTable.headers[c] : '');
+      }
+
+      const defaultRowH = Math.max(24, Math.min(300, parseInt(document.getElementById('ctRowHeight').value) || 42));
+      const rows = [];
+      const rowHeights = [];
+      for (let r = 0; r < rowsCount; r++) {
+        const rowArr = [];
+        for (let c = 0; c < cols; c++) {
+          rowArr.push((oldTable && oldTable.rows && oldTable.rows[r] && oldTable.rows[r][c] !== undefined) ? oldTable.rows[r][c] : '');
+        }
+        rows.push(rowArr);
+        rowHeights.push((oldTable && oldTable.rowHeights && oldTable.rowHeights[r]) ? oldTable.rowHeights[r] : defaultRowH);
+      }
+
+      const newTableObj = {
+        id: oldTable ? oldTable.id : 'ct-' + Date.now(),
+        title: document.getElementById('ctTitle').value.trim(),
+        cols: cols,
+        hasHeader: document.getElementById('ctHasHeader').value === 'yes',
+        tableWidth: Math.max(20, Math.min(100, parseInt(document.getElementById('ctTableWidth').value) || 100)),
+        align: document.getElementById('ctAlign').value,
+        headerHeight: Math.max(20, Math.min(150, parseInt(document.getElementById('ctHeaderHeight').value) || 34)),
+        rowHeight: defaultRowH,
+        rowHeights: rowHeights,
+        fontSize: Math.max(10, Math.min(28, parseInt(document.getElementById('ctFontSize').value) || 15)),
+        colWidths: colWidths,
+        headers: headers,
+        rows: rows
+      };
+
+      if (editingCustomTableIdx !== null) {
+        data.customTables[editingCustomTableIdx] = newTableObj;
+      } else {
+        data.customTables.push(newTableObj);
+      }
+
+      closeModals();
+      renderDepartment(currentDept);
+      onUserEdit();
+    }
+
+    function deleteCustomTable(tIdx) {
+      if (!confirm('هل تريد حذف هذا الجدول الإضافي بالكامل؟')) return;
+      store[currentDept].customTables.splice(tIdx, 1);
+      renderDepartment(currentDept);
+      onUserEdit();
+    }
+
+    function onCustomTitleEdit(tIdx, el) {
+      const t = (store[currentDept].customTables || [])[tIdx];
+      if (t) t.title = el.innerText.trim();
+      onUserEdit();
+    }
+
+    function onCustomCellEdit(tIdx, type, rIdx, cIdx, el) {
+      const t = (store[currentDept].customTables || [])[tIdx];
+      if (!t) return;
+      if (type === 'header') {
+        t.headers[cIdx] = el.innerText.trim();
+      } else {
+        t.rows[rIdx][cIdx] = htmlToLines(el).join('
+');
+      }
+      onUserEdit();
+    }
+
+    function htmlToLines(el) {
+      return el.innerHTML
+        .replace(/<div>/gi, '
+')
+        .replace(/<\/div>/gi, '')
+        .replace(/<br\s*\/?>/gi, '
+')
+        .replace(/<[^>]+>/g, '')
+        .split('
+')
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+
+    function setSyncStatus(state, text) {
+      const badge = document.getElementById('syncBadge');
+      const txt = document.getElementById('syncText');
+      badge.className = 'sync-badge ' + state;
+      txt.textContent = text;
+    }
+
+    function onDateHeaderEdit(source, idx, el) {
+      const val = el.innerText.trim();
+      const data = store[currentDept];
+      if (data) {
+        if (!Array.isArray(data.periods)) data.periods = [...DEFAULT_PERIODS];
+        if (!Array.isArray(data.nightPeriods)) data.nightPeriods = [...DEFAULT_PERIODS];
+        if (source === 'ev') {
+          data.periods[idx] = val;
+        } else if (source === 'ni') {
+          data.nightPeriods[idx] = val;
+        }
+      }
+      onUserEdit();
+    }
+
+    function onUserEdit() {
+      isTyping = true;
+      lastEditTimestamp = Date.now();
+      saveCurrentState(true);
+    }
+
+    function saveCurrentState(triggerCloud = true) {
+      const data = store[currentDept];
+      if (!data) return;
+      data.mainTitle = document.getElementById('sheetMainTitle').innerText.trim();
+      data.morningHeader = document.getElementById('morningHeader').innerText.trim();
+      data.morningNames = htmlToLines(document.getElementById('morningBody'));
+      data.eveningTitle = document.getElementById('eveningTitle').innerText.trim();
+      data.nightTitle = document.getElementById('nightTitle').innerText.trim();
+      data.signature = htmlToLines(document.getElementById('signatureText')).join('
+').split('<!--META:')[0].split('<!--HIDDEN:')[0].trim();
+
+      if (!Array.isArray(data.periods)) data.periods = [...DEFAULT_PERIODS];
+      if (!Array.isArray(data.nightPeriods)) data.nightPeriods = [...DEFAULT_PERIODS];
+      for (let i = 0; i < 6; i++) {
+        const thE = document.querySelector(`#ev-col-h-${i} div`);
+        const thN = document.querySelector(`#ni-col-h-${i} div`);
+        if (thE) data.periods[i] = thE.innerText.trim();
+        if (thN) data.nightPeriods[i] = thN.innerText.trim();
+        const tdE = document.getElementById(`ev-col-b-${i}`);
+        if (tdE) data.eveningCols[i] = htmlToLines(tdE);
+        const tdN = document.getElementById(`ni-col-b-${i}`);
+        if (tdN) data.nightCols[i] = htmlToLines(tdN);
+      }
+
+      hiddenStore[currentDept] = data.hiddenIds || [];
+      customTablesStore[currentDept] = data.customTables || [];
+      localStorage.setItem('nursing_hidden_fields_v1', JSON.stringify(hiddenStore));
+      localStorage.setItem('nursing_custom_tables_v1', JSON.stringify(customTablesStore));
+      localStorage.setItem('nursing_cloud_cache_v6', JSON.stringify(store));
+
+      if (triggerCloud) {
+        scheduleAutoSync();
+      }
+    }
+
+    function scheduleAutoSync() {
+      setSyncStatus('saving', '✍️ جاري الحفظ في الشيت...');
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = setTimeout(() => {
+        autoSaveTimer = null;
+        isTyping = false;
+        syncDepartmentsToSheet([currentDept]);
+      }, 800);
+    }
+
+    async function syncDepartmentsToSheet(deptList) {
+      isSavingToCloud = true;
+      lastEditTimestamp = Date.now();
+      setSyncStatus('saving', '⏳ جاري الحفظ في الشيت...');
+
+      const departmentsPayload = {};
+      deptList.forEach(dept => {
+        const orig = store[dept] || getEmptyTemplate(dept);
+        const d = JSON.parse(JSON.stringify(orig));
+        const cleanSig = String(d.signature || "").split("<!--META:")[0].split("<!--HIDDEN:")[0].trim();
+        const hasHidden = d.hiddenIds && d.hiddenIds.length > 0;
+        const hasCustom = d.customTables && d.customTables.length > 0;
+        if (hasHidden || hasCustom) {
+          const meta = { hiddenIds: d.hiddenIds || [], customTables: d.customTables || [] };
+          d.signature = cleanSig + "
+<!--META:" + JSON.stringify(meta) + "-->";
+        } else {
+          d.signature = cleanSig;
+        }
+        const exactSheetTab = sheetTabNameMap[dept] || dept;
+        departmentsPayload[exactSheetTab] = d;
+        if (exactSheetTab !== dept) {
+          departmentsPayload[dept] = d;
+        }
+      });
+
+      const payload = {
+        action: deptList.length > 1 ? 'syncAll' : 'autoSaveDept',
+        year: document.getElementById('yearSelect').value,
+        month: document.getElementById('monthSelect').value,
+        deptName: sheetTabNameMap[deptList[0]] || deptList[0],
+        deptData: store[deptList[0]],
+        departments: departmentsPayload,
+        spreadsheetId: localStorage.getItem('nursing_spreadsheet_id') || ''
+      };
+
+      try {
+        const res = await fetch(DEFAULT_GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (result.status === 'success') {
+          if (result.spreadsheetId) {
+            localStorage.setItem('nursing_spreadsheet_id', result.spreadsheetId);
+          }
+          lastEditTimestamp = Date.now();
+          const timeStr = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          setSyncStatus('saved', `✅ متزامن مع الشيت (${timeStr})`);
+        } else {
+          setSyncStatus('error', '⚠️ خطأ في المزامنة');
+        }
+      } catch (err) {
+        setSyncStatus('error', '❌ تعذر الاتصال بالشيت');
+      } finally {
+        isSavingToCloud = false;
+      }
+    }
+
+    async function pullFromGoogleSheets(forceRender = false) {
+      if (isSavingToCloud || isTyping || isResizing || autoSaveTimer) return;
+
+      try {
+        const ssId = localStorage.getItem('nursing_spreadsheet_id') || '';
+        const fetchUrl = `${DEFAULT_GAS_URL}?action=loadAll&spreadsheetId=${encodeURIComponent(ssId)}&t=${Date.now()}`;
+        const res = await fetch(fetchUrl, { cache: 'no-store' });
+        const result = await res.json();
+
+        if (isSavingToCloud || isTyping || isResizing || autoSaveTimer) return;
+
+        const rawDepts = result.departments || result.data || null;
+        if (rawDepts && typeof rawDepts === 'object') {
+          if (result.spreadsheetId) {
+            localStorage.setItem('nursing_spreadsheet_id', result.spreadsheetId);
+          }
+          if (result.month) {
+            document.getElementById('monthSelect').value = result.month;
+          }
+
+          const sheetKeys = Object.keys(rawDepts);
+          let hasChanges = false;
+          let deptListChanged = false;
+
+          sheetKeys.forEach(sKey => {
+            const exists = DEPARTMENTS.some(d => normalizeArabic(d) === normalizeArabic(sKey));
+            if (!exists && sKey.trim()) {
+              DEPARTMENTS.push(sKey.trim());
+              deptListChanged = true;
+            }
+          });
+
+          if (deptListChanged) {
+            localStorage.setItem('nursing_departments_list_v1', JSON.stringify(DEPARTMENTS));
+            renderDepartmentControls();
+          }
+
+          DEPARTMENTS.forEach(appDept => {
+            const matchedKey = sheetKeys.find(k => normalizeArabic(k) === normalizeArabic(appDept));
+            if (matchedKey && rawDepts[matchedKey]) {
+              sheetTabNameMap[appDept] = matchedKey;
+              const normalizedData = normalizeDeptObject(rawDepts[matchedKey], appDept);
+              if (JSON.stringify(store[appDept]) !== JSON.stringify(normalizedData)) {
+                store[appDept] = normalizedData;
+                if (appDept === currentDept) hasChanges = true;
+              }
+            }
+          });
+
+          localStorage.setItem('nursing_cloud_cache_v6', JSON.stringify(store));
+          if (forceRender || hasChanges) {
+            renderDepartment(currentDept);
+          }
+
+          const timeStr = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          setSyncStatus('saved', `✅ تم عرض بيانات الشيت (${timeStr})`);
+        }
+      } catch (err) {
+        setSyncStatus('error', '⚠️ بانتظار اتصال الشيت...');
+      }
+    }
+
+    function updateTitleAndSave() {
+      const month = document.getElementById('monthSelect').value;
+      document.getElementById('sheetMainTitle').textContent = `• جدول خفارات كادر التمريض ${currentDept} / ${month}`;
+      onUserEdit();
+    }
+
+    function toggleHideElement(id) {
+      const data = store[currentDept];
+      if (!data.hiddenIds.includes(id)) data.hiddenIds.push(id);
+      applyHiddenElements(data.hiddenIds);
+      onUserEdit();
+    }
+
+    function toggleHideCol(prefix, idx) {
+      const data = store[currentDept];
+      const hId = `${prefix}-col-h-${idx}`;
+      const bId = `${prefix}-col-b-${idx}`;
+      if (!data.hiddenIds.includes(hId)) data.hiddenIds.push(hId, bId);
+      applyHiddenElements(data.hiddenIds);
+      onUserEdit();
+    }
+
+    function applyHiddenElements(hiddenIds) {
+      document.querySelectorAll('#activeA4Page .hidden-element').forEach(el => el.classList.remove('hidden-element'));
+      hiddenIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden-element');
+      });
+    }
+
+    function showAllHiddenFields() {
+      store[currentDept].hiddenIds = [];
+      applyHiddenElements([]);
+      onUserEdit();
+    }
+
+    function openClearModal() {
+      saveCurrentState(false);
+      populateCheckList('clearDeptList', 'clear-dept-cb', false);
+      document.getElementById('clearModal').classList.add('active');
+    }
+
+    async function executeBatchClear() {
+      const selected = Array.from(document.querySelectorAll('.clear-dept-cb:checked')).map(cb => cb.value);
+      if (selected.length === 0) return alert('الرجاء اختيار قسم واحد على الأقل للتفريغ.');
+
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = null;
+      isTyping = false;
+
+      selected.forEach(dept => {
+        const prev = store[dept] || getEmptyTemplate(dept);
+        const emptyObj = getEmptyTemplate(dept);
+        emptyObj.mainTitle = prev.mainTitle || "";
+        emptyObj.morningHeader = prev.morningHeader || "";
+        emptyObj.eveningTitle = prev.eveningTitle || "";
+        emptyObj.nightTitle = prev.nightTitle || "";
+        emptyObj.periods = (prev.periods && prev.periods.length === 6) ? [...prev.periods] : [...DEFAULT_PERIODS];
+        emptyObj.nightPeriods = (prev.nightPeriods && prev.nightPeriods.length === 6) ? [...prev.nightPeriods] : [...DEFAULT_PERIODS];
+        emptyObj.customTables = (prev.customTables || []).map(t => ({
+          ...t,
+          rows: (t.rows || []).map(r => r.map(() => ''))
+        }));
+        store[dept] = emptyObj;
+      });
+
+      closeModals();
+      renderDepartment(currentDept);
+      await syncDepartmentsToSheet(selected);
+    }
+
+    function populateCheckList(containerId, cbClass, checkAll = false) {
+      const list = document.getElementById(containerId);
+      list.innerHTML = '';
+      DEPARTMENTS.forEach(dept => {
+        const label = document.createElement('label');
+        label.className = 'dept-check-item';
+        const checked = checkAll || dept === currentDept ? 'checked' : '';
+        label.innerHTML = `<input type="checkbox" class="${cbClass}" value="${dept}" ${checked}> <span>${dept}</span>`;
+        list.appendChild(label);
+      });
+    }
+
+    function selectCheckboxes(selector, mode) {
+      document.querySelectorAll(selector).forEach(cb => {
+        if (mode === 'all') cb.checked = true;
+        else if (mode === 'none') cb.checked = false;
+        else if (mode === 'current') cb.checked = (cb.value === currentDept);
+      });
+    }
+
+    function openPrintModal() {
+      saveCurrentState(false);
+      populateCheckList('printDeptList', 'print-dept-cb', false);
+      document.getElementById('printModal').classList.add('active');
+    }
+
+    function closeModals() {
+      document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+    }
+
+    function executeBatchPrint() {
+      const selected = Array.from(document.querySelectorAll('.print-dept-cb:checked')).map(cb => cb.value);
+      if (selected.length === 0) return alert('الرجاء اختيار قسم واحد على الأقل للطباعة.');
+
+      const batchContainer = document.getElementById('printBatchContainer');
+      batchContainer.innerHTML = '';
+
+      selected.forEach(dept => {
+        const d = store[dept] || getEmptyTemplate(dept);
+        const page = document.createElement('div');
+        page.className = 'a4-page';
+        page.innerHTML = `
+          <div class="page-title">${d.mainTitle || ''}</div>
+          ${!d.hiddenIds.includes('sec-morning') ? `
+          <div class="section-wrapper">
+            <table class="morning-table">
+              <thead><tr><th>${d.morningHeader}</th></tr></thead>
+              <tbody><tr><td>${toLinesArray(d.morningNames).join('<br>')}</td></tr></tbody>
+            </table>
+          </div>` : ''}
+          ${!d.hiddenIds.includes('sec-evening') ? `
+          <div class="section-wrapper">
+            <div class="section-heading">${d.eveningTitle}</div>
+            <table>
+              <thead><tr>${d.periods.map((p, i) => d.hiddenIds.includes(`ev-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
+              <tbody><tr>${d.eveningCols.map((c, i) => d.hiddenIds.includes(`ev-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
+            </table>
+          </div>` : ''}
+          ${!d.hiddenIds.includes('sec-night') ? `
+          <div class="section-wrapper">
+            <div class="section-heading">${d.nightTitle}</div>
+            <table>
+              <thead><tr>${((d.nightPeriods && d.nightPeriods.length === 6) ? d.nightPeriods : DEFAULT_PERIODS).map((p, i) => d.hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
+              <tbody><tr>${d.nightCols.map((c, i) => d.hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
+            </table>
+          </div>` : ''}
+          ${buildCustomTablesHTML(d.customTables || [], false)}
+          ${!d.hiddenIds.includes('sec-signature') ? `
+          <div class="signature-box">
+            <div class="signature-content">${String(d.signature || '').replace(/
+?
+/g, '<br>')}</div>
+          </div>` : ''}
+        `;
+        batchContainer.appendChild(page);
+      });
+
+      closeModals();
+      setTimeout(() => window.print(), 150);
+    }
+
+    window.onload = initApp;
+  </script>
+</body>
+</html>
