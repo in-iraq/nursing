@@ -115,7 +115,7 @@
     .btn-secondary { background: #475569; color: #fff; }
     .btn-sm { padding: 4px 8px; font-size: 11px; }
 
-    /* شريط الأقسام */
+    /* أزرار التنقل السريع بين الأقسام + حقل إضافة قسم جديد */
     .dept-bar {
       display: flex;
       flex-wrap: wrap;
@@ -808,6 +808,7 @@
     let hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
     let customTablesStore = JSON.parse(localStorage.getItem('nursing_custom_tables_v1') || '{}');
     let editingCustomTableIdx = null;
+    let copiedTableClipboard = null;
     let autoSaveTimer = null;
     let isTyping = false;
     let isSavingToCloud = false;
@@ -853,6 +854,7 @@
       let sig = String(rawSig || "");
       let parsedHidden = null;
       let parsedTables = null;
+      let parsedOrientation = null;
 
       if (sig.includes("<!--META:")) {
         const parts = sig.split("<!--META:");
@@ -861,6 +863,7 @@
           const meta = JSON.parse(parts[1].replace("-->", "").trim());
           if (Array.isArray(meta.hiddenIds)) parsedHidden = meta.hiddenIds;
           if (Array.isArray(meta.customTables)) parsedTables = meta.customTables;
+          if (meta.orientation) parsedOrientation = meta.orientation;
         } catch (e) {}
       } else if (sig.includes("<!--HIDDEN:")) {
         const parts = sig.split("<!--HIDDEN:");
@@ -871,7 +874,7 @@
         } catch (e) {}
       }
 
-      return { cleanSig: sig, parsedHidden, parsedTables };
+      return { cleanSig: sig, parsedHidden, parsedTables, parsedOrientation };
     }
 
     function normalizeDeptObject(raw, deptName) {
@@ -885,9 +888,9 @@
       base.nightTitle = raw.nightTitle !== undefined && raw.nightTitle !== null ? String(raw.nightTitle).trim() : "";
 
       const rawSigInput = Array.isArray(raw.signature) ? raw.signature.join('\n') : String(raw.signature || "").trim();
-      const { cleanSig, parsedHidden, parsedTables } = parseMetadataFromSignature(rawSigInput);
+      const { cleanSig, parsedHidden, parsedTables, parsedOrientation } = parseMetadataFromSignature(rawSigInput);
       base.signature = cleanSig;
-      base.orientation = raw.orientation === 'landscape' ? 'landscape' : 'portrait';
+      base.orientation = parsedOrientation || (raw.orientation === 'landscape' ? 'landscape' : 'portrait');
 
       if (parsedHidden) {
         base.hiddenIds = parsedHidden;
@@ -1082,17 +1085,19 @@
         }).join('');
 
         const controlsHTML = isEditable ? `
-          <div class="custom-table-controls">
-            <button class="btn btn-info btn-sm" onclick="openEditTableModal(${tIdx})">⚙️ الخصائص</button>
-            <button class="btn btn-primary btn-sm" onclick="insertCustomCol(${tIdx}, ${t.cols - 1})">➕ عمود</button>
-            <button class="btn btn-warning btn-sm" onclick="insertCustomRow(${tIdx}, ${(t.rows || []).length - 1})">➕ صف</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteCustomTable(${tIdx})">🗑️ حذف الجدول</button>
+          <div class="custom-table-header-bar">
+            <div class="section-heading" ${isEditable ? `contenteditable="true" oninput="onCustomTitleEdit(${tIdx}, this)"` : ''}>${t.title || ''}</div>
+            <div class="custom-table-actions">
+              <button class="btn btn-info btn-sm" onclick="openEditTableModal(${tIdx})">⚙️ الخصائص</button>
+              <button class="btn btn-secondary btn-sm" onclick="copyCustomTable(${tIdx})" title="نسخ الجدول بالكامل">📋 نسخ</button>
+              ${copiedTableClipboard ? `<button class="btn btn-secondary btn-sm" onclick="pasteCustomTable()" title="لصق جدول مخصص">📋 لصق</button>` : ''}
+              <button class="btn btn-primary btn-sm" onclick="insertCustomCol(${tIdx}, ${t.cols - 1})">➕ عمود</button>
+              <button class="btn btn-warning btn-sm" onclick="insertCustomRow(${tIdx}, ${(t.rows || []).length - 1})">➕ صف</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteCustomTable(${tIdx})">🗑️ حذف</button>
+            </div>
           </div>` : '';
 
-        const titleHTML = (t.title || isEditable) ? `
-          <div class="section-heading" style="font-size:${(Number(t.fontSize) || 15) + 4}px; ${!t.title && !isEditable ? 'display:none;' : ''}"
-               ${isEditable ? `contenteditable="true" oninput="onCustomTitleEdit(${tIdx}, this)"` : ''}>${t.title || ''}</div>` : '';
-
+        const titleHTML = (!isEditable && t.title) ? `<div class="section-heading" style="font-size:${(Number(t.fontSize) || 15) + 4}px;">${t.title}</div>` : '';
         const tableWidthResizer = isEditable ? `<div class="table-width-resizer" title="اسحب لتغيير عرض الجدول بالكامل" onmousedown="startTableWidthResize(event, ${tIdx})"></div>` : '';
 
         return `
@@ -1121,15 +1126,25 @@
     }
 
     function renderDepartment(dept) {
+      hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
+      customTablesStore = JSON.parse(localStorage.getItem('nursing_custom_tables_v1') || '{}');
       const data = store[dept] || getEmptyTemplate(dept);
-      const orientSel = document.getElementById('orientationSelect');
-      if (orientSel) orientSel.value = data.orientation || 'portrait';
+      if (hiddenStore[dept] && (!data.hiddenIds || data.hiddenIds.length === 0)) {
+        data.hiddenIds = hiddenStore[dept];
+      }
+      if (customTablesStore[dept] && (!data.customTables || data.customTables.length === 0)) {
+        data.customTables = customTablesStore[dept];
+      }
 
       const pageEl = document.getElementById('activeA4Page');
       if (pageEl) {
         pageEl.classList.toggle('landscape', data.orientation === 'landscape');
         pageEl.classList.toggle('portrait', data.orientation !== 'landscape');
       }
+
+      const orientSel = document.getElementById('orientationSelect');
+      if (orientSel) orientSel.value = data.orientation || 'portrait';
+
       document.getElementById('sheetMainTitle').textContent = data.mainTitle || "";
       document.getElementById('morningHeader').textContent = data.morningHeader || "";
       document.getElementById('morningBody').innerHTML = toLinesArray(data.morningNames).join('<br>');
@@ -1182,7 +1197,27 @@
       applyHiddenElements(data.hiddenIds || []);
     }
 
-    /* ١. إضافة وحذف الأعمدة والصفوف مع رسالة تأكيد */
+    function copyCustomTable(tIdx) {
+      const t = (store[currentDept].customTables || [])[tIdx];
+      if (!t) return;
+      copiedTableClipboard = JSON.parse(JSON.stringify(t));
+      renderDepartment(currentDept);
+      alert(`تم نسخ الجدول (${t.title || 'بدون عنوان'}) بنجاح!`);
+    }
+
+    function pasteCustomTable() {
+      if (!copiedTableClipboard) return alert('لا يوجد جدول منسوخ في الذاكرة المؤقتة.');
+      const data = store[currentDept];
+      if (!Array.isArray(data.customTables)) data.customTables = [];
+      const newT = JSON.parse(JSON.stringify(copiedTableClipboard));
+      newT.id = 'ct-' + Date.now();
+      if (newT.title) newT.title += ' (نسخة)';
+      data.customTables.push(newT);
+      renderDepartment(currentDept);
+      onUserEdit();
+      alert('تم لصق الجدول بنجاح!');
+    }
+
     function insertCustomCol(tIdx, afterColIdx) {
       const t = (store[currentDept].customTables || [])[tIdx];
       if (!t) return;
@@ -1193,7 +1228,6 @@
       t.cols += 1;
       if (!Array.isArray(t.headers)) t.headers = [];
       t.headers.splice(insertPos, 0, '');
-
       t.colWidths = new Array(t.cols).fill('');
 
       (t.rows || []).forEach(row => {
@@ -1249,7 +1283,6 @@
       onUserEdit();
     }
 
-    /* ٢. تغيير حجم الجدول والأعمدة والصفوف بالسحب المباشر */
     function showTooltip(x, y, text) {
       const tip = document.getElementById('resizeTooltip');
       tip.textContent = text;
@@ -1590,6 +1623,8 @@
       data.eveningTitle = document.getElementById('eveningTitle').innerText.trim();
       data.nightTitle = document.getElementById('nightTitle').innerText.trim();
       data.signature = htmlToLines(document.getElementById('signatureText')).join('\n').split('<!--META:')[0].split('<!--HIDDEN:')[0].trim();
+      const orientSel = document.getElementById('orientationSelect');
+      if (orientSel) data.orientation = orientSel.value;
 
       if (!Array.isArray(data.periods)) data.periods = [...DEFAULT_PERIODS];
       if (!Array.isArray(data.nightPeriods)) data.nightPeriods = [...DEFAULT_PERIODS];
@@ -1635,14 +1670,12 @@
         const orig = store[dept] || getEmptyTemplate(dept);
         const d = JSON.parse(JSON.stringify(orig));
         const cleanSig = String(d.signature || "").split("<!--META:")[0].split("<!--HIDDEN:")[0].trim();
-        const hasHidden = d.hiddenIds && d.hiddenIds.length > 0;
-        const hasCustom = d.customTables && d.customTables.length > 0;
-        if (hasHidden || hasCustom) {
-          const meta = { hiddenIds: d.hiddenIds || [], customTables: d.customTables || [] };
-          d.signature = cleanSig + "\n<!--META:" + JSON.stringify(meta) + "-->";
-        } else {
-          d.signature = cleanSig;
-        }
+        const meta = {
+          hiddenIds: d.hiddenIds || [],
+          customTables: d.customTables || [],
+          orientation: d.orientation || 'portrait'
+        };
+        d.signature = cleanSig + "\n<!--META:" + JSON.stringify(meta) + "-->";
         const exactSheetTab = sheetTabNameMap[dept] || dept;
         departmentsPayload[exactSheetTab] = d;
         if (exactSheetTab !== dept) {
@@ -1724,7 +1757,6 @@
           DEPARTMENTS.forEach(appDept => {
             const matchedKey = sheetKeys.find(k => normalizeArabic(k) === normalizeArabic(appDept));
             if (matchedKey && rawDepts[matchedKey]) {
-              sheetTabNameMap[appDept] = matchedKey;
               const normalizedData = normalizeDeptObject(rawDepts[matchedKey], appDept);
               if (JSON.stringify(store[appDept]) !== JSON.stringify(normalizedData)) {
                 store[appDept] = normalizedData;
@@ -1871,16 +1903,16 @@
           <div class="section-wrapper">
             <div class="section-heading">${d.eveningTitle}</div>
             <table>
-              <thead><tr>${d.periods.map((p, i) => d.hiddenIds.includes(`ev-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
-              <tbody><tr>${d.eveningCols.map((c, i) => d.hiddenIds.includes(`ev-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
+              <thead><tr>${d.periods.map((p, i) => hiddenIds.includes(`ev-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
+              <tbody><tr>${d.eveningCols.map((c, i) => hiddenIds.includes(`ev-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
           ${!d.hiddenIds.includes('sec-night') ? `
           <div class="section-wrapper">
             <div class="section-heading">${d.nightTitle}</div>
             <table>
-              <thead><tr>${((d.nightPeriods && d.nightPeriods.length === 6) ? d.nightPeriods : DEFAULT_PERIODS).map((p, i) => d.hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
-              <tbody><tr>${d.nightCols.map((c, i) => d.hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
+              <thead><tr>${((d.nightPeriods && d.nightPeriods.length === 6) ? d.nightPeriods : DEFAULT_PERIODS).map((p, i) => hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
+              <tbody><tr>${d.nightCols.map((c, i) => hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
           ${buildCustomTablesHTML(d.customTables || [], false)}
