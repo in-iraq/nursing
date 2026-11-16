@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>منظومة جداول خفارات الكادر التمريضي</title>
+  <title>منظومة جداول خفارات الكادر التمريضي - لوحة الأدمن</title>
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -60,7 +60,7 @@
       font-size: 13px;
     }
 
-    .control-item select {
+    .control-item select, .control-item input {
       background: #0f172a;
       color: #fff;
       border: 1px solid #475569;
@@ -68,6 +68,11 @@
       border-radius: 4px;
       font-family: 'Tajawal', sans-serif;
       font-size: 13px;
+      outline: none;
+    }
+
+    .control-item input::placeholder {
+      color: #94a3b8;
     }
 
     /* مؤشر المزامنة التلقائية الثنائية */
@@ -106,20 +111,33 @@
 
     .btn-primary { background: var(--primary); color: #fff; }
     .btn-primary:hover { background: var(--primary-hover); }
+    .btn-info { background: #0284c7; color: #fff; }
+    .btn-info:hover { background: #0369a1; }
     .btn-warning { background: #d97706; color: #fff; }
     .btn-danger { background: #dc2626; color: #fff; }
     .btn-danger:hover { background: #b91c1c; }
     .btn-secondary { background: #475569; color: #fff; }
+    .btn-sm { padding: 4px 8px; font-size: 11px; }
 
-    /* أزرار التنقل السريع بين الأقسام */
-    .dept-pills {
+    /* أزرار التنقل السريع بين الأقسام + حقل إضافة قسم جديد */
+    .dept-bar {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
       max-width: 1280px;
       margin: 10px auto 0;
       padding-top: 8px;
       border-top: 1px solid #334155;
+    }
+
+    .dept-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      flex: 1;
     }
 
     .dept-pill {
@@ -132,6 +150,9 @@
       font-size: 13px;
       font-family: 'Tajawal', sans-serif;
       transition: 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .dept-pill.active {
@@ -139,6 +160,27 @@
       color: #0f172a;
       font-weight: 700;
       border-color: #14b8a6;
+    }
+
+    .new-dept-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #0f172a;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #475569;
+    }
+
+    .new-dept-box input {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 13px;
+      width: 145px;
+      padding: 3px 6px;
+      outline: none;
     }
 
     /* ورقة A4 */
@@ -166,6 +208,7 @@
       font-size: 22px;
       font-weight: bold;
       margin-bottom: 14px;
+      min-height: 28px;
     }
 
     .section-wrapper {
@@ -187,10 +230,28 @@
       opacity: 0;
       transition: opacity 0.2s;
       font-family: 'Tajawal', sans-serif;
+      z-index: 10;
     }
 
     .section-wrapper:hover .hide-btn,
-    th:hover .col-hide-btn {
+    th:hover .col-hide-btn,
+    .custom-table-controls {
+      opacity: 1;
+    }
+
+    .custom-table-controls {
+      position: absolute;
+      top: -24px;
+      right: 0;
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      font-family: 'Tajawal', sans-serif;
+      z-index: 10;
+    }
+
+    .section-wrapper:hover .custom-table-controls {
       opacity: 1;
     }
 
@@ -221,17 +282,25 @@
       vertical-align: top;
       font-size: 15px;
       line-height: 1.45;
+      word-wrap: break-word;
     }
 
     th {
       background: #f8fafc;
       font-weight: bold;
       font-size: 14px;
+      min-height: 28px;
     }
 
     td {
       min-height: 110px;
       height: 120px;
+    }
+
+    .custom-table td {
+      min-height: auto;
+      height: auto;
+      vertical-align: middle;
     }
 
     .morning-table {
@@ -244,6 +313,7 @@
       font-size: 20px;
       font-weight: bold;
       margin: 10px 0 8px;
+      min-height: 26px;
     }
 
     [contenteditable="true"]:focus {
@@ -290,10 +360,12 @@
     .modal-card {
       background: #fff;
       width: 100%;
-      max-width: 540px;
+      max-width: 560px;
       border-radius: 12px;
       padding: 20px;
       box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      max-height: 90vh;
+      overflow-y: auto;
     }
 
     .modal-header {
@@ -305,6 +377,50 @@
       align-items: center;
       border-bottom: 1px solid #e2e8f0;
       padding-bottom: 10px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    .form-group input, .form-group select {
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 14px;
+      color: #0f172a;
+    }
+
+    .col-widths-box {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 14px;
+    }
+
+    .col-widths-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 8px;
     }
 
     .dept-check-grid {
@@ -333,7 +449,7 @@
     @media print {
       @page { size: A4 portrait; margin: 0; }
       body { background: #fff; padding: 0; }
-      .toolbar, .hide-btn, .col-hide-btn, .modal-overlay { display: none !important; }
+      .toolbar, .hide-btn, .col-hide-btn, .custom-table-controls, .modal-overlay { display: none !important; }
       .a4-container { display: none !important; }
       #printBatchContainer { display: block !important; }
       .a4-page {
@@ -385,19 +501,26 @@
         </div>
 
         <div id="syncBadge" class="sync-badge fetching">
-          <span id="syncText">⏳ جاري قراءة الأسماء من الشيت...</span>
+          <span id="syncText">⏳ جاري قراءة البيانات من الشيت...</span>
         </div>
       </div>
 
       <div class="controls-group">
+        <button class="btn btn-info" onclick="openAddTableModal()">➕ إضافة جدول مخصص</button>
         <button class="btn btn-warning" onclick="showAllHiddenFields()">👁️ إظهار المخفي</button>
         <button class="btn btn-danger" onclick="openClearModal()">🗑️ تفريغ الأسماء</button>
         <button class="btn btn-primary" onclick="openPrintModal()">🖨️ طباعة (A4)</button>
       </div>
     </div>
 
-    <!-- أزرار التنقل السريع بين الأقسام -->
-    <div class="dept-pills" id="deptPills"></div>
+    <!-- شريط الأقسام + حقل إدخال قسم جديد -->
+    <div class="dept-bar">
+      <div class="dept-pills" id="deptPills"></div>
+      <div class="new-dept-box">
+        <input type="text" id="newDeptInput" placeholder="اسم قسم جديد..." onkeydown="if(event.key==='Enter') addNewDepartment()">
+        <button class="btn btn-primary btn-sm" onclick="addNewDepartment()">➕ إضافة قسم</button>
+      </div>
+    </div>
   </header>
 
   <!-- منطقة عرض ورقة A4 -->
@@ -450,6 +573,9 @@
         </table>
       </div>
 
+      <!-- حاوية الجداول الإضافية المخصصة -->
+      <div id="customTablesContainer"></div>
+
       <!-- التوقيع -->
       <div class="section-wrapper signature-box" id="sec-signature">
         <button class="hide-btn" onclick="toggleHideElement('sec-signature')">👁️ إخفاء التوقيع</button>
@@ -460,6 +586,80 @@
 
   <!-- حاوية الطباعة المتعددة -->
   <div id="printBatchContainer"></div>
+
+  <!-- نافذة إضافة / تخصيص جدول جديد -->
+  <div class="modal-overlay" id="customTableModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span id="customTableModalTitle">➕ إضافة جدول مخصص وتحديد حجمه</span>
+        <button class="btn btn-secondary" onclick="closeModals()">✕</button>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>عنوان الجدول (اختياري):</label>
+          <input type="text" id="ctTitle" placeholder="مثال: جدول الخفارات الإضافية أو الملاحظات">
+        </div>
+
+        <div class="form-group">
+          <label>عدد الأعمدة (1 إلى 12):</label>
+          <input type="number" id="ctCols" min="1" max="12" value="4" onchange="renderColWidthInputs()">
+        </div>
+
+        <div class="form-group">
+          <label>عدد الصفوف (1 إلى 25):</label>
+          <input type="number" id="ctRows" min="1" max="25" value="3">
+        </div>
+
+        <div class="form-group">
+          <label>عرض الجدول الكلي في الورقة (%):</label>
+          <input type="number" id="ctTableWidth" min="20" max="100" value="100">
+        </div>
+
+        <div class="form-group">
+          <label>محاذاة الجدول:</label>
+          <select id="ctAlign">
+            <option value="center" selected>وسط الصفحة</option>
+            <option value="right">يمين الصفحة</option>
+            <option value="left">يسار الصفحة</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>ارتفاع صف العناوين (px):</label>
+          <input type="number" id="ctHeaderHeight" min="20" max="150" value="34">
+        </div>
+
+        <div class="form-group">
+          <label>ارتفاع صفوف البيانات (px):</label>
+          <input type="number" id="ctRowHeight" min="24" max="300" value="42">
+        </div>
+
+        <div class="form-group">
+          <label>حجم الخط (px):</label>
+          <input type="number" id="ctFontSize" min="10" max="28" value="15">
+        </div>
+
+        <div class="form-group">
+          <label>إظهار صف عناوين للأعمدة؟</label>
+          <select id="ctHasHeader">
+            <option value="yes" selected>نعم (صف عناوين علوي)</option>
+            <option value="no">لا (صفوف بيانات فقط)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="col-widths-box">
+        <div style="font-size:13px; font-weight:700; color:#1e293b;">تخصيص عرض كل عمود بالـ (%) — اتركه فارغاً للتوزيع المتساوي:</div>
+        <div class="col-widths-grid" id="ctColWidthsGrid"></div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn btn-secondary" onclick="closeModals()">إلغاء</button>
+        <button class="btn btn-primary" onclick="saveCustomTableModal()">حفظ وتطبيق الجدول</button>
+      </div>
+    </div>
+  </div>
 
   <!-- نافذة تحديد الأقسام للتفريغ -->
   <div class="modal-overlay" id="clearModal">
@@ -504,7 +704,7 @@
   <script>
     const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbw7rtb4Vessgb-TM3PrI3LaifLurH8tL46vrevfSI5P7dgmf-tsgNTLtf3mbN2CSQ4vvQ/exec";
 
-    const DEPARTMENTS = [
+    const BASE_DEPARTMENTS = [
       "قسم الطوارئ",
       "الانعاش القلبي",
       "الانعاش الجراحي",
@@ -521,13 +721,15 @@
       "القسطرة القلبية"
     ];
 
-    // لا توجد أي تواريخ مضمنة في الكود؛ تُستورد التواريخ حصرياً كما هي محفوظة ومعدلة في الشيت
+    let DEPARTMENTS = JSON.parse(localStorage.getItem('nursing_departments_list_v1') || 'null') || [...BASE_DEPARTMENTS];
     const DEFAULT_PERIODS = ["", "", "", "", "", ""];
 
     let currentDept = DEPARTMENTS[0];
     let store = {};
-    let sheetTabNameMap = {}; // يحفظ الاسم الدقيق للتبويب داخل الشيت لكل قسم
+    let sheetTabNameMap = {};
     let hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
+    let customTablesStore = JSON.parse(localStorage.getItem('nursing_custom_tables_v1') || '{}');
+    let editingCustomTableIdx = null;
     let autoSaveTimer = null;
     let isTyping = false;
     let isSavingToCloud = false;
@@ -545,11 +747,11 @@
         eveningCols: [[], [], [], [], [], []],
         nightCols: [[], [], [], [], [], []],
         signature: "",
-        hiddenIds: hiddenStore[deptName] || []
+        hiddenIds: hiddenStore[deptName] || [],
+        customTables: customTablesStore[deptName] || []
       };
     }
 
-    // توحيد الحروف العربية لضمان تطابق اسم القسم مع اسم التبويب في الشيت
     function normalizeArabic(str) {
       return String(str || "")
         .trim()
@@ -559,13 +761,37 @@
         .replace(/\s+/g, " ");
     }
 
-    // تحويل أي قيمة (سواء نص أو مصفوفة) إلى مصفوفة أسطر نظيفة
     function toLinesArray(val) {
       if (!val) return [];
       if (Array.isArray(val)) {
         return val.flatMap(item => String(item || "").split(/\r?\n/)).map(s => s.trim()).filter(Boolean);
       }
       return String(val).split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    }
+
+    function parseMetadataFromSignature(rawSig, deptName) {
+      let sig = String(rawSig || "");
+      let parsedHidden = null;
+      let parsedTables = null;
+
+      if (sig.includes("<!--META:")) {
+        const parts = sig.split("<!--META:");
+        sig = parts[0].trim();
+        try {
+          const meta = JSON.parse(parts[1].replace("-->", "").trim());
+          if (Array.isArray(meta.hiddenIds)) parsedHidden = meta.hiddenIds;
+          if (Array.isArray(meta.customTables)) parsedTables = meta.customTables;
+        } catch (e) {}
+      } else if (sig.includes("<!--HIDDEN:")) {
+        const parts = sig.split("<!--HIDDEN:");
+        sig = parts[0].trim();
+        try {
+          const h = JSON.parse(parts[1].replace("-->", "").trim());
+          if (Array.isArray(h)) parsedHidden = h;
+        } catch (e) {}
+      }
+
+      return { cleanSig: sig, parsedHidden, parsedTables };
     }
 
     function normalizeDeptObject(raw, deptName) {
@@ -577,20 +803,30 @@
       base.morningNames = toLinesArray(raw.morningNames);
       base.eveningTitle = raw.eveningTitle !== undefined && raw.eveningTitle !== null ? String(raw.eveningTitle).trim() : "";
       base.nightTitle = raw.nightTitle !== undefined && raw.nightTitle !== null ? String(raw.nightTitle).trim() : "";
-      let rawSig = Array.isArray(raw.signature) ? raw.signature.join('\n') : String(raw.signature || "").trim();
-      if (rawSig.includes("<!--HIDDEN:")) {
-        const parts = rawSig.split("<!--HIDDEN:");
-        rawSig = parts[0].trim();
-        try {
-          const parsedHidden = JSON.parse(parts[1].replace("-->", "").trim());
-          if (Array.isArray(parsedHidden)) {
-            base.hiddenIds = parsedHidden;
-            hiddenStore[deptName] = parsedHidden;
-            localStorage.setItem('nursing_hidden_fields_v1', JSON.stringify(hiddenStore));
-          }
-        } catch (e) {}
+
+      const rawSigInput = Array.isArray(raw.signature) ? raw.signature.join('\n') : String(raw.signature || "").trim();
+      const { cleanSig, parsedHidden, parsedTables } = parseMetadataFromSignature(rawSigInput, deptName);
+      base.signature = cleanSig;
+
+      if (parsedHidden) {
+        base.hiddenIds = parsedHidden;
+        hiddenStore[deptName] = parsedHidden;
+        localStorage.setItem('nursing_hidden_fields_v1', JSON.stringify(hiddenStore));
+      } else if (Array.isArray(raw.hiddenIds)) {
+        base.hiddenIds = raw.hiddenIds;
+      } else {
+        base.hiddenIds = hiddenStore[deptName] || [];
       }
-      base.signature = rawSig;
+
+      if (parsedTables) {
+        base.customTables = parsedTables;
+        customTablesStore[deptName] = parsedTables;
+        localStorage.setItem('nursing_custom_tables_v1', JSON.stringify(customTablesStore));
+      } else if (Array.isArray(raw.customTables)) {
+        base.customTables = raw.customTables;
+      } else {
+        base.customTables = customTablesStore[deptName] || [];
+      }
 
       if (Array.isArray(raw.periods)) {
         for (let i = 0; i < 6; i++) {
@@ -618,29 +854,17 @@
       return base;
     }
 
-    async function initApp() {
-      localStorage.removeItem('nursing_schedule_v2');
-      localStorage.removeItem('nursing_schedule_github_v1');
-      localStorage.removeItem('nursing_schedule_autosave_v1');
-      localStorage.removeItem('nursing_schedule_autosave_v2');
-      localStorage.removeItem('nursing_schedule_twoway_v1');
-      localStorage.removeItem('nursing_schedule_auto_v2');
-      localStorage.removeItem('nursing_cloud_cache_v3');
-      localStorage.removeItem('nursing_cloud_cache_v4');
-
+    function renderDepartmentControls() {
       const select = document.getElementById('deptSelect');
       const pills = document.getElementById('deptPills');
       select.innerHTML = '';
       pills.innerHTML = '';
 
-      const cachedStore = JSON.parse(localStorage.getItem('nursing_cloud_cache_v5') || '{}');
       DEPARTMENTS.forEach((dept) => {
-        store[dept] = cachedStore[dept] ? normalizeDeptObject(cachedStore[dept], dept) : getEmptyTemplate(dept);
-        sheetTabNameMap[dept] = dept;
-
         const opt = document.createElement('option');
         opt.value = dept;
         opt.textContent = dept;
+        if (dept === currentDept) opt.selected = true;
         select.appendChild(opt);
 
         const pill = document.createElement('button');
@@ -649,13 +873,43 @@
         pill.onclick = () => switchDepartment(dept);
         pills.appendChild(pill);
       });
+    }
 
+    async function addNewDepartment() {
+      const input = document.getElementById('newDeptInput');
+      const name = input.value.trim();
+      if (!name) return alert('الرجاء كتابة اسم القسم الجديد أولاً.');
+
+      const existing = DEPARTMENTS.find(d => normalizeArabic(d) === normalizeArabic(name));
+      if (existing) {
+        input.value = '';
+        await switchDepartment(existing);
+        return;
+      }
+
+      DEPARTMENTS.push(name);
+      localStorage.setItem('nursing_departments_list_v1', JSON.stringify(DEPARTMENTS));
+      store[name] = getEmptyTemplate(name);
+      sheetTabNameMap[name] = name;
+      input.value = '';
+
+      renderDepartmentControls();
+      await switchDepartment(name);
+      await syncDepartmentsToSheet([name]);
+    }
+
+    async function initApp() {
+      const cachedStore = JSON.parse(localStorage.getItem('nursing_cloud_cache_v6') || '{}');
+      DEPARTMENTS.forEach((dept) => {
+        store[dept] = cachedStore[dept] ? normalizeDeptObject(cachedStore[dept], dept) : getEmptyTemplate(dept);
+        sheetTabNameMap[dept] = dept;
+      });
+
+      renderDepartmentControls();
       renderDepartment(currentDept);
 
-      // ١. جلب الأسماء المحفوظة من Google Sheets وعرضها فوراً في الجداول
       await pullFromGoogleSheets(true);
 
-      // ٢. مزامنة دورية بالخلفية كل 5 ثوانٍ
       setInterval(() => {
         const activeEl = document.activeElement;
         const userCurrentlyEditingCell = activeEl && activeEl.getAttribute('contenteditable') === 'true';
@@ -668,7 +922,6 @@
     async function switchDepartment(dept) {
       if (dept === currentDept) return;
 
-      // إذا كان هناك تعديل أو تفريغ معلق في القسم السابق، نحفظه فوراً في الشيت قبل الانتقال
       if (autoSaveTimer || isTyping) {
         clearTimeout(autoSaveTimer);
         autoSaveTimer = null;
@@ -680,12 +933,54 @@
       }
 
       currentDept = dept;
-      document.getElementById('deptSelect').value = dept;
-      document.querySelectorAll('.dept-pill').forEach(btn => {
-        btn.classList.toggle('active', btn.textContent === dept);
-      });
+      renderDepartmentControls();
       renderDepartment(dept);
       pullFromGoogleSheets(true);
+    }
+
+    function buildCustomTablesHTML(tablesList, isEditable = false) {
+      if (!Array.isArray(tablesList) || tablesList.length === 0) return '';
+      return tablesList.map((t, tIdx) => {
+        const marginStyle = t.align === 'right' ? 'margin: 0 0 0 auto;' : (t.align === 'left' ? 'margin: 0 auto 0 0;' : 'margin: 0 auto;');
+        const colGroupHTML = `<colgroup>${(t.colWidths || []).map(w => `<col style="width:${w ? w + '%' : 'auto'}">`).join('')}</colgroup>`;
+
+        let theadHTML = '';
+        if (t.hasHeader !== false) {
+          const ths = (t.headers || []).map((h, cIdx) =>
+            `<th style="height:${t.headerHeight || 34}px; font-size:${t.fontSize || 15}px;" ${isEditable ? `contenteditable="true" oninput="onCustomCellEdit(${tIdx}, 'header', 0, ${cIdx}, this)"` : ''}>${h || ''}</th>`
+          ).join('');
+          theadHTML = `<thead><tr>${ths}</tr></thead>`;
+        }
+
+        const trs = (t.rows || []).map((row, rIdx) => {
+          const tds = row.map((cell, cIdx) =>
+            `<td style="height:${t.rowHeight || 42}px; font-size:${t.fontSize || 15}px;" ${isEditable ? `contenteditable="true" oninput="onCustomCellEdit(${tIdx}, 'cell', ${rIdx}, ${cIdx}, this)"` : ''}>${String(cell || '').replace(/\r?\n/g, '<br>')}</td>`
+          ).join('');
+          return `<tr>${tds}</tr>`;
+        }).join('');
+
+        const controlsHTML = isEditable ? `
+          <div class="custom-table-controls">
+            <button class="btn btn-info btn-sm" onclick="openEditTableModal(${tIdx})">⚙️ تخصيص الحجم والأعمدة</button>
+            <button class="btn btn-warning btn-sm" onclick="addCustomTableRow(${tIdx})">➕ صف</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteCustomTable(${tIdx})">🗑️ حذف الجدول</button>
+          </div>` : '';
+
+        const titleHTML = (t.title || isEditable) ? `
+          <div class="section-heading" style="font-size:${(Number(t.fontSize) || 15) + 4}px; ${!t.title && !isEditable ? 'display:none;' : ''}"
+               ${isEditable ? `contenteditable="true" oninput="onCustomTitleEdit(${tIdx}, this)"` : ''}>${t.title || ''}</div>` : '';
+
+        return `
+          <div class="section-wrapper" id="custom-table-wrap-${tIdx}">
+            ${controlsHTML}
+            ${titleHTML}
+            <table class="custom-table" style="width:${t.tableWidth || 100}%; ${marginStyle}">
+              ${colGroupHTML}
+              ${theadHTML}
+              <tbody>${trs}</tbody>
+            </table>
+          </div>`;
+      }).join('');
     }
 
     function renderDepartment(dept) {
@@ -738,7 +1033,137 @@
         niBody.appendChild(tdN);
       }
 
+      document.getElementById('customTablesContainer').innerHTML = buildCustomTablesHTML(data.customTables || [], true);
       applyHiddenElements(data.hiddenIds || []);
+    }
+
+    function openAddTableModal() {
+      editingCustomTableIdx = null;
+      document.getElementById('customTableModalTitle').textContent = '➕ إضافة جدول مخصص وتحديد حجمه';
+      document.getElementById('ctTitle').value = '';
+      document.getElementById('ctCols').value = 4;
+      document.getElementById('ctRows').value = 3;
+      document.getElementById('ctTableWidth').value = 100;
+      document.getElementById('ctAlign').value = 'center';
+      document.getElementById('ctHeaderHeight').value = 34;
+      document.getElementById('ctRowHeight').value = 42;
+      document.getElementById('ctFontSize').value = 15;
+      document.getElementById('ctHasHeader').value = 'yes';
+      renderColWidthInputs([]);
+      document.getElementById('customTableModal').classList.add('active');
+    }
+
+    function openEditTableModal(tIdx) {
+      const t = (store[currentDept].customTables || [])[tIdx];
+      if (!t) return;
+      editingCustomTableIdx = tIdx;
+      document.getElementById('customTableModalTitle').textContent = '⚙️ تخصيص حجم وأعمدة وصفوف الجدول';
+      document.getElementById('ctTitle').value = t.title || '';
+      document.getElementById('ctCols').value = t.cols || 4;
+      document.getElementById('ctRows').value = (t.rows || []).length || 3;
+      document.getElementById('ctTableWidth').value = t.tableWidth || 100;
+      document.getElementById('ctAlign').value = t.align || 'center';
+      document.getElementById('ctHeaderHeight').value = t.headerHeight || 34;
+      document.getElementById('ctRowHeight').value = t.rowHeight || 42;
+      document.getElementById('ctFontSize').value = t.fontSize || 15;
+      document.getElementById('ctHasHeader').value = t.hasHeader === false ? 'no' : 'yes';
+      renderColWidthInputs(t.colWidths || []);
+      document.getElementById('customTableModal').classList.add('active');
+    }
+
+    function renderColWidthInputs(existingWidths = []) {
+      const cols = Math.max(1, Math.min(12, parseInt(document.getElementById('ctCols').value) || 1));
+      const grid = document.getElementById('ctColWidthsGrid');
+      grid.innerHTML = '';
+      for (let i = 0; i < cols; i++) {
+        const div = document.createElement('div');
+        div.className = 'form-group';
+        div.innerHTML = `<label>عمود ${i + 1} (%):</label>
+          <input type="number" class="ct-col-width-input" min="5" max="95" placeholder="تلقائي" value="${existingWidths[i] || ''}">`;
+        grid.appendChild(div);
+      }
+    }
+
+    function saveCustomTableModal() {
+      const cols = Math.max(1, Math.min(12, parseInt(document.getElementById('ctCols').value) || 1));
+      const rowsCount = Math.max(1, Math.min(25, parseInt(document.getElementById('ctRows').value) || 1));
+      const colWidths = Array.from(document.querySelectorAll('.ct-col-width-input')).map(inp => inp.value.trim());
+
+      const data = store[currentDept];
+      if (!Array.isArray(data.customTables)) data.customTables = [];
+
+      const oldTable = editingCustomTableIdx !== null ? data.customTables[editingCustomTableIdx] : null;
+
+      const headers = [];
+      for (let c = 0; c < cols; c++) {
+        headers.push((oldTable && oldTable.headers && oldTable.headers[c] !== undefined) ? oldTable.headers[c] : '');
+      }
+
+      const rows = [];
+      for (let r = 0; r < rowsCount; r++) {
+        const rowArr = [];
+        for (let c = 0; c < cols; c++) {
+          rowArr.push((oldTable && oldTable.rows && oldTable.rows[r] && oldTable.rows[r][c] !== undefined) ? oldTable.rows[r][c] : '');
+        }
+        rows.push(rowArr);
+      }
+
+      const newTableObj = {
+        id: oldTable ? oldTable.id : 'ct-' + Date.now(),
+        title: document.getElementById('ctTitle').value.trim(),
+        cols: cols,
+        hasHeader: document.getElementById('ctHasHeader').value === 'yes',
+        tableWidth: Math.max(20, Math.min(100, parseInt(document.getElementById('ctTableWidth').value) || 100)),
+        align: document.getElementById('ctAlign').value,
+        headerHeight: Math.max(20, Math.min(150, parseInt(document.getElementById('ctHeaderHeight').value) || 34)),
+        rowHeight: Math.max(24, Math.min(300, parseInt(document.getElementById('ctRowHeight').value) || 42)),
+        fontSize: Math.max(10, Math.min(28, parseInt(document.getElementById('ctFontSize').value) || 15)),
+        colWidths: colWidths,
+        headers: headers,
+        rows: rows
+      };
+
+      if (editingCustomTableIdx !== null) {
+        data.customTables[editingCustomTableIdx] = newTableObj;
+      } else {
+        data.customTables.push(newTableObj);
+      }
+
+      closeModals();
+      renderDepartment(currentDept);
+      onUserEdit();
+    }
+
+    function addCustomTableRow(tIdx) {
+      const t = (store[currentDept].customTables || [])[tIdx];
+      if (!t) return;
+      t.rows.push(new Array(t.cols).fill(''));
+      renderDepartment(currentDept);
+      onUserEdit();
+    }
+
+    function deleteCustomTable(tIdx) {
+      if (!confirm('هل تريد حذف هذا الجدول الإضافي؟')) return;
+      store[currentDept].customTables.splice(tIdx, 1);
+      renderDepartment(currentDept);
+      onUserEdit();
+    }
+
+    function onCustomTitleEdit(tIdx, el) {
+      const t = (store[currentDept].customTables || [])[tIdx];
+      if (t) t.title = el.innerText.trim();
+      onUserEdit();
+    }
+
+    function onCustomCellEdit(tIdx, type, rIdx, cIdx, el) {
+      const t = (store[currentDept].customTables || [])[tIdx];
+      if (!t) return;
+      if (type === 'header') {
+        t.headers[cIdx] = el.innerText.trim();
+      } else {
+        t.rows[rIdx][cIdx] = htmlToLines(el).join('\n');
+      }
+      onUserEdit();
     }
 
     function htmlToLines(el) {
@@ -765,7 +1190,6 @@
       if (data) {
         if (!Array.isArray(data.periods)) data.periods = [...DEFAULT_PERIODS];
         if (!Array.isArray(data.nightPeriods)) data.nightPeriods = [...DEFAULT_PERIODS];
-        // فصل تواريخ كل جدول بشكل مستقل تماماً (المسائي وحده والليلي وحده)
         if (source === 'ev') {
           data.periods[idx] = val;
         } else if (source === 'ni') {
@@ -789,7 +1213,7 @@
       data.morningNames = htmlToLines(document.getElementById('morningBody'));
       data.eveningTitle = document.getElementById('eveningTitle').innerText.trim();
       data.nightTitle = document.getElementById('nightTitle').innerText.trim();
-      data.signature = htmlToLines(document.getElementById('signatureText')).join('\n').split('<!--HIDDEN:')[0].trim();
+      data.signature = htmlToLines(document.getElementById('signatureText')).join('\n').split('<!--META:')[0].split('<!--HIDDEN:')[0].trim();
 
       if (!Array.isArray(data.periods)) data.periods = [...DEFAULT_PERIODS];
       if (!Array.isArray(data.nightPeriods)) data.nightPeriods = [...DEFAULT_PERIODS];
@@ -805,8 +1229,10 @@
       }
 
       hiddenStore[currentDept] = data.hiddenIds || [];
+      customTablesStore[currentDept] = data.customTables || [];
       localStorage.setItem('nursing_hidden_fields_v1', JSON.stringify(hiddenStore));
-      localStorage.setItem('nursing_cloud_cache_v5', JSON.stringify(store));
+      localStorage.setItem('nursing_custom_tables_v1', JSON.stringify(customTablesStore));
+      localStorage.setItem('nursing_cloud_cache_v6', JSON.stringify(store));
 
       if (triggerCloud) {
         scheduleAutoSync();
@@ -823,7 +1249,6 @@
       }, 800);
     }
 
-    // إرسال التعديلات أو التفريغ مباشرة إلى التبويبات المطابقة في Google Sheets
     async function syncDepartmentsToSheet(deptList) {
       isSavingToCloud = true;
       lastEditTimestamp = Date.now();
@@ -833,9 +1258,12 @@
       deptList.forEach(dept => {
         const orig = store[dept] || getEmptyTemplate(dept);
         const d = JSON.parse(JSON.stringify(orig));
-        const cleanSig = String(d.signature || "").split("<!--HIDDEN:")[0].trim();
-        if (d.hiddenIds && d.hiddenIds.length > 0) {
-          d.signature = cleanSig + "\n<!--HIDDEN:" + JSON.stringify(d.hiddenIds) + "-->";
+        const cleanSig = String(d.signature || "").split("<!--META:")[0].split("<!--HIDDEN:")[0].trim();
+        const hasHidden = d.hiddenIds && d.hiddenIds.length > 0;
+        const hasCustom = d.customTables && d.customTables.length > 0;
+        if (hasHidden || hasCustom) {
+          const meta = { hiddenIds: d.hiddenIds || [], customTables: d.customTables || [] };
+          d.signature = cleanSig + "\n<!--META:" + JSON.stringify(meta) + "-->";
         } else {
           d.signature = cleanSig;
         }
@@ -880,7 +1308,6 @@
       }
     }
 
-    // جلب الأسماء والبيانات من Google Sheets وعرضها مباشرة في الجداول
     async function pullFromGoogleSheets(forceRender = false) {
       if (isSavingToCloud || isTyping || autoSaveTimer) return;
 
@@ -890,13 +1317,7 @@
         const res = await fetch(fetchUrl, { cache: 'no-store' });
         const result = await res.json();
 
-        // إذا بدأ المستخدم بالكتابة أو التفريغ أثناء انتظار الرد، نتجاهل الرد القديم لعدم إعادة الأسماء الممسوحة
         if (isSavingToCloud || isTyping || autoSaveTimer) return;
-
-        if (result.status === 'online' && !result.departments) {
-          setSyncStatus('error', '⚠️ يرجى تحديث كود السكربت في Google (Deploy > New version)');
-          return;
-        }
 
         const rawDepts = result.departments || result.data || null;
         if (rawDepts && typeof rawDepts === 'object') {
@@ -909,11 +1330,25 @@
 
           const sheetKeys = Object.keys(rawDepts);
           let hasChanges = false;
+          let deptListChanged = false;
+
+          sheetKeys.forEach(sKey => {
+            const exists = DEPARTMENTS.some(d => normalizeArabic(d) === normalizeArabic(sKey));
+            if (!exists && sKey.trim()) {
+              DEPARTMENTS.push(sKey.trim());
+              deptListChanged = true;
+            }
+          });
+
+          if (deptListChanged) {
+            localStorage.setItem('nursing_departments_list_v1', JSON.stringify(DEPARTMENTS));
+            renderDepartmentControls();
+          }
 
           DEPARTMENTS.forEach(appDept => {
             const matchedKey = sheetKeys.find(k => normalizeArabic(k) === normalizeArabic(appDept));
             if (matchedKey && rawDepts[matchedKey]) {
-              sheetTabNameMap[appDept] = matchedKey; // حفظ الاسم الفعلي للتبويب في الشيت
+              sheetTabNameMap[appDept] = matchedKey;
               const normalizedData = normalizeDeptObject(rawDepts[matchedKey], appDept);
               if (JSON.stringify(store[appDept]) !== JSON.stringify(normalizedData)) {
                 store[appDept] = normalizedData;
@@ -922,7 +1357,7 @@
             }
           });
 
-          localStorage.setItem('nursing_cloud_cache_v5', JSON.stringify(store));
+          localStorage.setItem('nursing_cloud_cache_v6', JSON.stringify(store));
           if (forceRender || hasChanges) {
             renderDepartment(currentDept);
           }
@@ -971,7 +1406,6 @@
       onUserEdit();
     }
 
-    // فتح نافذة تفريغ الأسماء (لتفريغ القسم الحالي أو تحديد أقسام أو تفريغ الكل دفعة واحدة)
     function openClearModal() {
       saveCurrentState(false);
       populateCheckList('clearDeptList', 'clear-dept-cb', false);
@@ -995,13 +1429,15 @@
         emptyObj.nightTitle = prev.nightTitle || "";
         emptyObj.periods = (prev.periods && prev.periods.length === 6) ? [...prev.periods] : [...DEFAULT_PERIODS];
         emptyObj.nightPeriods = (prev.nightPeriods && prev.nightPeriods.length === 6) ? [...prev.nightPeriods] : [...DEFAULT_PERIODS];
+        emptyObj.customTables = (prev.customTables || []).map(t => ({
+          ...t,
+          rows: (t.rows || []).map(r => r.map(() => ''))
+        }));
         store[dept] = emptyObj;
       });
 
       closeModals();
       renderDepartment(currentDept);
-
-      // إرسال التفريغ فوراً إلى الشيت لجميع الأقسام المختارة بدون انتظار المؤقت
       await syncDepartmentsToSheet(selected);
     }
 
@@ -1039,7 +1475,6 @@
       const selected = Array.from(document.querySelectorAll('.print-dept-cb:checked')).map(cb => cb.value);
       if (selected.length === 0) return alert('الرجاء اختيار قسم واحد على الأقل للطباعة.');
 
-      const month = document.getElementById('monthSelect').value;
       const batchContainer = document.getElementById('printBatchContainer');
       batchContainer.innerHTML = '';
 
@@ -1072,6 +1507,7 @@
               <tbody><tr>${d.nightCols.map((c, i) => d.hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
+          ${buildCustomTablesHTML(d.customTables || [], false)}
           ${!d.hiddenIds.includes('sec-signature') ? `
           <div class="signature-box">
             <div class="signature-content">${String(d.signature || '').replace(/\r?\n/g, '<br>')}</div>
