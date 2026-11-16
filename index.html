@@ -157,6 +157,12 @@
       flex-shrink: 0;
     }
 
+    .a4-page.landscape {
+      width: 297mm !important;
+      min-height: 210mm !important;
+      padding: 14mm 18mm !important;
+    }
+
     .page-title {
       text-align: center;
       font-size: 22px;
@@ -340,6 +346,7 @@
 
     @media print {
       @page { size: A4 portrait; margin: 0; }
+      @page landscape-page { size: A4 landscape; margin: 0; }
       body { background: #fff; padding: 0; overflow: visible !important; }
       .toolbar, .modal-overlay { display: none !important; }
       .a4-container { display: none !important; }
@@ -352,6 +359,10 @@
         margin: 0 !important;
         page-break-after: always;
         break-after: page;
+      }
+      .a4-page.landscape {
+        width: 297mm !important;
+        height: 210mm !important;
       }
     }
   </style>
@@ -497,6 +508,7 @@
         eveningCols: [[], [], [], [], [], []],
         nightCols: [[], [], [], [], [], []],
         signature: "",
+        orientation: "portrait",
         hiddenIds: hiddenStore[deptName] || [],
         customTables: customTablesStore[deptName] || []
       };
@@ -507,11 +519,12 @@
       const wrapper = document.getElementById('a4ScaleWrapper');
       if (!page || !wrapper) return;
 
-      const a4WidthPx = 794;
+      const isLandscape = page.classList.contains('landscape');
+      const a4WidthPx = isLandscape ? 1123 : 794;
       const availableWidth = window.innerWidth - 20;
 
       if (fitToScreenMode && availableWidth < a4WidthPx) {
-        const scale = Math.max(0.38, availableWidth / a4WidthPx);
+        const scale = Math.max(0.35, availableWidth / a4WidthPx);
         page.style.transform = `scale(${scale})`;
         wrapper.style.height = `${Math.ceil(page.offsetHeight * scale)}px`;
         wrapper.style.justifyContent = 'center';
@@ -550,6 +563,7 @@
       let sig = String(rawSig || "");
       let parsedHidden = null;
       let parsedTables = null;
+      let parsedOrientation = null;
 
       if (sig.includes("<!--META:")) {
         const parts = sig.split("<!--META:");
@@ -558,6 +572,7 @@
           const meta = JSON.parse(parts[1].replace("-->", "").trim());
           if (Array.isArray(meta.hiddenIds)) parsedHidden = meta.hiddenIds;
           if (Array.isArray(meta.customTables)) parsedTables = meta.customTables;
+          if (meta.orientation) parsedOrientation = meta.orientation;
         } catch (e) {}
       } else if (sig.includes("<!--HIDDEN:")) {
         const parts = sig.split("<!--HIDDEN:");
@@ -568,7 +583,7 @@
         } catch (e) {}
       }
 
-      return { cleanSig: sig, parsedHidden, parsedTables };
+      return { cleanSig: sig, parsedHidden, parsedTables, parsedOrientation };
     }
 
     function normalizeDeptObject(raw, deptName) {
@@ -582,8 +597,9 @@
       base.nightTitle = raw.nightTitle !== undefined && raw.nightTitle !== null ? String(raw.nightTitle).trim() : "";
 
       const rawSigInput = Array.isArray(raw.signature) ? raw.signature.join('\n') : String(raw.signature || "").trim();
-      const { cleanSig, parsedHidden, parsedTables } = parseMetadataFromSignature(rawSigInput);
+      const { cleanSig, parsedHidden, parsedTables, parsedOrientation } = parseMetadataFromSignature(rawSigInput);
       base.signature = cleanSig;
+      base.orientation = parsedOrientation || (raw.orientation === 'landscape' ? 'landscape' : 'portrait');
 
       if (parsedHidden) {
         base.hiddenIds = parsedHidden;
@@ -656,6 +672,7 @@
       if (!Array.isArray(tablesList) || tablesList.length === 0) return '';
       return tablesList.map((t) => {
         const marginStyle = t.align === 'right' ? 'margin: 0 0 0 auto;' : (t.align === 'left' ? 'margin: 0 auto 0 0;' : 'margin: 0 auto;');
+        const colWidths = Array.isArray(t.colWidths) ? t.colWidths : [];
         const colGroupHTML = `<colgroup>${(t.colWidths || []).map(w => `<col style="width:${w ? w + '%' : 'auto'}">`).join('')}</colgroup>`;
 
         let theadHTML = '';
@@ -666,9 +683,11 @@
           theadHTML = `<thead><tr>${ths}</tr></thead>`;
         }
 
-        const trs = (t.rows || []).map(row => {
+        const rowHeights = Array.isArray(t.rowHeights) ? t.rowHeights : [];
+        const trs = (t.rows || []).map((row, rIdx) => {
+          const rHeight = rowHeights[rIdx] || t.rowHeight || 42;
           const tds = row.map(cell =>
-            `<td style="height:${t.rowHeight || 42}px; font-size:${t.fontSize || 15}px;">${String(cell || '').replace(/\r?\n/g, '<br>')}</td>`
+            `<td style="height:${rHeight}px; font-size:${t.fontSize || 15}px;">${String(cell || '').replace(/\r?\n/g, '<br>')}</td>`
           ).join('');
           return `<tr>${tds}</tr>`;
         }).join('');
@@ -691,58 +710,29 @@
       const cachedStore = JSON.parse(localStorage.getItem('nursing_cloud_cache_v6') || '{}');
       DEPARTMENTS.forEach((dept) => {
         store[dept] = cachedStore[dept] ? normalizeDeptObject(cachedStore[dept], dept) : getEmptyTemplate(dept);
+        sheetTabNameMap[dept] = dept;
       });
 
       renderDepartmentControls();
       renderDepartment(currentDept);
-      window.addEventListener('resize', adjustResponsiveA4Scale);
-
-      window.addEventListener('storage', (e) => {
-        if (e.key === 'nursing_departments_list_v1' && e.newValue) {
-          DEPARTMENTS = JSON.parse(e.newValue);
-          renderDepartmentControls();
-        } else if (e.key === 'nursing_hidden_fields_v1') {
-          hiddenStore = JSON.parse(e.newValue || '{}');
-          DEPARTMENTS.forEach(d => {
-            if (store[d]) store[d].hiddenIds = hiddenStore[d] || [];
-          });
-          renderDepartment(currentDept);
-        } else if (e.key === 'nursing_custom_tables_v1') {
-          customTablesStore = JSON.parse(e.newValue || '{}');
-          DEPARTMENTS.forEach(d => {
-            if (store[d]) store[d].customTables = customTablesStore[d] || [];
-          });
-          renderDepartment(currentDept);
-        } else if (e.key === 'nursing_cloud_cache_v6' && e.newValue) {
-          const updatedCache = JSON.parse(e.newValue || '{}');
-          DEPARTMENTS.forEach(d => {
-            if (updatedCache[d]) store[d] = normalizeDeptObject(updatedCache[d], d);
-          });
-          renderDepartment(currentDept);
-        }
-      });
 
       await pullFromGoogleSheets(true);
-      setInterval(() => pullFromGoogleSheets(false), 5000);
+
+      setInterval(() => {
+        const activeEl = document.activeElement;
+        const userCurrentlyEditingCell = activeEl && activeEl.getAttribute('contenteditable') === 'true';
+        if (!isTyping && !isSavingToCloud && !isResizing && !userCurrentlyEditingCell && (Date.now() - lastEditTimestamp > 4500)) {
+          pullFromGoogleSheets(false);
+        }
+      }, 5000);
     }
 
-    function switchDepartment(dept) {
+    async function switchDepartment(dept) {
+      if (dept === currentDept) return;
       currentDept = dept;
       renderDepartmentControls();
-      document.querySelectorAll('.dept-pill').forEach(btn => {
-        if (btn.textContent === dept && window.innerWidth <= 640) {
-          btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-        }
-      });
       renderDepartment(dept);
-    }
-
-    function applyHiddenElements(hiddenIds) {
-      document.querySelectorAll('#activeA4Page .hidden-element').forEach(el => el.classList.remove('hidden-element'));
-      (hiddenIds || []).forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.add('hidden-element');
-      });
+      pullFromGoogleSheets(true);
     }
 
     function renderDepartment(dept) {
@@ -754,6 +744,12 @@
       }
       if (customTablesStore[dept] && (!data.customTables || data.customTables.length === 0)) {
         data.customTables = customTablesStore[dept];
+      }
+
+      const pageEl = document.getElementById('activeA4Page');
+      if (pageEl) {
+        pageEl.classList.toggle('landscape', data.orientation === 'landscape');
+        pageEl.classList.toggle('portrait', data.orientation !== 'landscape');
       }
 
       document.getElementById('sheetMainTitle').textContent = data.mainTitle || "";
@@ -889,35 +885,36 @@
 
       selected.forEach(dept => {
         const d = store[dept] || getEmptyTemplate(dept);
+        const hiddenIds = d.hiddenIds || hiddenStore[dept] || [];
         const page = document.createElement('div');
-        page.className = 'a4-page';
+        page.className = `a4-page ${d.orientation === 'landscape' ? 'landscape' : 'portrait'}`;
         page.innerHTML = `
           <div class="page-title">${d.mainTitle || ''}</div>
-          ${!d.hiddenIds.includes('sec-morning') ? `
+          ${!hiddenIds.includes('sec-morning') ? `
           <div class="section-wrapper">
             <table class="morning-table">
               <thead><tr><th>${d.morningHeader}</th></tr></thead>
               <tbody><tr><td>${toLinesArray(d.morningNames).join('<br>')}</td></tr></tbody>
             </table>
           </div>` : ''}
-          ${!d.hiddenIds.includes('sec-evening') ? `
+          ${!hiddenIds.includes('sec-evening') ? `
           <div class="section-wrapper">
             <div class="section-heading">${d.eveningTitle}</div>
             <table>
-              <thead><tr>${d.periods.map((p, i) => d.hiddenIds.includes(`ev-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
-              <tbody><tr>${d.eveningCols.map((c, i) => d.hiddenIds.includes(`ev-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
+              <thead><tr>${d.periods.map((p, i) => hiddenIds.includes(`ev-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
+              <tbody><tr>${d.eveningCols.map((c, i) => hiddenIds.includes(`ev-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
-          ${!d.hiddenIds.includes('sec-night') ? `
+          ${!hiddenIds.includes('sec-night') ? `
           <div class="section-wrapper">
             <div class="section-heading">${d.nightTitle}</div>
             <table>
-              <thead><tr>${((d.nightPeriods && d.nightPeriods.length === 6) ? d.nightPeriods : DEFAULT_PERIODS).map((p, i) => d.hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
-              <tbody><tr>${d.nightCols.map((c, i) => d.hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
+              <thead><tr>${((d.nightPeriods && d.nightPeriods.length === 6) ? d.nightPeriods : DEFAULT_PERIODS).map((p, i) => hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
+              <tbody><tr>${d.nightCols.map((c, i) => hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
-          ${buildCustomTablesHTML(d.customTables || [])}
-          ${!d.hiddenIds.includes('sec-signature') ? `
+          ${buildCustomTablesHTML(d.customTables || [], false)}
+          ${!hiddenIds.includes('sec-signature') ? `
           <div class="signature-box">
             <div class="signature-content">${String(d.signature || '').replace(/\r?\n/g, '<br>')}</div>
           </div>` : ''}
