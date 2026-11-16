@@ -12,358 +12,42 @@
       --bg: #e2e8f0;
       --paper-bg: #ffffff;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'Tajawal', sans-serif;
-      background-color: var(--bg);
-      color: #0f172a;
-      padding-bottom: 40px;
-      overflow-x: hidden;
-    }
-
-    .toolbar {
-      background: #1e293b;
-      color: #fff;
-      padding: 12px 16px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.18);
-    }
-
-    .toolbar-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      justify-content: space-between;
-      max-width: 1180px;
-      margin: 0 auto;
-    }
-
-    .controls-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .control-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: #334155;
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 14px;
-    }
-
-    .control-item select {
-      background: #0f172a;
-      color: #fff;
-      border: 1px solid #475569;
-      padding: 5px 10px;
-      border-radius: 6px;
-      font-family: 'Tajawal', sans-serif;
-      font-size: 14px;
-      outline: none;
-    }
-
-    .btn {
-      cursor: pointer;
-      border: none;
-      padding: 9px 14px;
-      border-radius: 8px;
-      font-family: 'Tajawal', sans-serif;
-      font-weight: 700;
-      font-size: 13px;
-      transition: 0.2s;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      white-space: nowrap;
-    }
-
+    body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); color: #0f172a; padding-bottom: 40px; overflow-x: hidden; }
+    .toolbar { background: #1e293b; color: #fff; padding: 12px 16px; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.18); }
+    .toolbar-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; max-width: 1180px; margin: 0 auto; }
+    .controls-group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .control-item { display: flex; align-items: center; gap: 6px; background: #334155; padding: 6px 12px; border-radius: 8px; font-size: 14px; }
+    .control-item select { background: #0f172a; color: #fff; border: 1px solid #475569; padding: 5px 10px; border-radius: 6px; font-family: 'Tajawal', sans-serif; font-size: 14px; outline: none; }
+    .btn { cursor: pointer; border: none; padding: 9px 14px; border-radius: 8px; font-family: 'Tajawal', sans-serif; font-weight: 700; font-size: 13px; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
     .btn-primary { background: var(--primary); color: #fff; }
-    .btn-primary:hover { background: var(--primary-hover); }
     .btn-secondary { background: #475569; color: #fff; }
-    .btn-secondary:hover { background: #64748b; }
-    .btn-mode { background: #0284c7; color: #fff; display: none; }
-
-    .dept-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      max-width: 1180px;
-      margin: 10px auto 0;
-      padding-top: 8px;
-      border-top: 1px solid #334155;
-    }
-
-    .dept-pill {
-      background: #334155;
-      color: #cbd5e1;
-      border: 1px solid #475569;
-      padding: 6px 13px;
-      border-radius: 999px;
-      cursor: pointer;
-      font-size: 13px;
-      font-family: 'Tajawal', sans-serif;
-      transition: 0.15s;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    .dept-pill.active {
-      background: #14b8a6;
-      color: #0f172a;
-      font-weight: 700;
-      border-color: #14b8a6;
-    }
-
-    .a4-container {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 24px 10px;
-      width: 100%;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .a4-scale-wrapper {
-      display: flex;
-      justify-content: center;
-      width: 100%;
-      position: relative;
-    }
-
-    .a4-page {
-      width: 210mm;
-      min-height: 297mm;
-      background: var(--paper-bg);
-      padding: 18mm 14mm;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      position: relative;
-      font-family: 'Amiri', serif;
-      color: #000;
-      display: flex;
-      flex-direction: column;
-      transform-origin: top center;
-      transition: transform 0.2s ease;
-      flex-shrink: 0;
-    }
-
-    .a4-page.landscape {
-      width: 297mm !important;
-      min-height: 210mm !important;
-      padding: 14mm 18mm !important;
-    }
-
-    .page-title {
-      text-align: center;
-      font-size: 22px;
-      font-weight: bold;
-      margin-bottom: 14px;
-      min-height: 28px;
-    }
-
-    .section-wrapper {
-      margin-bottom: 18px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-    }
-
-    th, td {
-      border: 1.5px solid #222;
-      padding: 6px 4px;
-      text-align: center;
-      vertical-align: top;
-      font-size: 15px;
-      line-height: 1.45;
-      word-wrap: break-word;
-    }
-
-    th {
-      background: #f8fafc;
-      font-weight: bold;
-      font-size: 14px;
-      min-height: 28px;
-    }
-
-    td {
-      min-height: 110px;
-      height: 120px;
-    }
-
-    .custom-table td {
-      min-height: auto;
-      height: auto;
-      vertical-align: middle;
-    }
-
-    .morning-table {
-      width: 58%;
-      margin: 0 auto;
-    }
-
-    .section-heading {
-      text-align: center;
-      font-size: 20px;
-      font-weight: bold;
-      margin: 10px 0 8px;
-      min-height: 26px;
-    }
-
-    .signature-box {
-      margin-top: auto;
-      padding-top: 25px;
-      display: flex;
-      justify-content: flex-end;
-      padding-left: 35px;
-    }
-
-    .signature-content {
-      color: #1d4ed8;
-      font-size: 18px;
-      font-weight: bold;
-      text-align: center;
-      transform: rotate(-10deg);
-      line-height: 1.4;
-      min-width: 160px;
-    }
-
-    .hidden-element {
-      display: none !important;
-    }
-
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.75);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 200;
-      padding: 14px;
-    }
-
-    .modal-overlay.active { display: flex; }
-
-    .modal-card {
-      background: #fff;
-      width: 100%;
-      max-width: 540px;
-      border-radius: 14px;
-      padding: 18px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.35);
-      max-height: 90vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .modal-header {
-      font-size: 17px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #e2e8f0;
-      padding-bottom: 10px;
-    }
-
-    .dept-check-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      margin: 12px 0;
-      overflow-y: auto;
-      padding-left: 4px;
-    }
-
-    .dept-check-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: #f8fafc;
-      padding: 9px 10px;
-      border-radius: 8px;
-      border: 1px solid #cbd5e1;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    @media screen and (max-width: 1024px) {
-      .btn-mode { display: inline-flex; }
-      .a4-container { padding: 16px 6px; }
-    }
-
-    @media screen and (max-width: 640px) {
-      .toolbar { padding: 10px 12px; }
-      .toolbar-row {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px;
-      }
-      .controls-group {
-        width: 100%;
-        justify-content: space-between;
-      }
-      .control-item {
-        flex: 1;
-        justify-content: space-between;
-      }
-      .control-item select {
-        flex: 1;
-      }
-      .btn {
-        flex: 1;
-        padding: 9px 10px;
-        font-size: 12.5px;
-      }
-      .dept-pills {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        padding-bottom: 6px;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-      }
-      .dept-pills::-webkit-scrollbar { display: none; }
-      .dept-check-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    #printBatchContainer { display: none; }
-
+    .dept-pills { display: flex; flex-wrap: wrap; gap: 6px; max-width: 1180px; margin: 10px auto 0; padding-top: 8px; border-top: 1px solid #334155; }
+    .dept-pill { background: #334155; color: #cbd5e1; border: 1px solid #475569; padding: 6px 13px; border-radius: 999px; cursor: pointer; font-size: 13px; font-family: 'Tajawal', sans-serif; transition: 0.15s; white-space: nowrap; flex-shrink: 0; }
+    .dept-pill.active { background: #14b8a6; color: #0f172a; font-weight: 700; border-color: #14b8a6; }
+    .a4-container { display: flex; justify-content: center; align-items: flex-start; padding: 24px 10px; width: 100%; overflow-x: auto; }
+    .a4-scale-wrapper { display: flex; justify-content: center; width: 100%; position: relative; }
+    .a4-page { width: 210mm; min-height: 297mm; background: var(--paper-bg); padding: 18mm 14mm; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; font-family: 'Amiri', serif; color: #000; display: flex; flex-direction: column; transform-origin: top center; transition: transform 0.2s ease; flex-shrink: 0; }
+    .a4-page.landscape { width: 297mm !important; min-height: 210mm !important; padding: 14mm 18mm !important; }
+    .page-title { text-align: center; font-size: 22px; font-weight: bold; margin-bottom: 14px; min-height: 28px; }
+    .section-wrapper { margin-bottom: 18px; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th, td { border: 1.5px solid #222; padding: 6px 4px; text-align: center; vertical-align: top; font-size: 15px; line-height: 1.45; word-wrap: break-word; }
+    th { background: #f8fafc; font-weight: bold; font-size: 14px; min-height: 28px; }
+    td { min-height: 110px; height: 120px; }
+    .morning-table { width: 58%; margin: 0 auto; }
+    .section-heading { text-align: center; font-size: 20px; font-weight: bold; margin: 10px 0 8px; min-height: 26px; }
+    .signature-box { margin-top: auto; padding-top: 25px; display: flex; justify-content: flex-end; padding-left: 35px; }
+    .signature-content { color: #1d4ed8; font-size: 18px; font-weight: bold; text-align: center; transform: rotate(-10deg); line-height: 1.4; min-width: 160px; }
     @media print {
       @page { size: A4 portrait; margin: 0; }
       @page landscape-page { size: A4 landscape; margin: 0; }
-      body { background: #fff; padding: 0; overflow: visible !important; }
-      .toolbar, .modal-overlay { display: none !important; }
+      body { background: #fff; padding: 0; }
+      .toolbar { display: none !important; }
       .a4-container { display: none !important; }
       #printBatchContainer { display: block !important; }
-      .a4-page {
-        box-shadow: none !important;
-        width: 210mm !important;
-        height: 297mm !important;
-        transform: none !important;
-        margin: 0 !important;
-        page-break-after: always;
-        break-after: page;
-      }
-      .a4-page.landscape {
-        width: 297mm !important;
-        height: 210mm !important;
-      }
+      .a4-page { box-shadow: none !important; width: 210mm !important; height: 297mm !important; margin: 0 !important; page-break-after: always; }
+      .a4-page.landscape { width: 297mm !important; height: 210mm !important; }
     }
   </style>
 </head>
@@ -377,13 +61,7 @@
           <select id="deptSelect" onchange="switchDepartment(this.value)"></select>
         </div>
       </div>
-
-      <div class="controls-group">
-        <button class="btn btn-mode" id="zoomToggleBtn" onclick="toggleMobileZoom()">🔍 تكبير (حجم فعلي)</button>
-        <button class="btn btn-primary" onclick="openPrintModal()">🖨️ طباعة الجداول (الكل أو تحديد)</button>
-      </div>
     </div>
-
     <div class="dept-pills" id="deptPills"></div>
   </header>
 
@@ -391,388 +69,132 @@
     <div class="a4-scale-wrapper" id="a4ScaleWrapper">
       <div class="a4-page" id="activeA4Page">
         <div class="page-title" id="sheetMainTitle"></div>
-
-        <!-- جدول الخفر الصباحي -->
         <div class="section-wrapper" id="sec-morning">
           <table class="morning-table">
-            <thead>
-              <tr>
-                <th id="morningHeader"></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td id="morningBody"></td>
-              </tr>
-            </tbody>
+            <thead><tr><th id="morningHeader"></th></tr></thead>
+            <tbody><tr><td id="morningBody"></td></tr></tbody>
           </table>
         </div>
-
-        <!-- جدول الخفر المسائي -->
         <div class="section-wrapper" id="sec-evening">
           <div class="section-heading" id="eveningTitle"></div>
           <table>
-            <thead>
-              <tr id="eveningHeadRow"></tr>
-            </thead>
-            <tbody>
-              <tr id="eveningBodyRow"></tr>
-            </tbody>
+            <thead><tr id="eveningHeadRow"></tr></thead>
+            <tbody><tr id="eveningBodyRow"></tr></tbody>
           </table>
         </div>
-
-        <!-- جدول الخفر الليلي -->
         <div class="section-wrapper" id="sec-night">
           <div class="section-heading" id="nightTitle"></div>
           <table>
-            <thead>
-              <tr id="nightHeadRow"></tr>
-            </thead>
-            <tbody>
-              <tr id="nightBodyRow"></tr>
-            </tbody>
+            <thead><tr id="nightHeadRow"></tr></thead>
+            <tbody><tr id="nightBodyRow"></tr></tbody>
           </table>
         </div>
-
-        <!-- الجداول المخصصة الإضافية -->
         <div id="customTablesContainer"></div>
-
-        <!-- التوقيع -->
         <div class="section-wrapper signature-box" id="sec-signature">
           <div class="signature-content" id="signatureText"></div>
         </div>
       </div>
     </div>
   </main>
-
   <div id="printBatchContainer"></div>
-
-  <div class="modal-overlay" id="printModal" onclick="if(event.target === this) closeModals()">
-    <div class="modal-card">
-      <div class="modal-header">
-        <span>🖨️ تحديد الأقسام للطباعة (A4)</span>
-        <button class="btn btn-secondary" style="flex:0; padding:6px 12px;" onclick="closeModals()">✕</button>
-      </div>
-      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
-        <button class="btn btn-primary" onclick="selectCheckboxes('all')">تحديد الكل</button>
-        <button class="btn btn-secondary" onclick="selectCheckboxes('current')">القسم الحالي فقط</button>
-        <button class="btn btn-secondary" onclick="selectCheckboxes('none')">إلغاء الكل</button>
-      </div>
-      <div class="dept-check-grid" id="printDeptList"></div>
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
-        <button class="btn btn-secondary" onclick="closeModals()">إلغاء</button>
-        <button class="btn btn-primary" onclick="executeBatchPrint()">بدء الطباعة الآن</button>
-      </div>
-    </div>
-  </div>
 
   <script>
     const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbw7rtb4Vessgb-TM3PrI3LaifLurH8tL46vrevfSI5P7dgmf-tsgNTLtf3mbN2CSQ4vvQ/exec";
-
     const BASE_DEPARTMENTS = [
-      "قسم الطوارئ",
-      "الانعاش القلبي",
-      "الانعاش الجراحي",
-      "الطابق الاول",
-      "قسم الخدج",
-      "الطابق الثاني",
-      "الطابق الثالث",
-      "الطابق الرابع",
-      "الطابق الخامس",
-      "الطابق السادس",
-      "قسم الديلزة",
-      "قسم عمليات الطوارى",
-      "قسم الجهاز الهضمي",
-      "القسطرة القلبية"
+      "قسم الطوارئ", "الانعاش القلبي", "الانعاش الجراحي", "الطابق الاول", "قسم الخدج",
+      "الطابق الثاني", "الطابق الثالث", "الطابق الرابع", "الطابق الخامس", "الطابق السادس",
+      "قسم الديلزة", "قسم عمليات الطوارى", "قسم الجهاز الهضمي", "القسطرة القلبية"
     ];
 
     let DEPARTMENTS = JSON.parse(localStorage.getItem('nursing_departments_list_v1') || 'null') || [...BASE_DEPARTMENTS];
     const DEFAULT_PERIODS = ["", "", "", "", "", ""];
-
     let currentDept = DEPARTMENTS[0];
-    let currentMonth = "تشرين الثاني";
     let store = {};
-    let hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
-    let customTablesStore = JSON.parse(localStorage.getItem('nursing_custom_tables_v1') || '{}');
-    let fitToScreenMode = true;
 
-    function getEmptyTemplate(deptName = "") {
-      return {
-        mainTitle: "",
-        morningHeader: "",
-        morningNames: [],
-        eveningTitle: "",
-        nightTitle: "",
-        periods: [...DEFAULT_PERIODS],
-        nightPeriods: [...DEFAULT_PERIODS],
-        eveningCols: [[], [], [], [], [], []],
-        nightCols: [[], [], [], [], [], []],
-        signature: "",
-        orientation: "portrait",
-        hiddenIds: hiddenStore[deptName] || [],
-        customTables: customTablesStore[deptName] || []
-      };
-    }
-
-    function adjustResponsiveA4Scale() {
-      const page = document.getElementById('activeA4Page');
-      const wrapper = document.getElementById('a4ScaleWrapper');
-      if (!page || !wrapper) return;
-
-      const isLandscape = page.classList.contains('landscape');
-      const a4WidthPx = isLandscape ? 1123 : 794;
-      const availableWidth = window.innerWidth - 20;
-
-      if (fitToScreenMode && availableWidth < a4WidthPx) {
-        const scale = Math.max(0.35, availableWidth / a4WidthPx);
-        page.style.transform = `scale(${scale})`;
-        wrapper.style.height = `${Math.ceil(page.offsetHeight * scale)}px`;
-        wrapper.style.justifyContent = 'center';
-      } else {
-        page.style.transform = 'none';
-        wrapper.style.height = 'auto';
-        wrapper.style.justifyContent = availableWidth < a4WidthPx ? 'flex-start' : 'center';
-      }
-    }
-
-    function toggleMobileZoom() {
-      fitToScreenMode = !fitToScreenMode;
-      const btn = document.getElementById('zoomToggleBtn');
-      btn.textContent = fitToScreenMode ? '🔍 تكبير (حجم فعلي)' : '📱 احتواء في الشاشة';
-      adjustResponsiveA4Scale();
-    }
-
-    function normalizeArabic(str) {
-      return String(str || "")
-        .trim()
-        .replace(/[أإآ]/g, "ا")
-        .replace(/ة/g, "ه")
-        .replace(/[ىئ]/g, "ي")
-        .replace(/\s+/g, " ");
+    function getEmptyTemplate() {
+      return { mainTitle: "", morningHeader: "", morningNames: [], eveningTitle: "", nightTitle: "", periods: [...DEFAULT_PERIODS], nightPeriods: [...DEFAULT_PERIODS], eveningCols: [[],[],[],[],[],[]], nightCols: [[],[],[],[],[],[]], signature: "", orientation: "portrait", customTables: [] };
     }
 
     function toLinesArray(val) {
       if (!val) return [];
-      if (Array.isArray(val)) {
-        return val.flatMap(item => String(item || "").split(/\r?\n/)).map(s => s.trim()).filter(Boolean);
-      }
+      if (Array.isArray(val)) return val.flatMap(item => String(item || "").split(/\r?\n/)).map(s => s.trim()).filter(Boolean);
       return String(val).split(/\r?\n/).map(s => s.trim()).filter(Boolean);
     }
 
     function parseMetadataFromSignature(rawSig) {
       let sig = String(rawSig || "");
-      let parsedHidden = null;
       let parsedTables = null;
       let parsedOrientation = null;
-
       if (sig.includes("<!--META:")) {
         const parts = sig.split("<!--META:");
         sig = parts[0].trim();
         try {
           const meta = JSON.parse(parts[1].replace("-->", "").trim());
-          if (Array.isArray(meta.hiddenIds)) parsedHidden = meta.hiddenIds;
           if (Array.isArray(meta.customTables)) parsedTables = meta.customTables;
           if (meta.orientation) parsedOrientation = meta.orientation;
         } catch (e) {}
-      } else if (sig.includes("<!--HIDDEN:")) {
-        const parts = sig.split("<!--HIDDEN:");
-        sig = parts[0].trim();
-        try {
-          const h = JSON.parse(parts[1].replace("-->", "").trim());
-          if (Array.isArray(h)) parsedHidden = h;
-        } catch (e) {}
       }
-
-      return { cleanSig: sig, parsedHidden, parsedTables, parsedOrientation };
+      return { cleanSig: sig, parsedTables, parsedOrientation };
     }
 
-    function normalizeDeptObject(raw, deptName) {
-      const base = getEmptyTemplate(deptName);
+    function normalizeDeptObject(raw) {
+      const base = getEmptyTemplate();
       if (!raw || typeof raw !== 'object') return base;
-
-      base.mainTitle = raw.mainTitle !== undefined && raw.mainTitle !== null ? String(raw.mainTitle).trim() : "";
-      base.morningHeader = raw.morningHeader !== undefined && raw.morningHeader !== null ? String(raw.morningHeader).trim() : "";
+      base.mainTitle = raw.mainTitle || "";
+      base.morningHeader = raw.morningHeader || "";
       base.morningNames = toLinesArray(raw.morningNames);
-      base.eveningTitle = raw.eveningTitle !== undefined && raw.eveningTitle !== null ? String(raw.eveningTitle).trim() : "";
-      base.nightTitle = raw.nightTitle !== undefined && raw.nightTitle !== null ? String(raw.nightTitle).trim() : "";
+      base.eveningTitle = raw.eveningTitle || "";
+      base.nightTitle = raw.nightTitle || "";
 
       const rawSigInput = Array.isArray(raw.signature) ? raw.signature.join('\n') : String(raw.signature || "").trim();
-      const { cleanSig, parsedHidden, parsedTables, parsedOrientation } = parseMetadataFromSignature(rawSigInput);
+      const { cleanSig, parsedTables, parsedOrientation } = parseMetadataFromSignature(rawSigInput);
       base.signature = cleanSig;
       base.orientation = parsedOrientation || (raw.orientation === 'landscape' ? 'landscape' : 'portrait');
+      if (parsedTables) base.customTables = parsedTables;
 
-      if (parsedHidden) {
-        base.hiddenIds = parsedHidden;
-        hiddenStore[deptName] = parsedHidden;
-        localStorage.setItem('nursing_hidden_fields_v1', JSON.stringify(hiddenStore));
-      } else if (Array.isArray(raw.hiddenIds)) {
-        base.hiddenIds = raw.hiddenIds;
-      } else {
-        base.hiddenIds = hiddenStore[deptName] || [];
-      }
-
-      if (parsedTables) {
-        base.customTables = parsedTables;
-        customTablesStore[deptName] = parsedTables;
-        localStorage.setItem('nursing_custom_tables_v1', JSON.stringify(customTablesStore));
-      } else if (Array.isArray(raw.customTables)) {
-        base.customTables = raw.customTables;
-      } else {
-        base.customTables = customTablesStore[deptName] || [];
-      }
-
-      if (Array.isArray(raw.periods)) {
-        for (let i = 0; i < 6; i++) {
-          base.periods[i] = raw.periods[i] !== undefined && raw.periods[i] !== null ? String(raw.periods[i]).trim() : "";
-        }
-      }
-      if (Array.isArray(raw.nightPeriods)) {
-        for (let i = 0; i < 6; i++) {
-          base.nightPeriods[i] = raw.nightPeriods[i] !== undefined && raw.nightPeriods[i] !== null ? String(raw.nightPeriods[i]).trim() : "";
-        }
-      }
-
-      if (Array.isArray(raw.eveningCols)) {
-        for (let i = 0; i < 6; i++) {
-          base.eveningCols[i] = toLinesArray(raw.eveningCols[i]);
-        }
-      }
-
-      if (Array.isArray(raw.nightCols)) {
-        for (let i = 0; i < 6; i++) {
-          base.nightCols[i] = toLinesArray(raw.nightCols[i]);
-        }
-      }
-
+      if (Array.isArray(raw.periods)) base.periods = raw.periods.map(v => v || "");
+      if (Array.isArray(raw.nightPeriods)) base.nightPeriods = raw.nightPeriods.map(v => v || "");
+      if (Array.isArray(raw.eveningCols)) base.eveningCols = raw.eveningCols.map(c => toLinesArray(c));
+      if (Array.isArray(raw.nightCols)) base.nightCols = raw.nightCols.map(c => toLinesArray(c));
       return base;
     }
 
     function renderDepartmentControls() {
       const select = document.getElementById('deptSelect');
       const pills = document.getElementById('deptPills');
-      select.innerHTML = '';
-      pills.innerHTML = '';
-
-      DEPARTMENTS.forEach((dept) => {
-        const opt = document.createElement('option');
-        opt.value = dept;
-        opt.textContent = dept;
+      select.innerHTML = ''; pills.innerHTML = '';
+      DEPARTMENTS.forEach(dept => {
+        const opt = document.createElement('option'); opt.value = dept; opt.textContent = dept;
         if (dept === currentDept) opt.selected = true;
         select.appendChild(opt);
-
         const pill = document.createElement('button');
         pill.className = 'dept-pill' + (dept === currentDept ? ' active' : '');
-        pill.textContent = dept;
-        pill.onclick = () => switchDepartment(dept);
+        pill.textContent = dept; pill.onclick = () => switchDepartment(dept);
         pills.appendChild(pill);
       });
     }
 
     function buildCustomTablesHTML(tablesList) {
       if (!Array.isArray(tablesList) || tablesList.length === 0) return '';
-      return tablesList.map((t) => {
+      return tablesList.map(t => {
         const marginStyle = t.align === 'right' ? 'margin: 0 0 0 auto;' : (t.align === 'left' ? 'margin: 0 auto 0 0;' : 'margin: 0 auto;');
-        const colWidths = Array.isArray(t.colWidths) ? t.colWidths : [];
         const colGroupHTML = `<colgroup>${(t.colWidths || []).map(w => `<col style="width:${w ? w + '%' : 'auto'}">`).join('')}</colgroup>`;
-
-        let theadHTML = '';
-        if (t.hasHeader !== false) {
-          const ths = (t.headers || []).map(h =>
-            `<th style="height:${t.headerHeight || 34}px; font-size:${t.fontSize || 15}px;">${h || ''}</th>`
-          ).join('');
-          theadHTML = `<thead><tr>${ths}</tr></thead>`;
-        }
-
-        const rowHeights = Array.isArray(t.rowHeights) ? t.rowHeights : [];
-        const trs = (t.rows || []).map((row, rIdx) => {
-          const rHeight = rowHeights[rIdx] || t.rowHeight || 42;
-          const tds = row.map(cell =>
-            `<td style="height:${rHeight}px; font-size:${t.fontSize || 15}px;">${String(cell || '').replace(/\r?\n/g, '<br>')}</td>`
-          ).join('');
-          return `<tr>${tds}</tr>`;
-        }).join('');
-
-        const titleHTML = t.title ? `<div class="section-heading" style="font-size:${(Number(t.fontSize) || 15) + 4}px;">${t.title}</div>` : '';
-
-        return `
-          <div class="section-wrapper">
-            ${titleHTML}
-            <table class="custom-table" style="width:${t.tableWidth || 100}%; ${marginStyle}">
-              ${colGroupHTML}
-              ${theadHTML}
-              <tbody>${trs}</tbody>
-            </table>
-          </div>`;
+        const ths = (t.hasHeader !== false ? (t.headers || []).map(h => `<th>${h || ''}</th>`).join('') : '');
+        const theadHTML = ths ? `<thead><tr>${ths}</tr></thead>` : '';
+        const trs = (t.rows || []).map(row => `<tr>${row.map(cell => `<td>${String(cell || '').replace(/\r?\n/g, '<br>')}</td>`).join('')}</tr>`).join('');
+        const titleHTML = t.title ? `<div class="section-heading">${t.title}</div>` : '';
+        return `<div class="section-wrapper">${titleHTML}<table class="custom-table" style="width:${t.tableWidth || 100}%; ${marginStyle}">${colGroupHTML}${theadHTML}<tbody>${trs}</tbody></table></div>`;
       }).join('');
     }
 
-    async function initApp() {
-      const cachedStore = JSON.parse(localStorage.getItem('nursing_cloud_cache_v6') || '{}');
-      DEPARTMENTS.forEach((dept) => {
-        store[dept] = cachedStore[dept] ? normalizeDeptObject(cachedStore[dept], dept) : getEmptyTemplate(dept);
-        sheetTabNameMap[dept] = dept;
-      });
-
-      renderDepartmentControls();
-      renderDepartment(currentDept);
-      window.addEventListener('resize', adjustResponsiveA4Scale);
-
-      window.addEventListener('storage', (e) => {
-        if (e.key === 'nursing_departments_list_v1' && e.newValue) {
-          DEPARTMENTS = JSON.parse(e.newValue);
-          renderDepartmentControls();
-        } else if (e.key === 'nursing_hidden_fields_v1') {
-          hiddenStore = JSON.parse(e.newValue || '{}');
-          DEPARTMENTS.forEach(d => {
-            if (store[d]) store[d].hiddenIds = hiddenStore[d] || [];
-          });
-          renderDepartment(currentDept);
-        } else if (e.key === 'nursing_custom_tables_v1') {
-          customTablesStore = JSON.parse(e.newValue || '{}');
-          DEPARTMENTS.forEach(d => {
-            if (store[d]) store[d].customTables = customTablesStore[d] || [];
-          });
-          renderDepartment(currentDept);
-        } else if (e.key === 'nursing_cloud_cache_v6' && e.newValue) {
-          const updatedCache = JSON.parse(e.newValue || '{}');
-          DEPARTMENTS.forEach(d => {
-            if (updatedCache[d]) store[d] = normalizeDeptObject(updatedCache[d], d);
-          });
-          renderDepartment(currentDept);
-        }
-      });
-
-      await pullFromGoogleSheets(true);
-      setInterval(() => pullFromGoogleSheets(false), 5000);
-    }
-
     function switchDepartment(dept) {
-      if (dept === currentDept) return;
       currentDept = dept;
       renderDepartmentControls();
       renderDepartment(dept);
-      pullFromGoogleSheets(true);
-    }
-
-    function applyHiddenElements(hiddenIds) {
-      document.querySelectorAll('#activeA4Page .hidden-element').forEach(el => el.classList.remove('hidden-element'));
-      hiddenIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.add('hidden-element');
-      });
     }
 
     function renderDepartment(dept) {
-      hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
-      customTablesStore = JSON.parse(localStorage.getItem('nursing_custom_tables_v1') || '{}');
-      const data = store[dept] || getEmptyTemplate(dept);
-      if (hiddenStore[dept] && (!data.hiddenIds || data.hiddenIds.length === 0)) {
-        data.hiddenIds = hiddenStore[dept];
-      }
-      if (customTablesStore[dept] && (!data.customTables || data.customTables.length === 0)) {
-        data.customTables = customTablesStore[dept];
-      }
-
+      const data = store[dept] || getEmptyTemplate();
       const pageEl = document.getElementById('activeA4Page');
       if (pageEl) {
         pageEl.classList.toggle('landscape', data.orientation === 'landscape');
@@ -790,167 +212,33 @@
       const evBody = document.getElementById('eveningBodyRow');
       const niHead = document.getElementById('nightHeadRow');
       const niBody = document.getElementById('nightBodyRow');
-
-      evHead.innerHTML = '';
-      evBody.innerHTML = '';
-      niHead.innerHTML = '';
-      niBody.innerHTML = '';
-
-      const evPeriods = (data.periods && data.periods.length === 6) ? data.periods : [...DEFAULT_PERIODS];
-      const niPeriods = (data.nightPeriods && data.nightPeriods.length === 6) ? data.nightPeriods : [...DEFAULT_PERIODS];
+      evHead.innerHTML = ''; evBody.innerHTML = ''; niHead.innerHTML = ''; niBody.innerHTML = '';
 
       for (let i = 0; i < 6; i++) {
-        const thE = document.createElement('th');
-        thE.id = `ev-col-h-${i}`;
-        thE.textContent = evPeriods[i] || '';
-        evHead.appendChild(thE);
-
-        const tdE = document.createElement('td');
-        tdE.id = `ev-col-b-${i}`;
-        tdE.innerHTML = toLinesArray(data.eveningCols && data.eveningCols[i]).join('<br>');
-        evBody.appendChild(tdE);
-
-        const thN = document.createElement('th');
-        thN.id = `ni-col-h-${i}`;
-        thN.textContent = niPeriods[i] || '';
-        niHead.appendChild(thN);
-
-        const tdN = document.createElement('td');
-        tdN.id = `ni-col-b-${i}`;
-        tdN.innerHTML = toLinesArray(data.nightCols && data.nightCols[i]).join('<br>');
-        niBody.appendChild(tdN);
+        const thE = document.createElement('th'); thE.textContent = data.periods[i] || ''; evHead.appendChild(thE);
+        const tdE = document.createElement('td'); tdE.innerHTML = toLinesArray(data.eveningCols[i]).join('<br>'); evBody.appendChild(tdE);
+        const thN = document.createElement('th'); thN.textContent = data.nightPeriods[i] || ''; niHead.appendChild(thN);
+        const tdN = document.createElement('td'); tdN.innerHTML = toLinesArray(data.nightCols[i]).join('<br>'); niBody.appendChild(tdN);
       }
 
       document.getElementById('customTablesContainer').innerHTML = buildCustomTablesHTML(data.customTables || []);
-      applyHiddenElements(data.hiddenIds || []);
       setTimeout(adjustResponsiveA4Scale, 20);
     }
 
-    async function pullFromGoogleSheets(forceRender = false) {
+    async function initApp() {
+      renderDepartmentControls();
       try {
-        const ssId = localStorage.getItem('nursing_spreadsheet_id') || '';
-        const fetchUrl = `${DEFAULT_GAS_URL}?action=loadAll&spreadsheetId=${encodeURIComponent(ssId)}&t=${Date.now()}`;
-        const res = await fetch(fetchUrl, { cache: 'no-store' });
+        const res = await fetch(`${DEFAULT_GAS_URL}?action=loadAll&t=${Date.now()}`);
         const result = await res.json();
-
-        const rawDepts = result.departments || result.data || null;
-        if (rawDepts && typeof rawDepts === 'object') {
-          if (result.spreadsheetId) {
-            localStorage.setItem('nursing_spreadsheet_id', result.spreadsheetId);
-          }
-          if (result.month) {
-            currentMonth = result.month;
-          }
-
-          const sheetKeys = Object.keys(rawDepts);
-          let hasChanges = false;
-          let deptListChanged = false;
-
-          sheetKeys.forEach(sKey => {
-            const exists = DEPARTMENTS.some(d => normalizeArabic(d) === normalizeArabic(sKey));
-            if (!exists && sKey.trim()) {
-              DEPARTMENTS.push(sKey.trim());
-              deptListChanged = true;
-            }
+        if (result.departments) {
+          Object.keys(result.departments).forEach(d => {
+            if (!DEPARTMENTS.includes(d)) DEPARTMENTS.push(d);
+            store[d] = normalizeDeptObject(result.departments[d]);
           });
-
-          if (deptListChanged) {
-            localStorage.setItem('nursing_departments_list_v1', JSON.stringify(DEPARTMENTS));
-            renderDepartmentControls();
-          }
-
-          DEPARTMENTS.forEach(appDept => {
-            const matchedKey = sheetKeys.find(k => normalizeArabic(k) === normalizeArabic(appDept));
-            if (matchedKey && rawDepts[matchedKey]) {
-              const normalizedData = normalizeDeptObject(rawDepts[matchedKey], appDept);
-              if (JSON.stringify(store[appDept]) !== JSON.stringify(normalizedData)) {
-                store[appDept] = normalizedData;
-                if (appDept === currentDept) hasChanges = true;
-              }
-            }
-          });
-
-          localStorage.setItem('nursing_cloud_cache_v6', JSON.stringify(store));
-          if (forceRender || hasChanges) {
-            renderDepartment(currentDept);
-          }
+          renderDepartmentControls();
+          renderDepartment(currentDept);
         }
       } catch (err) {}
-    }
-
-    function openPrintModal() {
-      const list = document.getElementById('printDeptList');
-      list.innerHTML = '';
-      DEPARTMENTS.forEach(dept => {
-        const label = document.createElement('label');
-        label.className = 'dept-check-item';
-        const checked = dept === currentDept ? 'checked' : '';
-        label.innerHTML = `<input type="checkbox" class="print-dept-cb" value="${dept}" ${checked}> <span>${dept}</span>`;
-        list.appendChild(label);
-      });
-      document.getElementById('printModal').classList.add('active');
-    }
-
-    function selectCheckboxes(mode) {
-      document.querySelectorAll('.print-dept-cb').forEach(cb => {
-        if (mode === 'all') cb.checked = true;
-        else if (mode === 'none') cb.checked = false;
-        else if (mode === 'current') cb.checked = (cb.value === currentDept);
-      });
-    }
-
-    function closeModals() {
-      document.getElementById('printModal').classList.remove('active');
-    }
-
-    function executeBatchPrint() {
-      const selected = Array.from(document.querySelectorAll('.print-dept-cb:checked')).map(cb => cb.value);
-      if (selected.length === 0) return alert('الرجاء اختيار قسم واحد على الأقل للطباعة.');
-
-      const batchContainer = document.getElementById('printBatchContainer');
-      batchContainer.innerHTML = '';
-
-      selected.forEach(dept => {
-        const d = store[dept] || getEmptyTemplate(dept);
-        const hiddenIds = d.hiddenIds || hiddenStore[dept] || [];
-        const page = document.createElement('div');
-        page.className = `a4-page ${d.orientation === 'landscape' ? 'landscape' : 'portrait'}`;
-        page.innerHTML = `
-          <div class="page-title">${d.mainTitle || ''}</div>
-          ${!hiddenIds.includes('sec-morning') ? `
-          <div class="section-wrapper">
-            <table class="morning-table">
-              <thead><tr><th>${d.morningHeader}</th></tr></thead>
-              <tbody><tr><td>${toLinesArray(d.morningNames).join('<br>')}</td></tr></tbody>
-            </table>
-          </div>` : ''}
-          ${!hiddenIds.includes('sec-evening') ? `
-          <div class="section-wrapper">
-            <div class="section-heading">${d.eveningTitle}</div>
-            <table>
-              <thead><tr>${d.periods.map((p, i) => hiddenIds.includes(`ev-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
-              <tbody><tr>${d.eveningCols.map((c, i) => hiddenIds.includes(`ev-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
-            </table>
-          </div>` : ''}
-          ${!hiddenIds.includes('sec-night') ? `
-          <div class="section-wrapper">
-            <div class="section-heading">${d.nightTitle}</div>
-            <table>
-              <thead><tr>${((d.nightPeriods && d.nightPeriods.length === 6) ? d.nightPeriods : DEFAULT_PERIODS).map((p, i) => hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
-              <tbody><tr>${d.nightCols.map((c, i) => hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
-            </table>
-          </div>` : ''}
-          ${buildCustomTablesHTML(d.customTables || [], false)}
-          ${!hiddenIds.includes('sec-signature') ? `
-          <div class="signature-box">
-            <div class="signature-content">${String(d.signature || '').replace(/\r?\n/g, '<br>')}</div>
-          </div>` : ''}
-        `;
-        batchContainer.appendChild(page);
-      });
-
-      closeModals();
-      setTimeout(() => window.print(), 150);
     }
 
     window.onload = initApp;
