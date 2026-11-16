@@ -165,7 +165,6 @@
       font-size: 22px;
       font-weight: bold;
       margin-bottom: 14px;
-      min-height: 28px;
     }
 
     .section-wrapper {
@@ -210,7 +209,6 @@
       font-size: 20px;
       font-weight: bold;
       margin: 10px 0 8px;
-      min-height: 26px;
     }
 
     .signature-box {
@@ -323,6 +321,7 @@
         padding: 9px 10px;
         font-size: 12.5px;
       }
+      /* شريط أقسام قابل للسحب باللمس في الهاتف دون أخذ مساحة عمودية كبيرة */
       .dept-pills {
         flex-wrap: nowrap;
         overflow-x: auto;
@@ -457,7 +456,7 @@
   </div>
 
   <script>
-    const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbxfPhL5FL--gmr-GW6jXdEJ6jFINj2CyZvP3sBka0wb80HL_rb7BTlHPf_5eRVV3y6ddw/exec";
+    const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbw7rtb4Vessgb-TM3PrI3LaifLurH8tL46vrevfSI5P7dgmf-tsgNTLtf3mbN2CSQ4vvQ/exec";
 
     const DEPARTMENTS = [
       "قسم الطوارئ",
@@ -476,13 +475,14 @@
       "القسطرة القلبية"
     ];
 
+    // لا توجد أي تواريخ مضمنة في الكود؛ تُستورد التواريخ حصرياً كما هي محفوظة ومعدلة في الشيت
     const DEFAULT_PERIODS = ["", "", "", "", "", ""];
 
     let currentDept = DEPARTMENTS[0];
     let currentMonth = "تشرين الثاني";
     let store = {};
     let hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
-    let fitToScreenMode = true;
+    let fitToScreenMode = true; // افتراضياً: تحجيم الورقة لتناسب عرض الهاتف أو الآيباد بالكامل
 
     function getEmptyTemplate(deptName = "") {
       return {
@@ -500,12 +500,13 @@
       };
     }
 
+    // دالة تحجيم ذكية تجعل ورقة A4 متناسقة تماماً على شاشة الحاسبة والآيباد والهاتف
     function adjustResponsiveA4Scale() {
       const page = document.getElementById('activeA4Page');
       const wrapper = document.getElementById('a4ScaleWrapper');
       if (!page || !wrapper) return;
 
-      const a4WidthPx = 794;
+      const a4WidthPx = 794; // 210mm بالبيكسل
       const availableWidth = window.innerWidth - 20;
 
       if (fitToScreenMode && availableWidth < a4WidthPx) {
@@ -579,9 +580,11 @@
           base.periods[i] = raw.periods[i] !== undefined && raw.periods[i] !== null ? String(raw.periods[i]).trim() : "";
         }
       }
-      base.nightPeriods = Array.isArray(raw.nightPeriods)
-        ? raw.nightPeriods.slice(0, 6).map(v => String(v || "").trim())
-        : [...base.periods];
+      if (Array.isArray(raw.nightPeriods)) {
+        for (let i = 0; i < 6; i++) {
+          base.nightPeriods[i] = raw.nightPeriods[i] !== undefined && raw.nightPeriods[i] !== null ? String(raw.nightPeriods[i]).trim() : "";
+        }
+      }
 
       if (Array.isArray(raw.eveningCols)) {
         for (let i = 0; i < 6; i++) {
@@ -604,7 +607,7 @@
       select.innerHTML = '';
       pills.innerHTML = '';
 
-      const cachedStore = JSON.parse(localStorage.getItem('nursing_cloud_cache_v4') || '{}');
+      const cachedStore = JSON.parse(localStorage.getItem('nursing_cloud_cache_v5') || '{}');
       DEPARTMENTS.forEach((dept) => {
         store[dept] = cachedStore[dept] ? normalizeDeptObject(cachedStore[dept], dept) : getEmptyTemplate(dept);
 
@@ -630,7 +633,7 @@
             if (store[d]) store[d].hiddenIds = hiddenStore[d] || [];
           });
           renderDepartment(currentDept);
-        } else if (e.key === 'nursing_cloud_cache_v4' && e.newValue) {
+        } else if (e.key === 'nursing_cloud_cache_v5' && e.newValue) {
           const updatedCache = JSON.parse(e.newValue || '{}');
           DEPARTMENTS.forEach(d => {
             if (updatedCache[d]) store[d] = normalizeDeptObject(updatedCache[d], d);
@@ -689,7 +692,7 @@
       niBody.innerHTML = '';
 
       const evPeriods = (data.periods && data.periods.length === 6) ? data.periods : [...DEFAULT_PERIODS];
-      const niPeriods = (data.nightPeriods && data.nightPeriods.length === 6) ? data.nightPeriods : evPeriods;
+      const niPeriods = (data.nightPeriods && data.nightPeriods.length === 6) ? data.nightPeriods : [...DEFAULT_PERIODS];
 
       for (let i = 0; i < 6; i++) {
         const thE = document.createElement('th');
@@ -747,7 +750,7 @@
             }
           });
 
-          localStorage.setItem('nursing_cloud_cache_v4', JSON.stringify(store));
+          localStorage.setItem('nursing_cloud_cache_v5', JSON.stringify(store));
           if (forceRender || hasChanges) {
             renderDepartment(currentDept);
           }
@@ -813,7 +816,7 @@
           <div class="section-wrapper">
             <div class="section-heading">${d.nightTitle}</div>
             <table>
-              <thead><tr>${((d.nightPeriods && d.nightPeriods.length === 6) ? d.nightPeriods : d.periods).map((p, i) => hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
+              <thead><tr>${((d.nightPeriods && d.nightPeriods.length === 6) ? d.nightPeriods : DEFAULT_PERIODS).map((p, i) => hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
               <tbody><tr>${d.nightCols.map((c, i) => hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
