@@ -447,7 +447,7 @@
 
   <div id="printBatchContainer"></div>
 
-  <div class="modal-overlay" id="printModal">
+  <div class="modal-overlay" id="printModal" onclick="if(event.target === this) closeModals()">
     <div class="modal-card">
       <div class="modal-header">
         <span>🖨️ تحديد الأقسام للطباعة (A4)</span>
@@ -715,24 +715,51 @@
 
       renderDepartmentControls();
       renderDepartment(currentDept);
+      window.addEventListener('resize', adjustResponsiveA4Scale);
+
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'nursing_departments_list_v1' && e.newValue) {
+          DEPARTMENTS = JSON.parse(e.newValue);
+          renderDepartmentControls();
+        } else if (e.key === 'nursing_hidden_fields_v1') {
+          hiddenStore = JSON.parse(e.newValue || '{}');
+          DEPARTMENTS.forEach(d => {
+            if (store[d]) store[d].hiddenIds = hiddenStore[d] || [];
+          });
+          renderDepartment(currentDept);
+        } else if (e.key === 'nursing_custom_tables_v1') {
+          customTablesStore = JSON.parse(e.newValue || '{}');
+          DEPARTMENTS.forEach(d => {
+            if (store[d]) store[d].customTables = customTablesStore[d] || [];
+          });
+          renderDepartment(currentDept);
+        } else if (e.key === 'nursing_cloud_cache_v6' && e.newValue) {
+          const updatedCache = JSON.parse(e.newValue || '{}');
+          DEPARTMENTS.forEach(d => {
+            if (updatedCache[d]) store[d] = normalizeDeptObject(updatedCache[d], d);
+          });
+          renderDepartment(currentDept);
+        }
+      });
 
       await pullFromGoogleSheets(true);
-
-      setInterval(() => {
-        const activeEl = document.activeElement;
-        const userCurrentlyEditingCell = activeEl && activeEl.getAttribute('contenteditable') === 'true';
-        if (!isTyping && !isSavingToCloud && !isResizing && !userCurrentlyEditingCell && (Date.now() - lastEditTimestamp > 4500)) {
-          pullFromGoogleSheets(false);
-        }
-      }, 5000);
+      setInterval(() => pullFromGoogleSheets(false), 5000);
     }
 
-    async function switchDepartment(dept) {
+    function switchDepartment(dept) {
       if (dept === currentDept) return;
       currentDept = dept;
       renderDepartmentControls();
       renderDepartment(dept);
       pullFromGoogleSheets(true);
+    }
+
+    function applyHiddenElements(hiddenIds) {
+      document.querySelectorAll('#activeA4Page .hidden-element').forEach(el => el.classList.remove('hidden-element'));
+      hiddenIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden-element');
+      });
     }
 
     function renderDepartment(dept) {
