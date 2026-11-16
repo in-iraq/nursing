@@ -902,13 +902,9 @@
     function toLinesArray(val) {
       if (!val) return [];
       if (Array.isArray(val)) {
-        return val.flatMap(item => String(item || "").split(/
-?
-/)).map(s => s.trim()).filter(Boolean);
+        return val.flatMap(item => String(item || "").split(/\r?\n/)).map(s => s.trim()).filter(Boolean);
       }
-      return String(val).split(/
-?
-/).map(s => s.trim()).filter(Boolean);
+      return String(val).split(/\r?\n/).map(s => s.trim()).filter(Boolean);
     }
 
     function parseMetadataFromSignature(rawSig) {
@@ -946,8 +942,7 @@
       base.eveningTitle = raw.eveningTitle !== undefined && raw.eveningTitle !== null ? String(raw.eveningTitle).trim() : "";
       base.nightTitle = raw.nightTitle !== undefined && raw.nightTitle !== null ? String(raw.nightTitle).trim() : "";
 
-      const rawSigInput = Array.isArray(raw.signature) ? raw.signature.join('
-') : String(raw.signature || "").trim();
+      const rawSigInput = Array.isArray(raw.signature) ? raw.signature.join('\n') : String(raw.signature || "").trim();
       const { cleanSig, parsedHidden, parsedTables } = parseMetadataFromSignature(rawSigInput);
       base.signature = cleanSig;
 
@@ -1137,9 +1132,7 @@
               ${rowControls}
               ${colResizer}
               ${rowResizer}
-              <div ${isEditable ? `contenteditable="true" oninput="onCustomCellEdit(${tIdx}, 'cell', ${rIdx}, ${cIdx}, this)"` : ''}>${String(cellVal).replace(/
-?
-/g, '<br>')}</div>
+              <div ${isEditable ? `contenteditable="true" oninput="onCustomCellEdit(${tIdx}, 'cell', ${rIdx}, ${cIdx}, this)"` : ''}>${String(cellVal).replace(/\r?\n/g, '<br>')}</div>
             </td>`;
           }).join('');
           return `<tr>${tds}</tr>`;
@@ -1182,9 +1175,7 @@
       document.getElementById('morningBody').innerHTML = toLinesArray(data.morningNames).join('<br>');
       document.getElementById('eveningTitle').textContent = data.eveningTitle || "";
       document.getElementById('nightTitle').textContent = data.nightTitle || "";
-      document.getElementById('signatureText').innerHTML = String(data.signature || "").replace(/
-?
-/g, '<br>');
+      document.getElementById('signatureText').innerHTML = String(data.signature || "").replace(/\r?\n/g, '<br>');
 
       const evHead = document.getElementById('eveningHeadRow');
       const evBody = document.getElementById('eveningBodyRow');
@@ -1231,9 +1222,7 @@
       applyHiddenElements(data.hiddenIds || []);
     }
 
-    /* =====================================================================
-       ١. إضافة وحذف الأعمدة والصفوف من داخل الجدول مباشرة دون حذفه كله
-       ===================================================================== */
+    /* ١. إضافة وحذف الأعمدة والصفوف من داخل الجدول مباشرة مع رسالة تأكيد */
     function insertCustomCol(tIdx, afterColIdx) {
       const t = (store[currentDept].customTables || [])[tIdx];
       if (!t) return;
@@ -1244,8 +1233,6 @@
       t.cols += 1;
       if (!Array.isArray(t.headers)) t.headers = [];
       t.headers.splice(insertPos, 0, '');
-
-      // إعادة ضبط نسب عرض الأعمدة لتتوزع بنعومة
       t.colWidths = new Array(t.cols).fill('');
 
       (t.rows || []).forEach(row => {
@@ -1301,9 +1288,7 @@
       onUserEdit();
     }
 
-    /* =====================================================================
-       ٢. تغيير حجم الجدول والأعمدة والصفوف بالسحب المباشر (Drag to Resize)
-       ===================================================================== */
+    /* ٢. تغيير حجم الجدول والأعمدة والصفوف بالسحب المباشر (Drag to Resize) */
     function showTooltip(x, y, text) {
       const tip = document.getElementById('resizeTooltip');
       tip.textContent = text;
@@ -1316,7 +1301,6 @@
       document.getElementById('resizeTooltip').style.display = 'none';
     }
 
-    // أ) سحب حدود العمود لتغيير عرضه (%)
     function startColResize(e, tIdx, colIdx) {
       e.preventDefault();
       e.stopPropagation();
@@ -1339,7 +1323,6 @@
       const startNextPct = hasNext ? currentWidthsPct[colIdx + 1] : 0;
 
       function onMouseMove(ev) {
-        // في RTL السحب لليسار (ev.clientX < startX) يزيد عرض العمود
         const deltaPx = startX - ev.clientX;
         const deltaPct = (deltaPx / tableWidthPx) * 100;
 
@@ -1382,7 +1365,6 @@
       document.addEventListener('mouseup', onMouseUp);
     }
 
-    // ب) سحب الحد السفلي للصف لتغيير ارتفاعه (px)
     function startRowResize(e, tIdx, rowType, rowIdx) {
       e.preventDefault();
       e.stopPropagation();
@@ -1430,7 +1412,6 @@
       document.addEventListener('mouseup', onMouseUp);
     }
 
-    // ج) سحب الحافة اليسرى للجدول لتغيير عرضه الكلي داخل الورقة (%)
     function startTableWidthResize(e, tIdx) {
       e.preventDefault();
       e.stopPropagation();
@@ -1444,7 +1425,7 @@
       handle.classList.add('active');
       document.getElementById(`custom-table-wrap-${tIdx}`).classList.add('resizing');
 
-      const pageInnerWidth = page.clientWidth - 105; // عرض الورقة الداخلي
+      const pageInnerWidth = page.clientWidth - 105;
       const startX = e.clientX;
       const startWidthPct = Number(t.tableWidth) || 100;
       let finalPct = startWidthPct;
@@ -1596,22 +1577,18 @@
       if (type === 'header') {
         t.headers[cIdx] = el.innerText.trim();
       } else {
-        t.rows[rIdx][cIdx] = htmlToLines(el).join('
-');
+        t.rows[rIdx][cIdx] = htmlToLines(el).join('\n');
       }
       onUserEdit();
     }
 
     function htmlToLines(el) {
       return el.innerHTML
-        .replace(/<div>/gi, '
-')
+        .replace(/<div>/gi, '\n')
         .replace(/<\/div>/gi, '')
-        .replace(/<br\s*\/?>/gi, '
-')
+        .replace(/<br\s*\/?>/gi, '\n')
         .replace(/<[^>]+>/g, '')
-        .split('
-')
+        .split('\n')
         .map(s => s.trim())
         .filter(Boolean);
     }
@@ -1652,8 +1629,7 @@
       data.morningNames = htmlToLines(document.getElementById('morningBody'));
       data.eveningTitle = document.getElementById('eveningTitle').innerText.trim();
       data.nightTitle = document.getElementById('nightTitle').innerText.trim();
-      data.signature = htmlToLines(document.getElementById('signatureText')).join('
-').split('<!--META:')[0].split('<!--HIDDEN:')[0].trim();
+      data.signature = htmlToLines(document.getElementById('signatureText')).join('\n').split('<!--META:')[0].split('<!--HIDDEN:')[0].trim();
 
       if (!Array.isArray(data.periods)) data.periods = [...DEFAULT_PERIODS];
       if (!Array.isArray(data.nightPeriods)) data.nightPeriods = [...DEFAULT_PERIODS];
@@ -1703,8 +1679,7 @@
         const hasCustom = d.customTables && d.customTables.length > 0;
         if (hasHidden || hasCustom) {
           const meta = { hiddenIds: d.hiddenIds || [], customTables: d.customTables || [] };
-          d.signature = cleanSig + "
-<!--META:" + JSON.stringify(meta) + "-->";
+          d.signature = cleanSig + "\n<!--META:" + JSON.stringify(meta) + "-->";
         } else {
           d.signature = cleanSig;
         }
@@ -1951,9 +1926,7 @@
           ${buildCustomTablesHTML(d.customTables || [], false)}
           ${!d.hiddenIds.includes('sec-signature') ? `
           <div class="signature-box">
-            <div class="signature-content">${String(d.signature || '').replace(/
-?
-/g, '<br>')}</div>
+            <div class="signature-content">${String(d.signature || '').replace(/\r?\n/g, '<br>')}</div>
           </div>` : ''}
         `;
         batchContainer.appendChild(page);
