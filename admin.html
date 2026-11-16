@@ -71,10 +71,6 @@
       outline: none;
     }
 
-    .control-item input::placeholder {
-      color: #94a3b8;
-    }
-
     /* مؤشر المزامنة التلقائية الثنائية */
     .sync-badge {
       display: inline-flex;
@@ -119,7 +115,7 @@
     .btn-secondary { background: #475569; color: #fff; }
     .btn-sm { padding: 4px 8px; font-size: 11px; }
 
-    /* أزرار التنقل السريع بين الأقسام + حقل إضافة قسم جديد */
+    /* شريط الأقسام */
     .dept-bar {
       display: flex;
       flex-wrap: wrap;
@@ -219,12 +215,12 @@
 
     .section-wrapper {
       position: relative;
-      margin-bottom: 18px;
+      margin-bottom: 24px;
     }
 
     .hide-btn {
       position: absolute;
-      top: -24px;
+      top: -26px;
       left: 0;
       background: #ef4444;
       color: #fff;
@@ -239,45 +235,22 @@
       z-index: 10;
     }
 
-    .section-wrapper:hover .hide-btn,
-    th:hover .col-hide-btn {
+    .section-wrapper:hover .hide-btn {
       opacity: 1;
     }
 
-    .custom-table-controls {
-      position: absolute;
-      top: -26px;
-      right: 0;
+    /* شريط تحكم مرتب أعلى كل جدول مخصص (خارج الخلايا) */
+    .custom-table-header-bar {
       display: flex;
-      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-family: 'Tajawal', sans-serif;
+    }
+
+    .custom-table-actions {
+      display: flex;
       gap: 4px;
-      opacity: 0;
-      transition: opacity 0.2s;
-      font-family: 'Tajawal', sans-serif;
-      z-index: 15;
-      background: rgba(255,255,255,0.95);
-      padding: 2px 4px;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-    }
-
-    .section-wrapper:hover .custom-table-controls,
-    .section-wrapper.resizing .custom-table-controls {
-      opacity: 1;
-    }
-
-    .col-hide-btn {
-      display: block;
-      margin: 2px auto 0;
-      background: #ef4444;
-      color: #fff;
-      border: none;
-      font-size: 10px;
-      padding: 1px 5px;
-      border-radius: 3px;
-      cursor: pointer;
-      opacity: 0;
-      font-family: 'Tajawal', sans-serif;
     }
 
     table {
@@ -315,7 +288,6 @@
       vertical-align: middle;
     }
 
-    /* مقابض السحب لتغيير الحجم */
     .custom-table-box {
       position: relative;
     }
@@ -379,55 +351,6 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
-    .inline-col-actions {
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      display: flex;
-      gap: 2px;
-      opacity: 0;
-      transition: opacity 0.15s;
-      z-index: 11;
-      font-family: 'Tajawal', sans-serif;
-    }
-    th:hover .inline-col-actions,
-    td:hover .inline-col-actions {
-      opacity: 1;
-    }
-
-    .inline-row-actions {
-      position: absolute;
-      top: 50%;
-      right: -24px;
-      transform: translateY(-50%);
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      opacity: 0;
-      transition: opacity 0.15s;
-      z-index: 11;
-      font-family: 'Tajawal', sans-serif;
-    }
-    tr:hover .inline-row-actions {
-      opacity: 1;
-    }
-
-    .mini-act-btn {
-      border: none;
-      border-radius: 3px;
-      padding: 1px 4px;
-      font-size: 10px;
-      font-weight: 700;
-      cursor: pointer;
-      color: #fff;
-      line-height: 1.2;
-      font-family: 'Tajawal', sans-serif;
-    }
-    .mini-add { background: #0d9488; }
-    .mini-add:hover { background: #0f766e; }
-    .mini-del { background: #ef4444; }
-    .mini-del:hover { background: #dc2626; }
-
     .resize-tooltip {
       position: fixed;
       background: #0f172a;
@@ -452,8 +375,8 @@
       text-align: center;
       font-size: 20px;
       font-weight: bold;
-      margin: 10px 0 8px;
-      min-height: 26px;
+      margin: 0;
+      flex: 1;
     }
 
     [contenteditable="true"]:focus {
@@ -590,7 +513,7 @@
       @page { size: A4 portrait; margin: 0; }
       @page landscape-page { size: A4 landscape; margin: 0; }
       body { background: #fff; padding: 0; }
-      .toolbar, .hide-btn, .col-hide-btn, .custom-table-controls, .col-resizer, .row-resizer, .table-width-resizer, .inline-col-actions, .inline-row-actions, .resize-tooltip, .modal-overlay { display: none !important; }
+      .toolbar, .hide-btn, .col-hide-btn, .custom-table-header-bar, .col-resizer, .row-resizer, .table-width-resizer, .resize-tooltip, .modal-overlay { display: none !important; }
       .a4-container { display: none !important; }
       #printBatchContainer { display: block !important; }
       .a4-page {
@@ -844,12 +767,12 @@
         <button class="btn btn-secondary" onclick="closeModals()">✕</button>
       </div>
       <div style="display:flex; gap:8px; margin-bottom:10px;">
-        <button class="btn btn-primary" onclick="selectCheckboxes('.print-dept-cb', 'all')">تحديد الكل</button>
-        <button class="btn btn-secondary" onclick="selectCheckboxes('.print-dept-cb', 'current')">القسم الحالي فقط</button>
-        <button class="btn btn-secondary" onclick="selectCheckboxes('.print-dept-cb', 'none')">إلغاء الكل</button>
+        <button class="btn btn-primary" onclick="selectCheckboxes('all')">تحديد الكل</button>
+        <button class="btn btn-secondary" onclick="selectCheckboxes('current')">القسم الحالي فقط</button>
+        <button class="btn btn-secondary" onclick="selectCheckboxes('none')">إلغاء الكل</button>
       </div>
       <div class="dept-check-grid" id="printDeptList"></div>
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
         <button class="btn btn-secondary" onclick="closeModals()">إلغاء</button>
         <button class="btn btn-primary" onclick="executeBatchPrint()">بدء الطباعة الآن</button>
       </div>
@@ -1259,6 +1182,7 @@
       applyHiddenElements(data.hiddenIds || []);
     }
 
+    /* ١. إضافة وحذف الأعمدة والصفوف مع رسالة تأكيد */
     function insertCustomCol(tIdx, afterColIdx) {
       const t = (store[currentDept].customTables || [])[tIdx];
       if (!t) return;
@@ -1269,6 +1193,7 @@
       t.cols += 1;
       if (!Array.isArray(t.headers)) t.headers = [];
       t.headers.splice(insertPos, 0, '');
+
       t.colWidths = new Array(t.cols).fill('');
 
       (t.rows || []).forEach(row => {
@@ -1324,6 +1249,7 @@
       onUserEdit();
     }
 
+    /* ٢. تغيير حجم الجدول والأعمدة والصفوف بالسحب المباشر */
     function showTooltip(x, y, text) {
       const tip = document.getElementById('resizeTooltip');
       tip.textContent = text;
