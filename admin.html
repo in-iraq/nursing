@@ -22,6 +22,39 @@
       padding-bottom: 40px;
     }
 
+    /* نافذة تسجيل الدخول (كلمة المرور) */
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.92);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .auth-card {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+    .auth-card h3 { margin-bottom: 15px; color: #1e293b; font-family: 'Tajawal', sans-serif; }
+    .auth-card input {
+      width: 100%;
+      padding: 10px;
+      font-size: 22px;
+      text-align: center;
+      letter-spacing: 5px;
+      border: 2px solid #cbd5e1;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      outline: none;
+    }
+    .auth-card input:focus { border-color: #0f766e; }
+
     /* شريط التحكم العلوي */
     .toolbar {
       background: #1e293b;
@@ -220,7 +253,7 @@
 
     .hide-btn {
       position: absolute;
-      top: -26px;
+      top: -24px;
       left: 0;
       background: #ef4444;
       color: #fff;
@@ -239,7 +272,6 @@
       opacity: 1;
     }
 
-    /* شريط تحكم مرتب أعلى كل جدول مخصص (خارج الخلايا) */
     .custom-table-header-bar {
       display: flex;
       justify-content: space-between;
@@ -513,7 +545,7 @@
       @page { size: A4 portrait; margin: 0; }
       @page landscape-page { size: A4 landscape; margin: 0; }
       body { background: #fff; padding: 0; }
-      .toolbar, .hide-btn, .col-hide-btn, .custom-table-header-bar, .col-resizer, .row-resizer, .table-width-resizer, .resize-tooltip, .modal-overlay { display: none !important; }
+      .toolbar, .hide-btn, .col-hide-btn, .custom-table-header-bar, .col-resizer, .row-resizer, .table-width-resizer, .resize-tooltip, .modal-overlay, .auth-overlay { display: none !important; }
       .a4-container { display: none !important; }
       #printBatchContainer { display: block !important; }
       .a4-page {
@@ -531,6 +563,17 @@
   </style>
 </head>
 <body>
+
+  <!-- نافذة إدخال كلمة المرور للأدمن -->
+  <div class="auth-overlay" id="authOverlay">
+    <div class="auth-card">
+      <h3>🔒 لوحة تحكم الأدمن</h3>
+      <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">الرجاء إدخال كلمة المرور (6 خانات)</p>
+      <input type="password" id="adminPassInput" maxlength="6" placeholder="••••••" onkeydown="if(event.key==='Enter') verifyAdminPassword()">
+      <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 10px;" onclick="verifyAdminPassword()">دخول</button>
+      <div id="authError" style="color: #dc2626; font-size: 12px; margin-top: 10px;"></div>
+    </div>
+  </div>
 
   <div class="resize-tooltip" id="resizeTooltip"></div>
 
@@ -767,12 +810,12 @@
         <button class="btn btn-secondary" onclick="closeModals()">✕</button>
       </div>
       <div style="display:flex; gap:8px; margin-bottom:10px;">
-        <button class="btn btn-primary" onclick="selectCheckboxes('all')">تحديد الكل</button>
-        <button class="btn btn-secondary" onclick="selectCheckboxes('current')">القسم الحالي فقط</button>
-        <button class="btn btn-secondary" onclick="selectCheckboxes('none')">إلغاء الكل</button>
+        <button class="btn btn-primary" onclick="selectCheckboxes('.print-dept-cb', 'all')">تحديد الكل</button>
+        <button class="btn btn-secondary" onclick="selectCheckboxes('.print-dept-cb', 'current')">القسم الحالي فقط</button>
+        <button class="btn btn-secondary" onclick="selectCheckboxes('.print-dept-cb', 'none')">إلغاء الكل</button>
       </div>
       <div class="dept-check-grid" id="printDeptList"></div>
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
         <button class="btn btn-secondary" onclick="closeModals()">إلغاء</button>
         <button class="btn btn-primary" onclick="executeBatchPrint()">بدء الطباعة الآن</button>
       </div>
@@ -781,6 +824,44 @@
 
   <script>
     const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbw7rtb4Vessgb-TM3PrI3LaifLurH8tL46vrevfSI5P7dgmf-tsgNTLtf3mbN2CSQ4vvQ/exec";
+    const AUTH_GAS_URL = "https://script.google.com/macros/s/AKfycbyzAg_FeAbgvqzY2icgIX95-FbxdjRc0dXxWkCZuE504GLFGHXtydRzEaWY5xeckBWv/exec";
+
+    async function verifyAdminPassword() {
+      const pass = document.getElementById('adminPassInput').value.trim();
+      const errDiv = document.getElementById('authError');
+      
+      if (pass.length !== 6) {
+        errDiv.textContent = "يجب أن تكون كلمة المرور 6 خانات بالضبط.";
+        return;
+      }
+
+      errDiv.textContent = "جاري التحقق...";
+
+      try {
+        const res = await fetch(AUTH_GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'verifyPassword', password: pass })
+        });
+        const result = await res.json();
+        
+        if (result.status === 'success') {
+          document.getElementById('authOverlay').style.display = 'none';
+          localStorage.setItem('admin_authenticated_v1', 'true');
+        } else {
+          errDiv.textContent = "كلمة المرور غير صحيحة!";
+          document.getElementById('adminPassInput').value = '';
+        }
+      } catch (err) {
+        errDiv.textContent = "تعذر الاتصال بخادم التحقق.";
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('admin_authenticated_v1') === 'true') {
+        document.getElementById('authOverlay').style.display = 'none';
+      }
+    });
 
     const BASE_DEPARTMENTS = [
       "قسم الطوارئ",
@@ -808,10 +889,10 @@
     let hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
     let customTablesStore = JSON.parse(localStorage.getItem('nursing_custom_tables_v1') || '{}');
     let editingCustomTableIdx = null;
-    let copiedTableClipboard = null;
     let autoSaveTimer = null;
     let isTyping = false;
     let isSavingToCloud = false;
+    let copiedTableClipboard = null;
     let isResizing = false;
     let lastEditTimestamp = 0;
 
@@ -1092,7 +1173,7 @@
               <button class="btn btn-secondary btn-sm" onclick="copyCustomTable(${tIdx})" title="نسخ الجدول بالكامل">📋 نسخ</button>
               ${copiedTableClipboard ? `<button class="btn btn-secondary btn-sm" onclick="pasteCustomTable()" title="لصق جدول مخصص">📋 لصق</button>` : ''}
               <button class="btn btn-primary btn-sm" onclick="insertCustomCol(${tIdx}, ${t.cols - 1})">➕ عمود</button>
-              <button class="btn btn-warning btn-sm" onclick="insertCustomRow(${tIdx}, ${(t.rows || []).length - 1})">➕ صف</button>
+              <button class="btn btn-warning btn-sm" onclick="insertCustomRow(${tIdx}, ${t.rows.length - 1})">➕ صف</button>
               <button class="btn btn-danger btn-sm" onclick="deleteCustomTable(${tIdx})">🗑️ حذف</button>
             </div>
           </div>` : '';
@@ -1126,24 +1207,15 @@
     }
 
     function renderDepartment(dept) {
-      hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
-      customTablesStore = JSON.parse(localStorage.getItem('nursing_custom_tables_v1') || '{}');
       const data = store[dept] || getEmptyTemplate(dept);
-      if (hiddenStore[dept] && (!data.hiddenIds || data.hiddenIds.length === 0)) {
-        data.hiddenIds = hiddenStore[dept];
-      }
-      if (customTablesStore[dept] && (!data.customTables || data.customTables.length === 0)) {
-        data.customTables = customTablesStore[dept];
-      }
+      const orientSel = document.getElementById('orientationSelect');
+      if (orientSel) orientSel.value = data.orientation || 'portrait';
 
       const pageEl = document.getElementById('activeA4Page');
       if (pageEl) {
         pageEl.classList.toggle('landscape', data.orientation === 'landscape');
         pageEl.classList.toggle('portrait', data.orientation !== 'landscape');
       }
-
-      const orientSel = document.getElementById('orientationSelect');
-      if (orientSel) orientSel.value = data.orientation || 'portrait';
 
       document.getElementById('sheetMainTitle').textContent = data.mainTitle || "";
       document.getElementById('morningHeader').textContent = data.morningHeader || "";
@@ -1157,65 +1229,20 @@
       const niHead = document.getElementById('nightHeadRow');
       const niBody = document.getElementById('nightBodyRow');
 
-      evHead.innerHTML = '';
-      evBody.innerHTML = '';
-      niHead.innerHTML = '';
-      niBody.innerHTML = '';
+      evHead.innerHTML = ''; evBody.innerHTML = ''; niHead.innerHTML = ''; niBody.innerHTML = '';
 
       const evPeriods = (data.periods && data.periods.length === 6) ? data.periods : [...DEFAULT_PERIODS];
       const niPeriods = (data.nightPeriods && data.nightPeriods.length === 6) ? data.nightPeriods : [...DEFAULT_PERIODS];
 
       for (let i = 0; i < 6; i++) {
-        const thE = document.createElement('th');
-        thE.id = `ev-col-h-${i}`;
-        thE.innerHTML = `<div contenteditable="true" oninput="onDateHeaderEdit('ev', ${i}, this)">${evPeriods[i] || ''}</div>
-                         <button class="col-hide-btn" onclick="toggleHideCol('ev', ${i})">✕ إخفاء</button>`;
-        evHead.appendChild(thE);
-
-        const tdE = document.createElement('td');
-        tdE.id = `ev-col-b-${i}`;
-        tdE.contentEditable = "true";
-        tdE.oninput = onUserEdit;
-        tdE.innerHTML = toLinesArray(data.eveningCols && data.eveningCols[i]).join('<br>');
-        evBody.appendChild(tdE);
-
-        const thN = document.createElement('th');
-        thN.id = `ni-col-h-${i}`;
-        thN.innerHTML = `<div contenteditable="true" oninput="onDateHeaderEdit('ni', ${i}, this)">${niPeriods[i] || ''}</div>
-                         <button class="col-hide-btn" onclick="toggleHideCol('ni', ${i})">✕ إخفاء</button>`;
-        niHead.appendChild(thN);
-
-        const tdN = document.createElement('td');
-        tdN.id = `ni-col-b-${i}`;
-        tdN.contentEditable = "true";
-        tdN.oninput = onUserEdit;
-        tdN.innerHTML = toLinesArray(data.nightCols && data.nightCols[i]).join('<br>');
-        niBody.appendChild(tdN);
+        const thE = document.createElement('th'); thE.textContent = evPeriods[i] || ''; evHead.appendChild(thE);
+        const tdE = document.createElement('td'); tdE.innerHTML = toLinesArray(data.eveningCols[i]).join('<br>'); evBody.appendChild(tdE);
+        const thN = document.createElement('th'); thN.textContent = niPeriods[i] || ''; niHead.appendChild(thN);
+        const tdN = document.createElement('td'); tdN.innerHTML = toLinesArray(data.nightCols[i]).join('<br>'); niBody.appendChild(tdN);
       }
 
       document.getElementById('customTablesContainer').innerHTML = buildCustomTablesHTML(data.customTables || [], true);
       applyHiddenElements(data.hiddenIds || []);
-    }
-
-    function copyCustomTable(tIdx) {
-      const t = (store[currentDept].customTables || [])[tIdx];
-      if (!t) return;
-      copiedTableClipboard = JSON.parse(JSON.stringify(t));
-      renderDepartment(currentDept);
-      alert(`تم نسخ الجدول (${t.title || 'بدون عنوان'}) بنجاح!`);
-    }
-
-    function pasteCustomTable() {
-      if (!copiedTableClipboard) return alert('لا يوجد جدول منسوخ في الذاكرة المؤقتة.');
-      const data = store[currentDept];
-      if (!Array.isArray(data.customTables)) data.customTables = [];
-      const newT = JSON.parse(JSON.stringify(copiedTableClipboard));
-      newT.id = 'ct-' + Date.now();
-      if (newT.title) newT.title += ' (نسخة)';
-      data.customTables.push(newT);
-      renderDepartment(currentDept);
-      onUserEdit();
-      alert('تم لصق الجدول بنجاح!');
     }
 
     function insertCustomCol(tIdx, afterColIdx) {
@@ -1551,11 +1578,25 @@
       onUserEdit();
     }
 
-    function deleteCustomTable(tIdx) {
-      if (!confirm('هل تريد حذف هذا الجدول الإضافي بالكامل؟')) return;
-      store[currentDept].customTables.splice(tIdx, 1);
+    function copyCustomTable(tIdx) {
+      const t = (store[currentDept].customTables || [])[tIdx];
+      if (!t) return;
+      copiedTableClipboard = JSON.parse(JSON.stringify(t));
+      renderDepartment(currentDept);
+      alert(`تم نسخ الجدول (${t.title || 'بدون عنوان'}) بنجاح!`);
+    }
+
+    function pasteCustomTable() {
+      if (!copiedTableClipboard) return alert('لا يوجد جدول منسوخ في الذاكرة المؤقتة.');
+      const data = store[currentDept];
+      if (!Array.isArray(data.customTables)) data.customTables = [];
+      const newT = JSON.parse(JSON.stringify(copiedTableClipboard));
+      newT.id = 'ct-' + Date.now();
+      if (newT.title) newT.title += ' (نسخة)';
+      data.customTables.push(newT);
       renderDepartment(currentDept);
       onUserEdit();
+      alert('تم لصق الجدول بنجاح!');
     }
 
     function onCustomTitleEdit(tIdx, el) {
@@ -1617,14 +1658,14 @@
     function saveCurrentState(triggerCloud = true) {
       const data = store[currentDept];
       if (!data) return;
+      const orientSel = document.getElementById('orientationSelect');
+      if (orientSel) data.orientation = orientSel.value;
       data.mainTitle = document.getElementById('sheetMainTitle').innerText.trim();
       data.morningHeader = document.getElementById('morningHeader').innerText.trim();
       data.morningNames = htmlToLines(document.getElementById('morningBody'));
       data.eveningTitle = document.getElementById('eveningTitle').innerText.trim();
       data.nightTitle = document.getElementById('nightTitle').innerText.trim();
       data.signature = htmlToLines(document.getElementById('signatureText')).join('\n').split('<!--META:')[0].split('<!--HIDDEN:')[0].trim();
-      const orientSel = document.getElementById('orientationSelect');
-      if (orientSel) data.orientation = orientSel.value;
 
       if (!Array.isArray(data.periods)) data.periods = [...DEFAULT_PERIODS];
       if (!Array.isArray(data.nightPeriods)) data.nightPeriods = [...DEFAULT_PERIODS];
@@ -1757,6 +1798,7 @@
           DEPARTMENTS.forEach(appDept => {
             const matchedKey = sheetKeys.find(k => normalizeArabic(k) === normalizeArabic(appDept));
             if (matchedKey && rawDepts[matchedKey]) {
+              sheetTabNameMap[appDept] = matchedKey;
               const normalizedData = normalizeDeptObject(rawDepts[matchedKey], appDept);
               if (JSON.stringify(store[appDept]) !== JSON.stringify(normalizedData)) {
                 store[appDept] = normalizedData;
@@ -1888,18 +1930,19 @@
 
       selected.forEach(dept => {
         const d = store[dept] || getEmptyTemplate(dept);
+        const hiddenIds = d.hiddenIds || [];
         const page = document.createElement('div');
         page.className = `a4-page ${d.orientation === 'landscape' ? 'landscape' : 'portrait'}`;
         page.innerHTML = `
           <div class="page-title">${d.mainTitle || ''}</div>
-          ${!d.hiddenIds.includes('sec-morning') ? `
+          ${!hiddenIds.includes('sec-morning') ? `
           <div class="section-wrapper">
             <table class="morning-table">
               <thead><tr><th>${d.morningHeader}</th></tr></thead>
               <tbody><tr><td>${toLinesArray(d.morningNames).join('<br>')}</td></tr></tbody>
             </table>
           </div>` : ''}
-          ${!d.hiddenIds.includes('sec-evening') ? `
+          ${!hiddenIds.includes('sec-evening') ? `
           <div class="section-wrapper">
             <div class="section-heading">${d.eveningTitle}</div>
             <table>
@@ -1907,7 +1950,7 @@
               <tbody><tr>${d.eveningCols.map((c, i) => hiddenIds.includes(`ev-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
-          ${!d.hiddenIds.includes('sec-night') ? `
+          ${!hiddenIds.includes('sec-night') ? `
           <div class="section-wrapper">
             <div class="section-heading">${d.nightTitle}</div>
             <table>
@@ -1916,7 +1959,7 @@
             </table>
           </div>` : ''}
           ${buildCustomTablesHTML(d.customTables || [], false)}
-          ${!d.hiddenIds.includes('sec-signature') ? `
+          ${!hiddenIds.includes('sec-signature') ? `
           <div class="signature-box">
             <div class="signature-content">${String(d.signature || '').replace(/\r?\n/g, '<br>')}</div>
           </div>` : ''}
