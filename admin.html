@@ -632,6 +632,7 @@
         <button class="btn btn-warning" onclick="showAllHiddenFields()">👁️ إظهار المخفي</button>
         <button class="btn btn-danger" onclick="openClearModal()">🗑️ تفريغ الأسماء</button>
         <button class="btn btn-primary" onclick="openPrintModal()">🖨️ طباعة (A4)</button>
+        <button class="btn btn-warning" onclick="openChangePassModal()">🔑 تغيير الرمز</button>
         <button class="btn btn-secondary" onclick="logoutAdmin()">🚪 خروج</button>
       </div>
     </div>
@@ -709,6 +710,33 @@
 
   <!-- حاوية الطباعة المتعددة -->
   <div id="printBatchContainer"></div>
+
+  <!-- نافذة تغيير كلمة المرور -->
+  <div class="modal-overlay" id="changePassModal" onclick="if(event.target === this) closeModals()">
+    <div class="modal-card" style="max-width: 400px;">
+      <div class="modal-header">
+        <span>🔑 تغيير كلمة المرور</span>
+        <button class="btn btn-secondary" onclick="closeModals()">✕</button>
+      </div>
+      <div class="form-group" style="margin-bottom: 12px;">
+        <label>كلمة المرور القديمة:</label>
+        <input type="password" id="oldPassInput" maxlength="6" placeholder="••••••" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:16px; text-align:center;">
+      </div>
+      <div class="form-group" style="margin-bottom: 12px;">
+        <label>كلمة المرور الجديدة (6 خانات):</label>
+        <input type="password" id="newPassInput" maxlength="6" placeholder="••••••" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:16px; text-align:center;">
+      </div>
+      <div class="form-group" style="margin-bottom: 14px;">
+        <label>تأكيد كلمة المرور الجديدة:</label>
+        <input type="password" id="confirmPassInput" maxlength="6" placeholder="••••••" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:16px; text-align:center;">
+      </div>
+      <div id="changePassMsg" style="font-size: 13px; margin-bottom: 12px; text-align: center; font-weight: bold;"></div>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn btn-secondary" onclick="closeModals()">إلغاء</button>
+        <button class="btn btn-primary" onclick="submitChangePassword()">تحديث الرمز</button>
+      </div>
+    </div>
+  </div>
 
   <!-- نافذة إضافة / تخصيص جدول جديد -->
   <div class="modal-overlay" id="customTableModal" onclick="if(event.target === this) closeModals()">
@@ -826,7 +854,7 @@
 
   <script>
     const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbw7rtb4Vessgb-TM3PrI3LaifLurH8tL46vrevfSI5P7dgmf-tsgNTLtf3mbN2CSQ4vvQ/exec";
-    const AUTH_GAS_URL = "https://script.google.com/macros/s/AKfycbyzAg_FeAbgvqzY2icgIX95-FbxdjRc0dXxWkCZuE504GLFGHXtydRzEaWY5xeckBWv/exec";
+    const AUTH_GAS_URL = "https://script.google.com/macros/s/AKfycbx8F6MAcDZ8VZaKBjSCsRfyPxT1zDiOs3yjBP4OQTbNYkMFtVnt7wKduApS/exec";
 
     async function verifyAdminPassword() {
       const pass = document.getElementById('adminPassInput').value.trim();
@@ -863,6 +891,71 @@
       if (confirm('هل أنت متأكد من تسجيل الخروج من لوحة الأدمن؟')) {
         localStorage.removeItem('admin_authenticated_v1');
         location.reload();
+      }
+    }
+
+    function openChangePassModal() {
+      document.getElementById('oldPassInput').value = '';
+      document.getElementById('newPassInput').value = '';
+      document.getElementById('confirmPassInput').value = '';
+      document.getElementById('changePassMsg').textContent = '';
+      document.getElementById('changePassModal').classList.add('active');
+    }
+
+    async function submitChangePassword() {
+      const oldPass = document.getElementById('oldPassInput').value.trim();
+      const newPass = document.getElementById('newPassInput').value.trim();
+      const confirmPass = document.getElementById('confirmPassInput').value.trim();
+      const msgDiv = document.getElementById('changePassMsg');
+
+      if (!oldPass || !newPass || !confirmPass) {
+        msgDiv.style.color = '#dc2626';
+        msgDiv.textContent = 'الرجاء ملء كافة الحقول.';
+        return;
+      }
+
+      if (newPass.length !== 6) {
+        msgDiv.style.color = '#dc2626';
+        msgDiv.textContent = 'يجب أن تكون كلمة المرور الجديدة 6 خانات بالضبط.';
+        return;
+      }
+
+      if (newPass !== confirmPass) {
+        msgDiv.style.color = '#dc2626';
+        msgDiv.textContent = 'كلمة المرور الجديدة غير متطابقة.';
+        return;
+      }
+
+      msgDiv.style.color = '#0284c7';
+      msgDiv.textContent = 'جاري تحديث كلمة المرور...';
+
+      try {
+        const res = await fetch(AUTH_GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'changePasswordWithOld',
+            oldPassword: oldPass,
+            newPassword: newPass
+          })
+        });
+        const result = await res.json();
+
+        if (result.status === 'success') {
+          msgDiv.style.color = '#16a34a';
+          msgDiv.textContent = result.message;
+          setTimeout(() => {
+            closeModals();
+            alert('تم تغيير كلمة المرور بنجاح. يرجى تسجيل الدخول بالرمز الجديد.');
+            logoutAdmin();
+          }, 1200);
+        } else {
+          msgDiv.style.color = '#dc2626';
+          msgDiv.textContent = result.message;
+        }
+      } catch (err) {
+        msgDiv.style.color = '#dc2626';
+        msgDiv.textContent = 'تعذر الاتصال بالخادم.';
       }
     }
 
