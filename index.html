@@ -23,7 +23,6 @@
       overflow-x: hidden;
     }
 
-    /* شريط علوي متجاوب للحاسبة والآيباد والهاتف */
     .toolbar {
       background: #1e293b;
       color: #fff;
@@ -94,7 +93,6 @@
     .btn-secondary:hover { background: #64748b; }
     .btn-mode { background: #0284c7; color: #fff; display: none; }
 
-    /* أزرار التنقل السريع بين الأقسام - قابلة للسحب أفقياً في الهاتف */
     .dept-pills {
       display: flex;
       flex-wrap: wrap;
@@ -126,7 +124,6 @@
       border-color: #14b8a6;
     }
 
-    /* حاوية ورقة A4 مع تحجيم تلقائي ذكي لجميع الشاشات */
     .a4-container {
       display: flex;
       justify-content: center;
@@ -165,6 +162,7 @@
       font-size: 22px;
       font-weight: bold;
       margin-bottom: 14px;
+      min-height: 28px;
     }
 
     .section-wrapper {
@@ -199,6 +197,12 @@
       height: 120px;
     }
 
+    .custom-table td {
+      min-height: auto;
+      height: auto;
+      vertical-align: middle;
+    }
+
     .morning-table {
       width: 58%;
       margin: 0 auto;
@@ -209,6 +213,7 @@
       font-size: 20px;
       font-weight: bold;
       margin: 10px 0 8px;
+      min-height: 26px;
     }
 
     .signature-box {
@@ -233,7 +238,6 @@
       display: none !important;
     }
 
-    /* نافذة تحديد الأقسام للطباعة */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -291,13 +295,11 @@
       font-size: 14px;
     }
 
-    /* توافق خاص مع الآيباد والأجهزة اللوحية (Tablet / iPad) */
     @media screen and (max-width: 1024px) {
       .btn-mode { display: inline-flex; }
       .a4-container { padding: 16px 6px; }
     }
 
-    /* توافق خاص مع الهواتف الذكية (Mobile) */
     @media screen and (max-width: 640px) {
       .toolbar { padding: 10px 12px; }
       .toolbar-row {
@@ -321,7 +323,6 @@
         padding: 9px 10px;
         font-size: 12.5px;
       }
-      /* شريط أقسام قابل للسحب باللمس في الهاتف دون أخذ مساحة عمودية كبيرة */
       .dept-pills {
         flex-wrap: nowrap;
         overflow-x: auto;
@@ -357,7 +358,6 @@
 </head>
 <body>
 
-  <!-- شريط علوي متجاوب للحاسبة والآيباد والهاتف -->
   <header class="toolbar">
     <div class="toolbar-row">
       <div class="controls-group">
@@ -376,7 +376,6 @@
     <div class="dept-pills" id="deptPills"></div>
   </header>
 
-  <!-- منطقة عرض ورقة A4 مع تحجيم ذكي متوافق مع الهاتف والآيباد والحاسبة -->
   <main class="a4-container" id="a4Container">
     <div class="a4-scale-wrapper" id="a4ScaleWrapper">
       <div class="a4-page" id="activeA4Page">
@@ -424,6 +423,9 @@
           </table>
         </div>
 
+        <!-- الجداول المخصصة الإضافية -->
+        <div id="customTablesContainer"></div>
+
         <!-- التوقيع -->
         <div class="section-wrapper signature-box" id="sec-signature">
           <div class="signature-content" id="signatureText"></div>
@@ -432,10 +434,8 @@
     </div>
   </main>
 
-  <!-- حاوية الطباعة المتعددة -->
   <div id="printBatchContainer"></div>
 
-  <!-- نافذة تحديد الأقسام للطباعة -->
   <div class="modal-overlay" id="printModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -458,7 +458,7 @@
   <script>
     const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbw7rtb4Vessgb-TM3PrI3LaifLurH8tL46vrevfSI5P7dgmf-tsgNTLtf3mbN2CSQ4vvQ/exec";
 
-    const DEPARTMENTS = [
+    const BASE_DEPARTMENTS = [
       "قسم الطوارئ",
       "الانعاش القلبي",
       "الانعاش الجراحي",
@@ -475,14 +475,15 @@
       "القسطرة القلبية"
     ];
 
-    // لا توجد أي تواريخ مضمنة في الكود؛ تُستورد التواريخ حصرياً كما هي محفوظة ومعدلة في الشيت
+    let DEPARTMENTS = JSON.parse(localStorage.getItem('nursing_departments_list_v1') || 'null') || [...BASE_DEPARTMENTS];
     const DEFAULT_PERIODS = ["", "", "", "", "", ""];
 
     let currentDept = DEPARTMENTS[0];
     let currentMonth = "تشرين الثاني";
     let store = {};
     let hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
-    let fitToScreenMode = true; // افتراضياً: تحجيم الورقة لتناسب عرض الهاتف أو الآيباد بالكامل
+    let customTablesStore = JSON.parse(localStorage.getItem('nursing_custom_tables_v1') || '{}');
+    let fitToScreenMode = true;
 
     function getEmptyTemplate(deptName = "") {
       return {
@@ -496,17 +497,17 @@
         eveningCols: [[], [], [], [], [], []],
         nightCols: [[], [], [], [], [], []],
         signature: "",
-        hiddenIds: hiddenStore[deptName] || []
+        hiddenIds: hiddenStore[deptName] || [],
+        customTables: customTablesStore[deptName] || []
       };
     }
 
-    // دالة تحجيم ذكية تجعل ورقة A4 متناسقة تماماً على شاشة الحاسبة والآيباد والهاتف
     function adjustResponsiveA4Scale() {
       const page = document.getElementById('activeA4Page');
       const wrapper = document.getElementById('a4ScaleWrapper');
       if (!page || !wrapper) return;
 
-      const a4WidthPx = 794; // 210mm بالبيكسل
+      const a4WidthPx = 794;
       const availableWidth = window.innerWidth - 20;
 
       if (fitToScreenMode && availableWidth < a4WidthPx) {
@@ -545,6 +546,31 @@
       return String(val).split(/\r?\n/).map(s => s.trim()).filter(Boolean);
     }
 
+    function parseMetadataFromSignature(rawSig) {
+      let sig = String(rawSig || "");
+      let parsedHidden = null;
+      let parsedTables = null;
+
+      if (sig.includes("<!--META:")) {
+        const parts = sig.split("<!--META:");
+        sig = parts[0].trim();
+        try {
+          const meta = JSON.parse(parts[1].replace("-->", "").trim());
+          if (Array.isArray(meta.hiddenIds)) parsedHidden = meta.hiddenIds;
+          if (Array.isArray(meta.customTables)) parsedTables = meta.customTables;
+        } catch (e) {}
+      } else if (sig.includes("<!--HIDDEN:")) {
+        const parts = sig.split("<!--HIDDEN:");
+        sig = parts[0].trim();
+        try {
+          const h = JSON.parse(parts[1].replace("-->", "").trim());
+          if (Array.isArray(h)) parsedHidden = h;
+        } catch (e) {}
+      }
+
+      return { cleanSig: sig, parsedHidden, parsedTables };
+    }
+
     function normalizeDeptObject(raw, deptName) {
       const base = getEmptyTemplate(deptName);
       if (!raw || typeof raw !== 'object') return base;
@@ -555,24 +581,28 @@
       base.eveningTitle = raw.eveningTitle !== undefined && raw.eveningTitle !== null ? String(raw.eveningTitle).trim() : "";
       base.nightTitle = raw.nightTitle !== undefined && raw.nightTitle !== null ? String(raw.nightTitle).trim() : "";
 
-      let rawSig = Array.isArray(raw.signature) ? raw.signature.join('\n') : String(raw.signature || "").trim();
-      let cloudHidden = Array.isArray(raw.hiddenIds) ? raw.hiddenIds : null;
+      const rawSigInput = Array.isArray(raw.signature) ? raw.signature.join('\n') : String(raw.signature || "").trim();
+      const { cleanSig, parsedHidden, parsedTables } = parseMetadataFromSignature(rawSigInput);
+      base.signature = cleanSig;
 
-      if (rawSig.includes("<!--HIDDEN:")) {
-        const parts = rawSig.split("<!--HIDDEN:");
-        rawSig = parts[0].trim();
-        try {
-          cloudHidden = JSON.parse(parts[1].replace("-->", "").trim());
-        } catch (e) {}
-      }
-
-      base.signature = rawSig;
-      if (cloudHidden && Array.isArray(cloudHidden)) {
-        base.hiddenIds = cloudHidden;
-        hiddenStore[deptName] = cloudHidden;
+      if (parsedHidden) {
+        base.hiddenIds = parsedHidden;
+        hiddenStore[deptName] = parsedHidden;
         localStorage.setItem('nursing_hidden_fields_v1', JSON.stringify(hiddenStore));
+      } else if (Array.isArray(raw.hiddenIds)) {
+        base.hiddenIds = raw.hiddenIds;
       } else {
         base.hiddenIds = hiddenStore[deptName] || [];
+      }
+
+      if (parsedTables) {
+        base.customTables = parsedTables;
+        customTablesStore[deptName] = parsedTables;
+        localStorage.setItem('nursing_custom_tables_v1', JSON.stringify(customTablesStore));
+      } else if (Array.isArray(raw.customTables)) {
+        base.customTables = raw.customTables;
+      } else {
+        base.customTables = customTablesStore[deptName] || [];
       }
 
       if (Array.isArray(raw.periods)) {
@@ -601,19 +631,17 @@
       return base;
     }
 
-    async function initApp() {
+    function renderDepartmentControls() {
       const select = document.getElementById('deptSelect');
       const pills = document.getElementById('deptPills');
       select.innerHTML = '';
       pills.innerHTML = '';
 
-      const cachedStore = JSON.parse(localStorage.getItem('nursing_cloud_cache_v5') || '{}');
       DEPARTMENTS.forEach((dept) => {
-        store[dept] = cachedStore[dept] ? normalizeDeptObject(cachedStore[dept], dept) : getEmptyTemplate(dept);
-
         const opt = document.createElement('option');
         opt.value = dept;
         opt.textContent = dept;
+        if (dept === currentDept) opt.selected = true;
         select.appendChild(opt);
 
         const pill = document.createElement('button');
@@ -622,18 +650,70 @@
         pill.onclick = () => switchDepartment(dept);
         pills.appendChild(pill);
       });
+    }
 
+    function buildCustomTablesHTML(tablesList) {
+      if (!Array.isArray(tablesList) || tablesList.length === 0) return '';
+      return tablesList.map((t) => {
+        const marginStyle = t.align === 'right' ? 'margin: 0 0 0 auto;' : (t.align === 'left' ? 'margin: 0 auto 0 0;' : 'margin: 0 auto;');
+        const colGroupHTML = `<colgroup>${(t.colWidths || []).map(w => `<col style="width:${w ? w + '%' : 'auto'}">`).join('')}</colgroup>`;
+
+        let theadHTML = '';
+        if (t.hasHeader !== false) {
+          const ths = (t.headers || []).map(h =>
+            `<th style="height:${t.headerHeight || 34}px; font-size:${t.fontSize || 15}px;">${h || ''}</th>`
+          ).join('');
+          theadHTML = `<thead><tr>${ths}</tr></thead>`;
+        }
+
+        const trs = (t.rows || []).map(row => {
+          const tds = row.map(cell =>
+            `<td style="height:${t.rowHeight || 42}px; font-size:${t.fontSize || 15}px;">${String(cell || '').replace(/\r?\n/g, '<br>')}</td>`
+          ).join('');
+          return `<tr>${tds}</tr>`;
+        }).join('');
+
+        const titleHTML = t.title ? `<div class="section-heading" style="font-size:${(Number(t.fontSize) || 15) + 4}px;">${t.title}</div>` : '';
+
+        return `
+          <div class="section-wrapper">
+            ${titleHTML}
+            <table class="custom-table" style="width:${t.tableWidth || 100}%; ${marginStyle}">
+              ${colGroupHTML}
+              ${theadHTML}
+              <tbody>${trs}</tbody>
+            </table>
+          </div>`;
+      }).join('');
+    }
+
+    async function initApp() {
+      const cachedStore = JSON.parse(localStorage.getItem('nursing_cloud_cache_v6') || '{}');
+      DEPARTMENTS.forEach((dept) => {
+        store[dept] = cachedStore[dept] ? normalizeDeptObject(cachedStore[dept], dept) : getEmptyTemplate(dept);
+      });
+
+      renderDepartmentControls();
       renderDepartment(currentDept);
       window.addEventListener('resize', adjustResponsiveA4Scale);
 
       window.addEventListener('storage', (e) => {
-        if (e.key === 'nursing_hidden_fields_v1') {
+        if (e.key === 'nursing_departments_list_v1' && e.newValue) {
+          DEPARTMENTS = JSON.parse(e.newValue);
+          renderDepartmentControls();
+        } else if (e.key === 'nursing_hidden_fields_v1') {
           hiddenStore = JSON.parse(e.newValue || '{}');
           DEPARTMENTS.forEach(d => {
             if (store[d]) store[d].hiddenIds = hiddenStore[d] || [];
           });
           renderDepartment(currentDept);
-        } else if (e.key === 'nursing_cloud_cache_v5' && e.newValue) {
+        } else if (e.key === 'nursing_custom_tables_v1') {
+          customTablesStore = JSON.parse(e.newValue || '{}');
+          DEPARTMENTS.forEach(d => {
+            if (store[d]) store[d].customTables = customTablesStore[d] || [];
+          });
+          renderDepartment(currentDept);
+        } else if (e.key === 'nursing_cloud_cache_v6' && e.newValue) {
           const updatedCache = JSON.parse(e.newValue || '{}');
           DEPARTMENTS.forEach(d => {
             if (updatedCache[d]) store[d] = normalizeDeptObject(updatedCache[d], d);
@@ -648,11 +728,9 @@
 
     function switchDepartment(dept) {
       currentDept = dept;
-      document.getElementById('deptSelect').value = dept;
+      renderDepartmentControls();
       document.querySelectorAll('.dept-pill').forEach(btn => {
-        const isActive = btn.textContent === dept;
-        btn.classList.toggle('active', isActive);
-        if (isActive && window.innerWidth <= 640) {
+        if (btn.textContent === dept && window.innerWidth <= 640) {
           btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
         }
       });
@@ -669,9 +747,13 @@
 
     function renderDepartment(dept) {
       hiddenStore = JSON.parse(localStorage.getItem('nursing_hidden_fields_v1') || '{}');
+      customTablesStore = JSON.parse(localStorage.getItem('nursing_custom_tables_v1') || '{}');
       const data = store[dept] || getEmptyTemplate(dept);
       if (hiddenStore[dept] && (!data.hiddenIds || data.hiddenIds.length === 0)) {
         data.hiddenIds = hiddenStore[dept];
+      }
+      if (customTablesStore[dept] && (!data.customTables || data.customTables.length === 0)) {
+        data.customTables = customTablesStore[dept];
       }
 
       document.getElementById('sheetMainTitle').textContent = data.mainTitle || "";
@@ -716,6 +798,7 @@
         niBody.appendChild(tdN);
       }
 
+      document.getElementById('customTablesContainer').innerHTML = buildCustomTablesHTML(data.customTables || []);
       applyHiddenElements(data.hiddenIds || []);
       setTimeout(adjustResponsiveA4Scale, 20);
     }
@@ -738,6 +821,20 @@
 
           const sheetKeys = Object.keys(rawDepts);
           let hasChanges = false;
+          let deptListChanged = false;
+
+          sheetKeys.forEach(sKey => {
+            const exists = DEPARTMENTS.some(d => normalizeArabic(d) === normalizeArabic(sKey));
+            if (!exists && sKey.trim()) {
+              DEPARTMENTS.push(sKey.trim());
+              deptListChanged = true;
+            }
+          });
+
+          if (deptListChanged) {
+            localStorage.setItem('nursing_departments_list_v1', JSON.stringify(DEPARTMENTS));
+            renderDepartmentControls();
+          }
 
           DEPARTMENTS.forEach(appDept => {
             const matchedKey = sheetKeys.find(k => normalizeArabic(k) === normalizeArabic(appDept));
@@ -750,7 +847,7 @@
             }
           });
 
-          localStorage.setItem('nursing_cloud_cache_v5', JSON.stringify(store));
+          localStorage.setItem('nursing_cloud_cache_v6', JSON.stringify(store));
           if (forceRender || hasChanges) {
             renderDepartment(currentDept);
           }
@@ -792,35 +889,35 @@
 
       selected.forEach(dept => {
         const d = store[dept] || getEmptyTemplate(dept);
-        const hiddenIds = d.hiddenIds || hiddenStore[dept] || [];
         const page = document.createElement('div');
         page.className = 'a4-page';
         page.innerHTML = `
           <div class="page-title">${d.mainTitle || ''}</div>
-          ${!hiddenIds.includes('sec-morning') ? `
+          ${!d.hiddenIds.includes('sec-morning') ? `
           <div class="section-wrapper">
             <table class="morning-table">
               <thead><tr><th>${d.morningHeader}</th></tr></thead>
               <tbody><tr><td>${toLinesArray(d.morningNames).join('<br>')}</td></tr></tbody>
             </table>
           </div>` : ''}
-          ${!hiddenIds.includes('sec-evening') ? `
+          ${!d.hiddenIds.includes('sec-evening') ? `
           <div class="section-wrapper">
             <div class="section-heading">${d.eveningTitle}</div>
             <table>
-              <thead><tr>${d.periods.map((p, i) => hiddenIds.includes(`ev-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
-              <tbody><tr>${d.eveningCols.map((c, i) => hiddenIds.includes(`ev-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
+              <thead><tr>${d.periods.map((p, i) => d.hiddenIds.includes(`ev-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
+              <tbody><tr>${d.eveningCols.map((c, i) => d.hiddenIds.includes(`ev-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
-          ${!hiddenIds.includes('sec-night') ? `
+          ${!d.hiddenIds.includes('sec-night') ? `
           <div class="section-wrapper">
             <div class="section-heading">${d.nightTitle}</div>
             <table>
-              <thead><tr>${((d.nightPeriods && d.nightPeriods.length === 6) ? d.nightPeriods : DEFAULT_PERIODS).map((p, i) => hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
-              <tbody><tr>${d.nightCols.map((c, i) => hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
+              <thead><tr>${((d.nightPeriods && d.nightPeriods.length === 6) ? d.nightPeriods : DEFAULT_PERIODS).map((p, i) => d.hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
+              <tbody><tr>${d.nightCols.map((c, i) => d.hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
-          ${!hiddenIds.includes('sec-signature') ? `
+          ${buildCustomTablesHTML(d.customTables || [])}
+          ${!d.hiddenIds.includes('sec-signature') ? `
           <div class="signature-box">
             <div class="signature-content">${String(d.signature || '').replace(/\r?\n/g, '<br>')}</div>
           </div>` : ''}
