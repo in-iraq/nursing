@@ -167,7 +167,7 @@
       text-align: center;
       font-size: 22px;
       font-weight: bold;
-      margin-bottom: 14px;
+      margin-bottom: 14mm;
       min-height: 28px;
     }
 
@@ -345,22 +345,27 @@
     #printBatchContainer { display: none; }
 
     @media print {
-      @page { size: A4 portrait; margin: 0; }
+      @page portrait-page { size: A4 portrait; margin: 0; }
       @page landscape-page { size: A4 landscape; margin: 0; }
       body { background: #fff; padding: 0; overflow: visible !important; }
       .toolbar, .modal-overlay { display: none !important; }
       .a4-container { display: none !important; }
       #printBatchContainer { display: block !important; }
+      
       .a4-page {
         box-shadow: none !important;
-        width: 210mm !important;
-        height: 297mm !important;
         transform: none !important;
         margin: 0 !important;
         page-break-after: always;
         break-after: page;
       }
+      .a4-page.portrait {
+        size: A4 portrait;
+        width: 210mm !important;
+        height: 297mm !important;
+      }
       .a4-page.landscape {
+        size: A4 landscape;
         width: 297mm !important;
         height: 210mm !important;
       }
@@ -694,6 +699,7 @@
       currentDept = dept;
       renderDepartmentControls();
       renderDepartment(dept);
+      pullFromGoogleSheets(false);
     }
 
     function applyHiddenElements(hiddenIds) {
@@ -847,7 +853,7 @@
               <tbody><tr>${d.nightCols.map((c, i) => hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
-          ${buildCustomTablesHTML(d.customTables || [])}
+          ${buildCustomTablesHTML(d.customTables || [], false)}
           ${!hiddenIds.includes('sec-signature') ? `
           <div class="signature-box">
             <div class="signature-content">${String(d.signature || '').replace(/\r?\n/g, '<br>')}</div>
