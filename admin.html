@@ -146,6 +146,7 @@
     .btn-danger { background: #dc2626; color: #fff; }
     .btn-danger:hover { background: #b91c1c; }
     .btn-secondary { background: #475569; color: #fff; }
+    .btn-secondary:hover { background: #64748b; }
     .btn-sm { padding: 4px 8px; font-size: 11px; }
 
     /* أزرار التنقل السريع بين الأقسام + حقل إضافة قسم جديد */
@@ -631,6 +632,7 @@
         <button class="btn btn-warning" onclick="showAllHiddenFields()">👁️ إظهار المخفي</button>
         <button class="btn btn-danger" onclick="openClearModal()">🗑️ تفريغ الأسماء</button>
         <button class="btn btn-primary" onclick="openPrintModal()">🖨️ طباعة (A4)</button>
+        <button class="btn btn-secondary" onclick="logoutAdmin()">🚪 خروج</button>
       </div>
     </div>
 
@@ -854,6 +856,13 @@
         }
       } catch (err) {
         errDiv.textContent = "تعذر الاتصال بخادم التحقق.";
+      }
+    }
+
+    function logoutAdmin() {
+      if (confirm('هل أنت متأكد من تسجيل الخروج من لوحة الأدمن؟')) {
+        localStorage.removeItem('admin_authenticated_v1');
+        location.reload();
       }
     }
 
@@ -1216,7 +1225,6 @@
         pageEl.classList.toggle('landscape', data.orientation === 'landscape');
         pageEl.classList.toggle('portrait', data.orientation !== 'landscape');
       }
-
       document.getElementById('sheetMainTitle').textContent = data.mainTitle || "";
       document.getElementById('morningHeader').textContent = data.morningHeader || "";
       document.getElementById('morningBody').innerHTML = toLinesArray(data.morningNames).join('<br>');
@@ -1229,20 +1237,65 @@
       const niHead = document.getElementById('nightHeadRow');
       const niBody = document.getElementById('nightBodyRow');
 
-      evHead.innerHTML = ''; evBody.innerHTML = ''; niHead.innerHTML = ''; niBody.innerHTML = '';
+      evHead.innerHTML = '';
+      evBody.innerHTML = '';
+      niHead.innerHTML = '';
+      niBody.innerHTML = '';
 
       const evPeriods = (data.periods && data.periods.length === 6) ? data.periods : [...DEFAULT_PERIODS];
       const niPeriods = (data.nightPeriods && data.nightPeriods.length === 6) ? data.nightPeriods : [...DEFAULT_PERIODS];
 
       for (let i = 0; i < 6; i++) {
-        const thE = document.createElement('th'); thE.textContent = evPeriods[i] || ''; evHead.appendChild(thE);
-        const tdE = document.createElement('td'); tdE.innerHTML = toLinesArray(data.eveningCols[i]).join('<br>'); evBody.appendChild(tdE);
-        const thN = document.createElement('th'); thN.textContent = niPeriods[i] || ''; niHead.appendChild(thN);
-        const tdN = document.createElement('td'); tdN.innerHTML = toLinesArray(data.nightCols[i]).join('<br>'); niBody.appendChild(tdN);
+        const thE = document.createElement('th');
+        thE.id = `ev-col-h-${i}`;
+        thE.innerHTML = `<div contenteditable="true" oninput="onDateHeaderEdit('ev', ${i}, this)">${evPeriods[i] || ''}</div>
+                         <button class="col-hide-btn" onclick="toggleHideCol('ev', ${i})">✕ إخفاء</button>`;
+        evHead.appendChild(thE);
+
+        const tdE = document.createElement('td');
+        tdE.id = `ev-col-b-${i}`;
+        tdE.contentEditable = "true";
+        tdE.oninput = onUserEdit;
+        tdE.innerHTML = toLinesArray(data.eveningCols && data.eveningCols[i]).join('<br>');
+        evBody.appendChild(tdE);
+
+        const thN = document.createElement('th');
+        thN.id = `ni-col-h-${i}`;
+        thN.innerHTML = `<div contenteditable="true" oninput="onDateHeaderEdit('ni', ${i}, this)">${niPeriods[i] || ''}</div>
+                         <button class="col-hide-btn" onclick="toggleHideCol('ni', ${i})">✕ إخفاء</button>`;
+        niHead.appendChild(thN);
+
+        const tdN = document.createElement('td');
+        tdN.id = `ni-col-b-${i}`;
+        tdN.contentEditable = "true";
+        tdN.oninput = onUserEdit;
+        tdN.innerHTML = toLinesArray(data.nightCols && data.nightCols[i]).join('<br>');
+        niBody.appendChild(tdN);
       }
 
       document.getElementById('customTablesContainer').innerHTML = buildCustomTablesHTML(data.customTables || [], true);
       applyHiddenElements(data.hiddenIds || []);
+    }
+
+    function copyCustomTable(tIdx) {
+      const t = (store[currentDept].customTables || [])[tIdx];
+      if (!t) return;
+      copiedTableClipboard = JSON.parse(JSON.stringify(t));
+      renderDepartment(currentDept);
+      alert(`تم نسخ الجدول (${t.title || 'بدون عنوان'}) بنجاح!`);
+    }
+
+    function pasteCustomTable() {
+      if (!copiedTableClipboard) return alert('لا يوجد جدول منسوخ في الذاكرة المؤقتة.');
+      const data = store[currentDept];
+      if (!Array.isArray(data.customTables)) data.customTables = [];
+      const newT = JSON.parse(JSON.stringify(copiedTableClipboard));
+      newT.id = 'ct-' + Date.now();
+      if (newT.title) newT.title += ' (نسخة)';
+      data.customTables.push(newT);
+      renderDepartment(currentDept);
+      onUserEdit();
+      alert('تم لصق الجدول بنجاح!');
     }
 
     function insertCustomCol(tIdx, afterColIdx) {
@@ -1578,25 +1631,11 @@
       onUserEdit();
     }
 
-    function copyCustomTable(tIdx) {
-      const t = (store[currentDept].customTables || [])[tIdx];
-      if (!t) return;
-      copiedTableClipboard = JSON.parse(JSON.stringify(t));
-      renderDepartment(currentDept);
-      alert(`تم نسخ الجدول (${t.title || 'بدون عنوان'}) بنجاح!`);
-    }
-
-    function pasteCustomTable() {
-      if (!copiedTableClipboard) return alert('لا يوجد جدول منسوخ في الذاكرة المؤقتة.');
-      const data = store[currentDept];
-      if (!Array.isArray(data.customTables)) data.customTables = [];
-      const newT = JSON.parse(JSON.stringify(copiedTableClipboard));
-      newT.id = 'ct-' + Date.now();
-      if (newT.title) newT.title += ' (نسخة)';
-      data.customTables.push(newT);
+    function deleteCustomTable(tIdx) {
+      if (!confirm('هل تريد حذف هذا الجدول الإضافي بالكامل؟')) return;
+      store[currentDept].customTables.splice(tIdx, 1);
       renderDepartment(currentDept);
       onUserEdit();
-      alert('تم لصق الجدول بنجاح!');
     }
 
     function onCustomTitleEdit(tIdx, el) {
@@ -1930,36 +1969,35 @@
 
       selected.forEach(dept => {
         const d = store[dept] || getEmptyTemplate(dept);
-        const hiddenIds = d.hiddenIds || [];
         const page = document.createElement('div');
         page.className = `a4-page ${d.orientation === 'landscape' ? 'landscape' : 'portrait'}`;
         page.innerHTML = `
           <div class="page-title">${d.mainTitle || ''}</div>
-          ${!hiddenIds.includes('sec-morning') ? `
+          ${!d.hiddenIds.includes('sec-morning') ? `
           <div class="section-wrapper">
             <table class="morning-table">
               <thead><tr><th>${d.morningHeader}</th></tr></thead>
               <tbody><tr><td>${toLinesArray(d.morningNames).join('<br>')}</td></tr></tbody>
             </table>
           </div>` : ''}
-          ${!hiddenIds.includes('sec-evening') ? `
+          ${!d.hiddenIds.includes('sec-evening') ? `
           <div class="section-wrapper">
             <div class="section-heading">${d.eveningTitle}</div>
             <table>
-              <thead><tr>${d.periods.map((p, i) => hiddenIds.includes(`ev-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
-              <tbody><tr>${d.eveningCols.map((c, i) => hiddenIds.includes(`ev-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
+              <thead><tr>${d.periods.map((p, i) => d.hiddenIds.includes(`ev-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
+              <tbody><tr>${d.eveningCols.map((c, i) => d.hiddenIds.includes(`ev-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
-          ${!hiddenIds.includes('sec-night') ? `
+          ${!d.hiddenIds.includes('sec-night') ? `
           <div class="section-wrapper">
             <div class="section-heading">${d.nightTitle}</div>
             <table>
-              <thead><tr>${((d.nightPeriods && d.nightPeriods.length === 6) ? d.nightPeriods : DEFAULT_PERIODS).map((p, i) => hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
-              <tbody><tr>${d.nightCols.map((c, i) => hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
+              <thead><tr>${((d.nightPeriods && d.nightPeriods.length === 6) ? d.nightPeriods : DEFAULT_PERIODS).map((p, i) => d.hiddenIds.includes(`ni-col-h-${i}`) ? '' : `<th>${p}</th>`).join('')}</tr></thead>
+              <tbody><tr>${d.nightCols.map((c, i) => d.hiddenIds.includes(`ni-col-b-${i}`) ? '' : `<td>${toLinesArray(c).join('<br>')}</td>`).join('')}</tr></tbody>
             </table>
           </div>` : ''}
           ${buildCustomTablesHTML(d.customTables || [], false)}
-          ${!hiddenIds.includes('sec-signature') ? `
+          ${!d.hiddenIds.includes('sec-signature') ? `
           <div class="signature-box">
             <div class="signature-content">${String(d.signature || '').replace(/\r?\n/g, '<br>')}</div>
           </div>` : ''}
