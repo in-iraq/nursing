@@ -616,6 +616,14 @@
     <div class="toolbar-row">
       <div class="controls-group">
         <div class="control-item">
+          <label>اتجاه A4:</label>
+          <select id="orientationSelect" onchange="updateOrientation(this.value)">
+            <option value="portrait">عمودي (Portrait)</option>
+            <option value="landscape">بالعرض (Landscape)</option>
+          </select>
+        </div>
+
+        <div class="control-item">
           <label>السنة:</label>
           <select id="yearSelect" onchange="updateTitleAndSave()">
             <option value="2025">2025</option>
@@ -647,14 +655,6 @@
           <select id="deptSelect" onchange="switchDepartment(this.value)"></select>
         </div>
 
-        <div class="control-item">
-          <label>اتجاه A4:</label>
-          <select id="orientationSelect" onchange="updateOrientation(this.value)">
-            <option value="portrait">عمودي (Portrait)</option>
-            <option value="landscape">بالعرض (Landscape)</option>
-          </select>
-        </div>
-
         <div id="syncBadge" class="sync-badge fetching">
           <span id="syncText">⏳ جاري قراءة البيانات من الشيت...</span>
         </div>
@@ -680,63 +680,61 @@
 
   <!-- منطقة عرض ورقة A4 -->
   <main class="a4-container">
-    <div class="a4-scale-wrapper" id="a4ScaleWrapper">
-      <div class="a4-page" id="activeA4Page">
-        <div class="page-title" id="sheetMainTitle" contenteditable="true" oninput="onUserEdit()"></div>
+    <div class="a4-page" id="activeA4Page">
+      <div class="page-title" id="sheetMainTitle" contenteditable="true" oninput="onUserEdit()"></div>
 
-        <!-- جدول الخفر الصباحي -->
-        <div class="section-wrapper" id="sec-morning">
-          <button class="hide-btn" onclick="toggleHideElement('sec-morning')">👁️ إخفاء الجدول الصباحي</button>
-          <table class="morning-table">
-            <thead>
-              <tr>
-                <th id="morningHeader" contenteditable="true" oninput="onUserEdit()"></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td id="morningBody" contenteditable="true" oninput="onUserEdit()"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <!-- جدول الخفر الصباحي -->
+      <div class="section-wrapper" id="sec-morning">
+        <button class="hide-btn" onclick="toggleHideElement('sec-morning')">👁️ إخفاء الجدول الصباحي</button>
+        <table class="morning-table">
+          <thead>
+            <tr>
+              <th id="morningHeader" contenteditable="true" oninput="onUserEdit()"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td id="morningBody" contenteditable="true" oninput="onUserEdit()"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-        <!-- جدول الخفر المسائي -->
-        <div class="section-wrapper" id="sec-evening">
-          <button class="hide-btn" onclick="toggleHideElement('sec-evening')">👁️ إخفاء الجدول المسائي</button>
-          <div class="section-heading" id="eveningTitle" contenteditable="true" oninput="onUserEdit()"></div>
-          <table>
-            <thead>
-              <tr id="eveningHeadRow"></tr>
-            </thead>
-            <tbody>
-              <tr id="eveningBodyRow"></tr>
-            </tbody>
-          </table>
-        </div>
+      <!-- جدول الخفر المسائي -->
+      <div class="section-wrapper" id="sec-evening">
+        <button class="hide-btn" onclick="toggleHideElement('sec-evening')">👁️ إخفاء الجدول المسائي</button>
+        <div class="section-heading" id="eveningTitle" contenteditable="true" oninput="onUserEdit()"></div>
+        <table>
+          <thead>
+            <tr id="eveningHeadRow"></tr>
+          </thead>
+          <tbody>
+            <tr id="eveningBodyRow"></tr>
+          </tbody>
+        </table>
+      </div>
 
-        <!-- جدول الخفر الليلي -->
-        <div class="section-wrapper" id="sec-night">
-          <button class="hide-btn" onclick="toggleHideElement('sec-night')">👁️ إخفاء الجدول الليلي</button>
-          <div class="section-heading" id="nightTitle" contenteditable="true" oninput="onUserEdit()"></div>
-          <table>
-            <thead>
-              <tr id="nightHeadRow"></tr>
-            </thead>
-            <tbody>
-              <tr id="nightBodyRow"></tr>
-            </tbody>
-          </table>
-        </div>
+      <!-- جدول الخفر الليلي -->
+      <div class="section-wrapper" id="sec-night">
+        <button class="hide-btn" onclick="toggleHideElement('sec-night')">👁️ إخفاء الجدول الليلي</button>
+        <div class="section-heading" id="nightTitle" contenteditable="true" oninput="onUserEdit()"></div>
+        <table>
+          <thead>
+            <tr id="nightHeadRow"></tr>
+          </thead>
+          <tbody>
+            <tr id="nightBodyRow"></tr>
+          </tbody>
+        </table>
+      </div>
 
-        <!-- حاوية الجداول الإضافية المخصصة -->
-        <div id="customTablesContainer"></div>
+      <!-- حاوية الجداول الإضافية المخصصة -->
+      <div id="customTablesContainer"></div>
 
-        <!-- التوقيع -->
-        <div class="section-wrapper signature-box" id="sec-signature">
-          <button class="hide-btn" onclick="toggleHideElement('sec-signature')">👁️ إخفاء التوقيع</button>
-          <div class="signature-content" id="signatureText" contenteditable="true" oninput="onUserEdit()"></div>
-        </div>
+      <!-- التوقيع -->
+      <div class="section-wrapper signature-box" id="sec-signature">
+        <button class="hide-btn" onclick="toggleHideElement('sec-signature')">👁️ إخفاء التوقيع</button>
+        <div class="signature-content" id="signatureText" contenteditable="true" oninput="onUserEdit()"></div>
       </div>
     </div>
   </main>
@@ -745,7 +743,7 @@
   <div id="printBatchContainer"></div>
 
   <!-- نافذة إضافة / تخصيص جدول جديد -->
-  <div class="modal-overlay" id="customTableModal">
+  <div class="modal-overlay" id="customTableModal" onclick="if(event.target === this) closeModals()">
     <div class="modal-card">
       <div class="modal-header">
         <span id="customTableModalTitle">➕ إضافة جدول مخصص وتحديد حجمه</span>
@@ -819,7 +817,7 @@
   </div>
 
   <!-- نافذة تحديد الأقسام للتفريغ -->
-  <div class="modal-overlay" id="clearModal">
+  <div class="modal-overlay" id="clearModal" onclick="if(event.target === this) closeModals()">
     <div class="modal-card">
       <div class="modal-header">
         <span>🗑️ تحديد الأقسام لتفريغ الأسماء</span>
@@ -839,7 +837,7 @@
   </div>
 
   <!-- نافذة تحديد الأقسام للطباعة -->
-  <div class="modal-overlay" id="printModal">
+  <div class="modal-overlay" id="printModal" onclick="if(event.target === this) closeModals()">
     <div class="modal-card">
       <div class="modal-header">
         <span>🖨️ تحديد الأقسام للطباعة (A4)</span>
@@ -1098,15 +1096,6 @@
       pullFromGoogleSheets(true);
     }
 
-    function updateOrientation(val) {
-      const data = store[currentDept];
-      if (data) {
-        data.orientation = val;
-        renderDepartment(currentDept);
-        onUserEdit();
-      }
-    }
-
     function buildCustomTablesHTML(tablesList, isEditable = false) {
       if (!Array.isArray(tablesList) || tablesList.length === 0) return '';
       return tablesList.map((t, tIdx) => {
@@ -1199,15 +1188,17 @@
       }).join('');
     }
 
+    function updateOrientation(val) {
+      const data = store[currentDept];
+      if (data) {
+        data.orientation = val;
+        renderDepartment(currentDept);
+        onUserEdit();
+      }
+    }
+
     function renderDepartment(dept) {
       const data = store[dept] || getEmptyTemplate(dept);
-      document.getElementById('sheetMainTitle').textContent = data.mainTitle || "";
-      document.getElementById('morningHeader').textContent = data.morningHeader || "";
-      document.getElementById('morningBody').innerHTML = toLinesArray(data.morningNames).join('<br>');
-      document.getElementById('eveningTitle').textContent = data.eveningTitle || "";
-      document.getElementById('nightTitle').textContent = data.nightTitle || "";
-      document.getElementById('signatureText').innerHTML = String(data.signature || "").replace(/\r?\n/g, '<br>');
-
       const orientSel = document.getElementById('orientationSelect');
       if (orientSel) orientSel.value = data.orientation || 'portrait';
 
@@ -1216,6 +1207,12 @@
         pageEl.classList.toggle('landscape', data.orientation === 'landscape');
         pageEl.classList.toggle('portrait', data.orientation !== 'landscape');
       }
+      document.getElementById('sheetMainTitle').textContent = data.mainTitle || "";
+      document.getElementById('morningHeader').textContent = data.morningHeader || "";
+      document.getElementById('morningBody').innerHTML = toLinesArray(data.morningNames).join('<br>');
+      document.getElementById('eveningTitle').textContent = data.eveningTitle || "";
+      document.getElementById('nightTitle').textContent = data.nightTitle || "";
+      document.getElementById('signatureText').innerHTML = String(data.signature || "").replace(/\r?\n/g, '<br>');
 
       const evHead = document.getElementById('eveningHeadRow');
       const evBody = document.getElementById('eveningBodyRow');
@@ -1262,7 +1259,6 @@
       applyHiddenElements(data.hiddenIds || []);
     }
 
-    /* ١. إضافة وحذف الأعمدة والصفوف مع رسالة تأكيد */
     function insertCustomCol(tIdx, afterColIdx) {
       const t = (store[currentDept].customTables || [])[tIdx];
       if (!t) return;
@@ -1328,7 +1324,6 @@
       onUserEdit();
     }
 
-    /* ٢. تغيير حجم الجدول والأعمدة والصفوف بالسحب المباشر */
     function showTooltip(x, y, text) {
       const tip = document.getElementById('resizeTooltip');
       tip.textContent = text;
@@ -1923,14 +1918,13 @@
     }
 
     function closeModals() {
-      document.getElementById('printModal').classList.remove('active');
+      document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
     }
 
     function executeBatchPrint() {
       const selected = Array.from(document.querySelectorAll('.print-dept-cb:checked')).map(cb => cb.value);
       if (selected.length === 0) return alert('الرجاء اختيار قسم واحد على الأقل للطباعة.');
 
-      const month = document.getElementById('monthSelect').value;
       const batchContainer = document.getElementById('printBatchContainer');
       batchContainer.innerHTML = '';
 
