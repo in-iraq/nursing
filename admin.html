@@ -597,6 +597,10 @@
         page-break-after: always;
         break-after: page;
       }
+      .a4-page.landscape {
+        width: 297mm !important;
+        height: 210mm !important;
+      }
     }
   </style>
 </head>
@@ -1191,7 +1195,7 @@
       if (data) {
         data.orientation = val;
         renderDepartment(currentDept);
-        onUserEdit();
+        onUserEdit(); // حفظ وإرسال التغيير للشيت فوراً
       }
     }
 
@@ -1730,14 +1734,15 @@
         const orig = store[dept] || getEmptyTemplate(dept);
         const d = JSON.parse(JSON.stringify(orig));
         const cleanSig = String(d.signature || "").split("<!--META:")[0].split("<!--HIDDEN:")[0].trim();
-        const hasHidden = d.hiddenIds && d.hiddenIds.length > 0;
-        const hasCustom = d.customTables && d.customTables.length > 0;
-        if (hasHidden || hasCustom) {
-          const meta = { hiddenIds: d.hiddenIds || [], customTables: d.customTables || [] };
-          d.signature = cleanSig + "\n<!--META:" + JSON.stringify(meta) + "-->";
-        } else {
-          d.signature = cleanSig;
-        }
+        
+        // حفظ الاتجاه (orientation) مع البيانات والاعمدة داخل وسم META
+        const meta = {
+          hiddenIds: d.hiddenIds || [],
+          customTables: d.customTables || [],
+          orientation: d.orientation || 'portrait'
+        };
+        d.signature = cleanSig + "\n<!--META:" + JSON.stringify(meta) + "-->";
+
         const exactSheetTab = sheetTabNameMap[dept] || dept;
         departmentsPayload[exactSheetTab] = d;
         if (exactSheetTab !== dept) {
